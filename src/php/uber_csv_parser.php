@@ -37,12 +37,14 @@ if (($handle = fopen("uber.csv", "r")) !== FALSE) {
     $bad_contacts = Array();
     $bad_contact_list = '';
     $bad_contats_count = 0;
+    $successfull_loads_count = 0;
 
     $already_exists_trips_count = 0;
+    $query = '';
 
     while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
 
-        $query = '';
+        //$query = '';
         if ($row > 1) {
 
             // check for a trip presence in db
@@ -56,18 +58,10 @@ if (($handle = fopen("uber.csv", "r")) !== FALSE) {
                 }
 
                 if (! $driver_index) {
-                    echo 'Driver does\'t related to any existing : ' . $data[0] . ' Phone: ' . $data[1] . '<br>';
-                    // $driver_index = array_search($data[0], $names);
-                    // if ($driver_index) {
-                    //     echo '             But successfully found by fullname : ' . $data[0] . ' Phone: ' . $data[1] . '<br>';
-                    // }
 
                     $contact = 'Fullname: ' . $data[0] . ' Phone: ' . $data[1];
                     $bad_contacts_count++;
 
-                    //echo array_search($contact, $bad_contacts) . '<br>';
-
-                    // if ( count($bad_contacts) == 0 || array_search($contact, $bad_contacts) == false) {
                     if ( array_search($contact, $bad_contacts) > -1 ) {
                     } else {
                         $bad_contacts[count($bad_contacts)] = 'Fullname: ' . $data[0] . ' Phone: ' . $data[1];
@@ -75,6 +69,7 @@ if (($handle = fopen("uber.csv", "r")) !== FALSE) {
 
                     }
                 } else {
+                    $successfull_loads_count++;
                     $query .= "(". $UBER . ',';
                     if ($data[3] == "Misc Payment") {
                         $query .= 'NULL,';
@@ -97,37 +92,37 @@ if (($handle = fopen("uber.csv", "r")) !== FALSE) {
                     $query .= $ids[$driver_index] ;
                     $query .= "),";
 
-                    $insert_query .= $query;
-
-                    echo 'Driver FOUND : ' . $data[0] . ' Phone: ' . $data[1] . '<br>';
-
                 }
             }
         }
         $row++;
 
         if ($row % 100 == 0 ) {
-		    $insert_query = substr($insert_query, 0, strlen($insert_query) - 1 );
-		    echo $insert_query . PHP_EOL;
+            if (strlen($query) > 0) {
+                $query = substr($query, 0, strlen($query) - 1 );
+                echo $insert_query . $query . PHP_EOL;
 
-			$result = mysql_query($insert_query) or die(mysql_error());
-			// echo PHP_EOL . $result . PHP_EOL;
+                $result = mysql_query($insert_query . $query) or die(mysql_error());
 
-			$insert_query = "INSERT INTO trips (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, comission, notes, driver_fullname, driver_phone, driver_id) VALUES ";
+            }
+            $query = "";
         }
     }
 
     if ($row % 100 != 0 ) {
-	    $insert_query = substr($insert_query, 0, strlen($insert_query) - 1 );
-	    echo $insert_query . PHP_EOL;
+            if (strlen($query) > 0) {
+                $query = substr($query, 0, strlen($query) - 1 );
+                echo $insert_query . $query . PHP_EOL;
 
-		$result = mysql_query($insert_query) or die(mysql_error());
-		// echo PHP_EOL . $result . PHP_EOL;
+                $result = mysql_query($insert_query . $query) or die(mysql_error());
+
+            }
     }
 
     echo '<br>Bad Contacts: <br>';
     echo $bad_contact_list . '<br>';
 
+    echo '<br> Successfully loaded: '. $successfull_loads_count;
     echo '<br> Skipped trips with bad contacts: '. $bad_contacts_count;
     echo '<br> Skipped existing trips count: '. $already_exists_trips_count;
     

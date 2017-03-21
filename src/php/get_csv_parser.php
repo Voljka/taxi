@@ -32,71 +32,129 @@ $TRIP_CASH = 1;
 $TRIP_CARD = 3;
 
 if (($handle = fopen("get.csv", "r")) !== FALSE) {
-	$insert_query = "INSERT INTO trips (mediator_id, date_time, payment_type_id, fare, comission, notes, driver_fullname, mediator_trip_id, driver_phone) VALUES ";
+
+    $query_drivers = "SELECT id, CONCAT(TRIM(surname),' ',TRIM(firstname),' ',TRIM(patronymic)) fullname FROM drivers";
+
+    $query_result = mysql_query($query_drivers) or die(mysql_error());        
+
+    while ($row1 = mysql_fetch_assoc($query_result)) 
+    {
+        $ids[] = $row1['id'];
+        $names[] = $row1['fullname'];
+    };
+
+    $query_get_trips = "SELECT mediator_trip_id FROM trips WHERE mediator_id = $GET";
+
+    $query_result = mysql_query($query_get_trips) or die(mysql_error());        
+
+    while ($row2 = mysql_fetch_assoc($query_result)) 
+    {
+        $trip_ids[] = $row2['mediator_trip_id'];
+    };
+
+    $insert_query = "INSERT INTO trips (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, comission, notes, driver_fullname, driver_phone, driver_id) VALUES ";
+
+    $bad_contacts = Array();
+    $bad_contact_list = '';
+    $bad_contats_count = 0;
+    $successfull_loads_count = 0;
+
+    $already_exists_trips_count = 0;
+    $query = '';
 
     while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 
         if ($row > 4) {
-        	$insert_query .= "(". $GET . ',';
-        	$insert_query .= '"' . transform_date($data[4]) . '",';
 
-    		if ($data[7] > 0) {
-    			$insert_query .= $TRIP_CASH . ',';
-    	    	$insert_query .= correct_number($data[7]) . ',';
-    		} else {
-    			$insert_query .= $TRIP_CARD . ',';
-	        	$insert_query .= correct_number($data[8]) . ',';
-    		}
+            // check for a trip presence in db
+            if ( array_search($data[2], $trip_ids) > -1 ) {
+                $already_exists_trips_count++;
+            } else {
 
-        	////////////////////////////
-        	///////////////////////////
-        	////////////// COMISSION !!!!!!!!!!!!!!!!!!!
-        	$insert_query .= '0,';
+                // If driver exists in DB
+                if (mb_detect_encoding($data[1]) != "ASCII") {
+                    $contact = translate($data[1]);
+                } else {
+                    $contact = $data[1];
+                }
 
-        	$insert_query .= 'NULL,';
+                $driver_index = array_search($contact, $names);
+                if (! $driver_index) {
 
-        	// echo mb_detect_encoding($data[1]);
-        	// echo " " . $data[1] . PHP_EOL;
-        	// echo " " . translate($data[1]) . PHP_EOL;
+                    $bad_contacts_count++;
 
-        	// echo mb_detect_encoding($data[1]) . PHP_EOL; 
+                    if ( array_search($contact, $bad_contacts) > -1 ) {
+                    } else {
+                        $bad_contacts[count($bad_contacts)] = $contact;
+                        $bad_contact_list .= $contact . '<br>';
+                    }
 
-        	if (mb_detect_encoding($data[1]) != "ASCII") {
-        		$insert_query .= '"' . translate($data[1]) . '",';
-        	} else {
-        		$insert_query .= '"' . $data[1] . '",';
-        	}
-        	
-            $insert_query .= $data[2] . ',';
+                } else {
+                    $successfull_loads_count++;
 
-        	////////////////////////////
-        	///////////////////////////
-        	////////////// PHONE !!!!!!!!!!!!!!!!!!!
-        	$insert_query .= 0 ;
+                	$query .= "(". $GET . ',';
+                	$query .= '"' . transform_date($data[4]) . '",';
+                    $query .= '"' . $data[2] . '",';
 
-        	$insert_query .= "),";
+            		if ($data[7] > 0) {
+            			$query .= $TRIP_CASH . ',';
+            	    	$query .= correct_number($data[7]) . ',';
+            		} else {
+            			$query .= $TRIP_CARD . ',';
+        	        	$query .= correct_number($data[8]) . ',';
+            		}
+
+                	////////////////////////////
+                	///////////////////////////
+                	////////////// COMISSION !!!!!!!!!!!!!!!!!!!
+                	$query .= '0,';
+
+                	$query .= 'NULL,';
+
+                	if (mb_detect_encoding($data[1]) != "ASCII") {
+                		$query .= '"' . translate($data[1]) . '",';
+                	} else {
+                		$query .= '"' . $data[1] . '",';
+                	}
+                	
+                	$query .= 0 . ',';
+                    $query .= $ids[$driver_index] ;
+                	$query .= "),";
+                }
+            }
         }
 
         $row++;
 
         if ($row % 100 == 0 ) {
-		    $insert_query = substr($insert_query, 0, strlen($insert_query) - 1 );
-		    echo $insert_query . PHP_EOL;
+            if (strlen($query) > 0) {
 
-			$result = mysql_query($insert_query) or die(mysql_error());
-			echo PHP_EOL . $result . PHP_EOL;
+                $query = substr($query, 0, strlen($query) - 1 );
+                echo $insert_query . $query . PHP_EOL;
 
-            $insert_query = "INSERT INTO trips (mediator_id, date_time, payment_type_id, fare, comission, notes, driver_fullname, mediator_trip_id, driver_phone) VALUES ";
+                $result = mysql_query($insert_query . $query) or die(mysql_error());
+
+            }
+            $query = "";
         }
     }
 
     if ($row % 100 != 0 ) {
-	    $insert_query = substr($insert_query, 0, strlen($insert_query) - 1 );
-	    echo $insert_query . PHP_EOL;
+        if (strlen($query) > 0) {
+            $query = substr($query, 0, strlen($query) - 1 );
+            echo $insert_query . $query . PHP_EOL;
 
-		$result = mysql_query($insert_query) or die(mysql_error());
-		echo PHP_EOL . $result . PHP_EOL;
+            $result = mysql_query($insert_query . $query) or die(mysql_error());
+
+        }
     }
+
+    echo '<br>Bad Contacts: <br>';
+    echo $bad_contact_list . '<br>';
+
+    echo '<br> Successfully loaded: '. $successfull_loads_count;
+    echo '<br> Skipped trips with bad contacts: '. $bad_contacts_count;
+    echo '<br> Skipped existing trips count: '. $already_exists_trips_count;    
     
     fclose($handle);
 }
