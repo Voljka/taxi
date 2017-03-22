@@ -10,7 +10,7 @@ var app = angular
 		'ui.router', 
 		'ngRoute', 
 		'driverModule',
-		// 'commodityCardModule',
+		'driverCardModule',
 	])
 
 	.controller('MainCtrl', function($scope) {

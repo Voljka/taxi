@@ -11,12 +11,6 @@
 	</div>
 </div>
 
-<div class="row">
-	<flash-message>
-		<div class="flash-div">{{ flash.text}}</div>
-	</flash-message>
-</div>
-
 <div class="driver-div">
 	<table class="table table-bordered">
 		<thead>

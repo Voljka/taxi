@@ -21,10 +21,11 @@ function DriverService($http) {
   function add(data) {
 
     return $http
-      .post(API_SERVER + '/add.php', data, {
-         transformRequest: angular.identity,
-         headers: {'Content-Type': undefined}
-       })
+      // .post(API_SERVER + '/add.php', data, {
+      //    transformRequest: angular.identity,
+      //    headers: {'Content-Type': undefined}
+      //  })
+      .post(API_SERVER + '/add.php', data)
       .then(function (data) {
         return data.data;
       })
@@ -35,10 +36,11 @@ function DriverService($http) {
 
   function update(data) {
     return $http
-      .post(API_SERVER + '/update.php', data, {
-         transformRequest: angular.identity,
-         headers: {'Content-Type': undefined}
-       })
+      // .post(API_SERVER + '/update.php', data, {
+      //    transformRequest: angular.identity,
+      //    headers: {'Content-Type': undefined}
+      //  })
+      .post(API_SERVER + '/update.php', data)
       .then(function (data) {
         return data.data;
       })

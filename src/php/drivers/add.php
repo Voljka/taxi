@@ -2,22 +2,22 @@
 
 	require ('../config/db.config.php');
 
-    $active = $_POST['active'];
-    $work_type_id = $_POST['work_type_id'];
-    $firtsname = $_POST['firstname'];
-    $patronymic = $_POST['patronymic'];
-    $surname = $_POST['surname'];
-    $phone = $_POST['phone'];
-    $phone2 = $_POST['phone2'];
-    $email = $_POST['email'];
-    $card_number = $_POST['card_number'];
-    $beneficiar = $_POST['beneficiar'];
-    $bank_id = $_POST['bank_id'];
-    $notes = $_POST['notes'];
-    $rent = $_POST['rent'];
-    $registration_date = $_POST['registration_date'];
+    $params = json_decode(file_get_contents('php://input'),true);
 
-	//$curdate = date("Y-m-d");
+    $active = $params['active'];
+    $work_type_id = $params['work_type_id'];
+    $firstname = $params['firstname'];
+    $patronymic = $params['patronymic'];
+    $surname = $params['surname'];
+    $phone = $params['phone'];
+    $phone2 = $params['phone2'];
+    $email = $params['email'];
+    $card_number = $params['card_number'];
+    $beneficiar = $params['beneficiar'];
+    $bank_id = $params['bank_id'];
+    $notes = $params['notes'];
+    $rent = $params['rent'];
+    $registration_date = $params['registration_date'] == '' ? 'NULL' : "'". $params['registration_date'] . "'";
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "drivers";
@@ -36,11 +36,11 @@
 	$query .="bank_id,";
 	$query .="'notes',";
     $query .="$rent,";
-    $query .="'registration_date')";
+    $query .="registration_date)";
 
 	file_put_contents('../logs/drivers.log', date("Y-m-d H:i:s") . ' ' .$query . PHP_EOL , FILE_APPEND);
 	// echo $query;
 	
-	// $result = mysql_query($query) or die(mysql_error());
+	$result = mysql_query($query) or die(mysql_error());
 	
 ?>

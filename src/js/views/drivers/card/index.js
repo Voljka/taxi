@@ -1,45 +1,40 @@
 'use strict'
 
-var controller = require('./controller');
-var consumerService = require('../../../services/ConsumerService');
-var regionService = require('../../../services/RegionService');
-var workerService = require('../../../services/WorkerService');
-var tttypeService = require('../../../services/TTTypeService');
+require('angular-input-masks');
+require('angular-flash-alert');
 
-angular.module('consumerCardModule', [])
+var controller = require('./driver-card-ctrl');
+var driverService = require('../../../services/DriverService');
+var bankService = require('../../../services/BankService');
+var groupService = require('../../../services/GroupService');
+
+angular.module('driverCardModule', ['ui.utils.masks', 'ngFlash'])
   .config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.withCredentials = true;
   }])
-  .factory('ConsumerService', ['$http', consumerService])
-  .factory('RegionService', ['$http', regionService])
-  .factory('WorkerService', ['$http', workerService])
-  .factory('TTTypeService', ['$http', tttypeService])
-  .controller('ConsumerCardCtrl', ['$scope', '$state', 'workerList', 'regionList', 'tttypeList' ,'current', 'ConsumerService', controller])
+  .factory('DriverService', ['$http', driverService])
+  .factory('BankService', ['$http', bankService])
+  .factory('GroupService', ['$http', groupService])
+  .controller('DriverCardCtrl', ['$scope', '$state', 'groupList', 'bankList', 'current', 'DriverService', 'BankService', 'GroupService', 'Flash', controller])
 
 module.exports = {
-  template: require('./template.tpl'), 
+  template: require('./driver-card.tpl'), 
   resolve: {
-    current: ['ConsumerService', function (ConsumerService) {
-     	return ConsumerService.current();
+    current: ['DriverService', function (DriverService) {
+     	return DriverService.current();
     }],
-    workerList: ['WorkerService', function (WorkerService) {
-    return WorkerService.all()
+    bankList: ['BankService', function (BankService) {
+    return BankService.all()
       .then(function(data) {
         return data;
       })
     }],
-    tttypeList: ['TTTypeService', function (TTTypeService) {
-    return TTTypeService.all()
+    groupList: ['GroupService', function (GroupService) {
+    return GroupService.all()
       .then(function(data) {
         return data;
       })
     }],
-    regionList: ['RegionService', function(RegionService) {
-    return RegionService.all()
-      .then(function(data) {
-        return data;
-      })
-    }]    
   },
-  controller: 'ConsumerCardCtrl'
+  controller: 'DriverCardCtrl'
 };
