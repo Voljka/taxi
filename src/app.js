@@ -4,6 +4,8 @@ require('angular-ui-router');
 
 var driversTemplate = require('./js/views/drivers');
 var driverCardTemplate = require('./js/views/drivers/card');
+var importTemplate = require('./js/views/import');
+var weeklyTemplate = require('./js/views/weekly');
 
 var app = angular
 	.module('taxiApp', [
@@ -11,6 +13,8 @@ var app = angular
 		'ngRoute', 
 		'driverModule',
 		'driverCardModule',
+		'importModule',
+		'weeklyModule',
 	])
 
 	.controller('MainCtrl', function($scope) {
@@ -44,19 +48,13 @@ var app = angular
 	        .state('get_load', {
 	            url: '/get_data_load',
 	            views: {
-	            	'content': {
-	            		template: '<h1>Loading GET data interface</h1>'
-	            	}
-	            	// 'content': dailyTemplate
+	            	'content': importTemplate
 	            }
 	        })
 	        .state('uber_load', {
 	            url: '/uber_data_load',
 	            views: {
-	            	'content': {
-	            		template: '<h1>Loading UBER data interface</h1>'
-	            	}
-	            	// 'content': dailyTemplate
+	            	'content': importTemplate
 	            }
 	        })
 
@@ -72,10 +70,10 @@ var app = angular
 	        .state('weekly', {
 	            url: '/weekly_summary',
 	            views: {
-	            	'content': {
-	            		template: '<h1>Weekly Report</h1>'
-	            	}
-	            	// 'content': weeklyTemplate
+	            	// 'content': {
+	            	// 	template: '<h1>Weekly Report</h1>'
+	            	// }
+	            	'content': weeklyTemplate
 	            }
 	        })
 

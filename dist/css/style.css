@@ -13,3 +13,6 @@ thead > tr > td {
 
 table {
   font-size: 12px !important; }
+
+.digit {
+  text-align: right; }
