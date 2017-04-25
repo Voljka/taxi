@@ -6,6 +6,7 @@ var driversTemplate = require('./js/views/drivers');
 var driverCardTemplate = require('./js/views/drivers/card');
 var importTemplate = require('./js/views/import');
 var weeklyTemplate = require('./js/views/weekly');
+var dailyTemplate = require('./js/views/daily');
 
 var app = angular
 	.module('taxiApp', [
@@ -15,6 +16,7 @@ var app = angular
 		'driverCardModule',
 		'importModule',
 		'weeklyModule',
+		'dailyModule',
 	])
 
 	.controller('MainCtrl', function($scope) {
@@ -61,10 +63,10 @@ var app = angular
 	        .state('daily', {
 	            url: '/daily_summary',
 	            views: {
-	            	'content': {
-	            		template: '<h1>Daily Report</h1>'
-	            	}
-	            	// 'content': dailyTemplate
+	            	// 'content': {
+	            	// 	template: '<h1>Daily Report</h1>'
+	            	// }
+	            	'content': dailyTemplate
 	            }
 	        })
 	        .state('weekly', {

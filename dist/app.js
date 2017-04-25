@@ -66121,8 +66121,9 @@ var driversTemplate = require('./js/views/drivers');
 var driverCardTemplate = require('./js/views/drivers/card');
 var importTemplate = require('./js/views/import');
 var weeklyTemplate = require('./js/views/weekly');
+var dailyTemplate = require('./js/views/daily');
 
-var app = angular.module('taxiApp', ['ui.router', 'ngRoute', 'driverModule', 'driverCardModule', 'importModule', 'weeklyModule']).controller('MainCtrl', function ($scope) {
+var app = angular.module('taxiApp', ['ui.router', 'ngRoute', 'driverModule', 'driverCardModule', 'importModule', 'weeklyModule', 'dailyModule']).controller('MainCtrl', function ($scope) {
 	$scope.temporal_variable = 'Ok';
 }).config(function ($stateProvider, $urlRouterProvider) {
 
@@ -66156,10 +66157,10 @@ var app = angular.module('taxiApp', ['ui.router', 'ngRoute', 'driverModule', 'dr
 	}).state('daily', {
 		url: '/daily_summary',
 		views: {
-			'content': {
-				template: '<h1>Daily Report</h1>'
-			}
-			// 'content': dailyTemplate
+			// 'content': {
+			// 	template: '<h1>Daily Report</h1>'
+			// }
+			'content': dailyTemplate
 		}
 	}).state('weekly', {
 		url: '/weekly_summary',
@@ -66172,7 +66173,7 @@ var app = angular.module('taxiApp', ['ui.router', 'ngRoute', 'driverModule', 'dr
 	});
 });
 
-},{"./js/views/drivers":56,"./js/views/drivers/card":53,"./js/views/import":59,"./js/views/weekly":60,"angular":37,"angular-route":34,"angular-ui-router":35}],42:[function(require,module,exports){
+},{"./js/views/daily":55,"./js/views/drivers":61,"./js/views/drivers/card":58,"./js/views/import":64,"./js/views/weekly":65,"angular":37,"angular-route":34,"angular-ui-router":35}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -66181,6 +66182,8 @@ Object.defineProperty(exports, "__esModule", {
 var BANK_SBERBANK = exports.BANK_SBERBANK = 1;
 var BANK_CASH = exports.BANK_CASH = 11;
 var GROUP_NOT_SPECIFIED = exports.GROUP_NOT_SPECIFIED = 99;
+
+var CALC_WAGE_BY_COMMON_RULE = exports.CALC_WAGE_BY_COMMON_RULE = 1;
 
 },{}],43:[function(require,module,exports){
 'use strict';
@@ -66192,6 +66195,8 @@ exports.formattedToSave = formattedToSave;
 exports.formattedToRu = formattedToRu;
 exports.datePlusDays = datePlusDays;
 exports.daysFromToday = daysFromToday;
+exports.treatAsUTC = treatAsUTC;
+exports.daysBetween = daysBetween;
 function formattedToSave(dat) {
 	var curr_date = dat.getDate();
 	var curr_month = dat.getMonth() + 1;
@@ -66218,6 +66223,17 @@ function daysFromToday(specified_date) {
 	var today = new Date();
 
 	return ((specified_date - today) / 24 / 60 / 60 / 1000).toFixed();
+}
+
+function treatAsUTC(date) {
+	var result = new Date(date);
+	result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
+	return result;
+}
+
+function daysBetween(startDate, endDate) {
+	var millisecondsPerDay = 24 * 60 * 60 * 1000;
+	return (treatAsUTC(endDate) - treatAsUTC(startDate)) / millisecondsPerDay;
 }
 
 },{}],44:[function(require,module,exports){
@@ -66305,6 +66321,37 @@ module.exports = BankService;
 },{}],47:[function(require,module,exports){
 'use strict';
 
+var API_SERVER = 'php/debts/';
+
+function DebtService($http) {
+
+  function close(data) {
+    return $http.post(API_SERVER + '/close.php', data).then(function (result) {
+      return result.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function add(data) {
+    return $http.post(API_SERVER + '/add.php', data).then(function (result) {
+      return result.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  return {
+    add: add,
+    close: close
+  };
+}
+
+module.exports = DebtService;
+
+},{}],48:[function(require,module,exports){
+'use strict';
+
 var API_SERVER = 'php/drivers';
 // var REPORT_API = 'php/reports';
 
@@ -66367,7 +66414,7 @@ function DriverService($http) {
 
 module.exports = DriverService;
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 var API_SERVER = 'php/groups';
@@ -66427,7 +66474,7 @@ function GroupService($http) {
 
 module.exports = GroupService;
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 var API_SERVER = 'php/import';
@@ -66499,20 +66546,81 @@ function ImportService($http) {
 
 module.exports = ImportService;
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
+'use strict';
+
+var API_SERVER = 'php/payouts';
+
+var current;
+
+function PayoutService($http) {
+
+  function perRange(data) {
+
+    var url = API_SERVER + '/perRange.php?driver_id=' + data.driver_id + '&start=' + data.start;
+
+    return $http.get(url, { cache: false }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function add(data) {
+
+    return $http.post(API_SERVER + '/add.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function update(data) {
+    return $http.post(API_SERVER + '/update.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function remove(data) {
+    return $http.post(API_SERVER + '/remove.php', { id: data.id }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function getCurrent() {
+    return current;
+  }
+
+  function select(selectedObject) {
+    current = selectedObject;
+  }
+
+  return {
+    perRange: perRange,
+    current: getCurrent,
+    select: select,
+    add: add,
+    update: update,
+    remove: remove
+
+  };
+}
+
+module.exports = PayoutService;
+
+},{}],52:[function(require,module,exports){
 'use strict';
 
 var API_SERVER = 'php/trips';
 
-// var current;
-
 function TripService($http) {
 
   function weekly(range) {
-    return $http.post(API_SERVER + '/weeklybyrange.php', range /*, {
-                                                               transformRequest: angular.identity,
-                                                               headers: {'Content-Type': undefined}
-                                                               }*/).then(function (data) {
+    return $http.post(API_SERVER + '/weeklybyrange.php', range).then(function (data) {
       return data.data;
     }).catch(function () {
       return undefined;
@@ -66520,11 +66628,38 @@ function TripService($http) {
   }
 
   function daily(range) {
-    return $http.post(API_SERVER + '/dailybyrange.php', range /*, {
-                                                              transformRequest: angular.identity,
-                                                              headers: {'Content-Type': undefined}
-                                                              }*/).then(function (data) {
+    return $http.post(API_SERVER + '/dailybyrange.php', range).then(function (data) {
       return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function our1_1() {
+
+    var range = {
+      start: "2017-03-27",
+      end: "2017-03-29"
+    };
+
+    return $http.post(API_SERVER + '/our1_1.php', range).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function closeDailyDay(data) {
+    return $http.post(API_SERVER + '/closeDay.php', data).then(function (result) {
+      return result.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function saveDayDriverWithdrawals(data) {
+    return $http.post(API_SERVER + '/saveDailyIndividuals.php', data).then(function (result) {
+      return result.data;
     }).catch(function () {
       return undefined;
     });
@@ -66532,14 +66667,839 @@ function TripService($http) {
 
   return {
     weekly: weekly,
-    daily: daily
+    daily: daily,
+    our1_1: our1_1,
+    closeDailyDay: closeDailyDay,
+    saveDayDriverWithdrawals: saveDayDriverWithdrawals
 
   };
 }
 
 module.exports = TripService;
 
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
+'use strict';
+
+var _lodash = require('lodash');
+
+var _date = require('../../libs/date');
+
+var _common = require('../../constants/common');
+
+function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService, Flash) {
+
+   $scope.payouts = [];
+   $scope.totalPayouts = [];
+   $scope.residualToPay = 0;
+
+   var message, flashWindow;
+
+   var counter = 10000000000;
+
+   function getCounter() {
+      return counter++;
+   }
+
+   function fuelByTotal(total) {
+      var res;
+
+      switch (true) {
+         case total < 7500:
+            res = 1200;
+            break;
+         case total < 8000:
+            res = 1250;
+            break;
+         case total < 8500:
+            res = 1300;
+            break;
+         case total < 9000:
+            res = 1400;
+            break;
+         case total < 9500:
+            res = 1500;
+            break;
+         case total < 11000:
+            res = 1650;
+            break;
+         case total < 12000:
+            res = 1850;
+            break;
+         case total < 14000:
+            res = 2200;
+            break;
+         // case (total < 16000) : 
+         //     res = 2500;
+         //     break;
+         default:
+            res = 2500;
+            break;
+      }
+
+      return res;
+   }
+
+   $scope.hasSelectedRow = false;
+
+   var tripList = data.data;
+   $scope.lastReport = data.last;
+
+   function adjustData() {
+
+      (0, _lodash.map)(tripList, function (obj) {
+         return (0, _lodash.map)(obj, function (o) {
+
+            o.total_payouts = Number(o.total_amount);
+
+            o.uber_sum_comission = Number(o.uber_sum_comission);
+            o.uber_sum_fare = Number(o.uber_sum_fare);
+            o.uber_sum_result = Number(o.uber_sum_result);
+            o.uber_sum_cash = Number(o.uber_sum_cash);
+            o.deferred_debt = Number(o.deferred_debt);
+
+            o.gett_sum_comission = Number(o.gett_sum_comission);
+            o.gett_sum_fare = Number(o.gett_sum_fare);
+            o.gett_sum_result = Number(o.gett_sum_result);
+            o.gett_sum_cash = Number(o.gett_sum_cash);
+
+            o.yandex_cash = o.yandex_cash ? Number(o.yandex_cash) : 0;
+            o.yandex_non_cash = o.yandex_non_cash ? Number(o.yandex_non_cash) : 0;
+
+            o.from_hand_amount = Number(o.from_hand_amount);
+            o.fine_planned_payment = o.fine_planned_payment ? Number(o.fine_planned_payment) : 0;
+
+            o.uber_total = o.uber_sum_fare;
+            o.uber_total_netto = o.uber_sum_fare + o.uber_sum_comission;
+
+            o.gett_total = o.gett_sum_fare + o.gett_sum_comission;
+            o.gett_total_netto = o.gett_sum_fare + o.gett_sum_comission - o.gett_sum_cash;
+
+            o.yandex_total = o.yandex_non_cash + o.yandex_cash;
+            o.yandex_total_netto = Number(((o.yandex_non_cash + o.yandex_cash) * 0.8).toFixed(2));
+
+            o.total_cash = o.from_hand_amount + o.uber_sum_cash + o.gett_sum_cash + o.yandex_cash;
+            o.total = o.from_hand_amount + o.uber_total + o.gett_total + o.yandex_total;
+            o.total_netto = Number((o.total * 0.8).toFixed(2));
+
+            o.covered_company_deficit = o.covered_company_deficit ? Number(o.covered_company_deficit) : 0;
+
+            if (!o.rule_default_id) {
+               o.rule_default_id = String(_common.CALC_WAGE_BY_COMMON_RULE);
+            }
+
+            o.covered = o.payed_by_company ? Number(o.payed_by_company) : 0;
+
+            o.franchise = o.fuel_expenses ? Number(o.fran_from_income) : Number(o.franchise_planned_payment);
+            o.fine = o.fuel_expenses ? Number(o.fine_from_income) + Number(o.fine_from_franchise) : Number(o.fine_planned_payment);
+            o.rental = o.fuel_expenses ? Number(o.rent_from_income) + Number(o.rent_from_franchise) : Number(o.rental_daily_cost);
+
+            var common_wage_rules = o.rule_default_id == _common.CALC_WAGE_BY_COMMON_RULE;
+
+            if (o.fuel_expenses) {
+               if (o.uniq_is60_40 == 1) {
+                  // console.log(o.id, '60/40'); 
+                  o.driver_part = 0.6;
+                  o.rule_default_id = "2";
+               } else {
+                  if (o.uniq_is50_50 == 1) {
+                     o.driver_part = 0.5;
+                     o.rule_default_id = "3";
+                     // console.log(o.id, '50/50'); 
+                  } else {
+                     if (o.uniq_is40_60 == 1) {
+                        o.driver_part = 0.4;
+                        o.rule_default_id = "4";
+                        // console.log(o.id, '40/60'); 
+                     }
+                  }
+               }
+            } else {
+               if (common_wage_rules || !o.rule_default_id) {
+                  o.driver_part = 0.6;
+               }
+            }
+
+            recalcWage(o);
+
+            return o;
+         });
+      });
+   }
+
+   adjustData();
+
+   $scope.isShowingPayouts = false;
+
+   console.log(tripList);
+   // console.log($scope.lastReport);
+
+   $scope.currentDriver = undefined;
+   $scope.shiftDate = undefined;
+   $scope.isShowingDetails = false;
+
+   $scope.dailyList = tripList;
+
+   $scope.removeDebt = function (for_date, driver) {
+      driver.debt = 0;
+      driver.debt_manually_annulled = true;
+
+      recalcWage(driver);
+   };
+
+   $scope.removeFine = function (for_date, driver) {
+      driver.fine = 0;
+      recalcWage(driver);
+   };
+
+   $scope.removeFranchise = function (for_date, driver) {
+      driver.franchise = 0;
+      recalcWage(driver);
+   };
+
+   $scope.editFuel = function (for_date, driver) {
+      driver.editingFuel = true;
+   };
+
+   $scope.editCover = function (for_date, driver) {
+      driver.editingCover = true;
+      recalcWage(driver);
+   };
+
+   $scope.checkEnter = function (keyEvent, driver) {
+      if (keyEvent.which == 13) {
+         driver.editingFuel = false;
+         driver.editingCover = false;
+         recalcWage(driver);
+      }
+   };
+
+   $scope.selectDriver = function (for_date, driver) {
+
+      deselectAll(driver);
+
+      if (!driver.selected) {
+         $scope.currentDriver = driver;
+         $scope.shiftDate = for_date;
+
+         if ((0, _date.daysBetween)($scope.lastReport, for_date).toFixed(0) < 2 && driver.uber_completeness && driver.gett_completeness) {
+            $scope.rowAllowedForSaving = true;
+         } else {
+            $scope.rowAllowedForSaving = false;
+         }
+
+         if (driver.report_date) {
+            $scope.dayAllowedForSaving = false;
+         } else {
+            $scope.dayAllowedForSaving = true;
+         }
+      } else {
+         $scope.rowAllowedForSaving = false;
+         $scope.currentDriver = undefined;
+         $scope.shiftDate = undefined;
+      }
+
+      driver.selected = !driver.selected;
+      $scope.hasSelectedRow = driver.selected;
+   };
+
+   $scope.rowForEditing = function (reportDate) {
+      return (0, _date.daysBetween)(reportDate, $scope.lastReport);
+   };
+
+   $scope.daysBetween = _date.daysBetween;
+
+   function deselectAll(driver) {
+      (0, _lodash.map)($scope.dailyList, function (obj) {
+         return (0, _lodash.map)(obj, function (o) {
+            if (o == driver) {} else {
+               o.selected = false;
+            }
+            return o;
+         });
+      });
+   }
+
+   $scope.showDetails = function () {
+      $scope.isShowingDetails = true;
+   };
+
+   $scope.closeDetails = function () {
+      $scope.isShowingDetails = false;
+   };
+
+   function recalcWage(driver) {
+      driver.yandex_total = driver.yandex_non_cash + driver.yandex_cash;
+      driver.yandex_total_netto = Number(((driver.yandex_non_cash + driver.yandex_cash) * 0.8).toFixed(2));
+
+      driver.total_cash = driver.from_hand_amount + driver.uber_sum_cash + driver.gett_sum_cash + driver.yandex_cash;
+      driver.total = driver.from_hand_amount + driver.uber_total + driver.gett_total + driver.yandex_total;
+      driver.total_netto = Number((driver.total * 0.8).toFixed(2));
+
+      driver.fuel = driver.fuel_expenses ? Number(driver.fuel_expenses) : fuelByTotal(driver.total);
+
+      var common_wage_rules = driver.rule_default_id == _common.CALC_WAGE_BY_COMMON_RULE;
+
+      if (driver.fuel_expenses) {
+         if (driver.debt_manually_annulled) {
+            driver.debt = 0;
+         } else {
+            driver.debt = Number(driver.debt_from_income) + Number(driver.debt_from_franchise);
+         }
+
+         // if (common_wage_rules) {
+         //     if (driver.total >= 7000) {
+         //         driver.wage = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine - driver.debt).toFixed(2));
+         //     } else {
+         //         driver.wage = Number(((driver.total_netto - driver.fuel) * (1 - driver.driver_part) - driver.franchise - driver.fine - driver.debt).toFixed(2));
+         //     }
+         // } else {
+         driver.wage = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine - driver.debt).toFixed(2));
+         // }
+      } else {
+         var wage_before_debt;
+
+         if (common_wage_rules) {
+            if (driver.total < 7000) {
+               driver.driver_part = 1 - driver.driver_part;
+            }
+
+            wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
+
+            // if (driver.total >= 7000) {
+            //     wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
+            // } else {
+            //     wage_before_debt = Number(((driver.total_netto - driver.fuel) * (1 - driver.driver_part) - driver.franchise - driver.fine).toFixed(2));
+            // }
+         } else {
+            wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
+         }
+
+         if (!driver.debt_planned_payment) {
+            driver.debt = 0;
+         } else {
+
+            if (driver.debt_manually_annulled) {
+               driver.debt = 0;
+            } else {
+
+               if (driver.debt_min_wage != 0) {
+                  if (wage_before_debt - driver.debt_min_wage >= driver.debt_residual) {
+                     driver.debt = driver.debt_residual;
+                  } else {
+                     if (wage_before_debt > 0) {
+                        driver.debt = wage_before_debt - driver.debt_min_wage;
+                     }
+                  }
+               } else {
+                  if (driver.debt_all_as_debt == 1) {
+                     if (wage_before_debt >= driver.debt_residual) {
+                        driver.debt = driver.debt_residual;
+                     } else {
+                        if (wage_before_debt > 0) {
+                           driver.debt = wage_before_debt - driver.debt_residual;
+                        }
+                     }
+                  } else {
+                     driver.debt = driver.debt_planned_payment ? driver.debt_planned_payment : 0;
+                  }
+               }
+            }
+         }
+
+         driver.wage = wage_before_debt - driver.debt;
+      }
+
+      // driver.wage = driver.wage - driver.covered_company_deficit;
+
+      driver.income = Number((driver.total_netto - driver.fuel - driver.rental - driver.wage).toFixed(2));
+      driver.income_deficit = driver.income < 0 ? driver.income : 0;
+   }
+
+   $scope.recalcWage = recalcWage;
+
+   $scope.changeRule = function (driver) {
+      if (driver.rule_default_id == _common.CALC_WAGE_BY_COMMON_RULE) {
+         driver.driver_part = 0.6;
+      }
+
+      if (driver.rule_default_id == 2) {
+         driver.driver_part = 0.6;
+      }
+
+      if (driver.rule_default_id == 3) {
+         driver.driver_part = 0.5;
+      }
+
+      if (driver.rule_default_id == 4) {
+         driver.driver_part = 0.4;
+      }
+
+      recalcWage(driver);
+   };
+
+   $scope.sumBy = _lodash.sumBy;
+
+   $scope.saveDayCalc = function () {
+
+      var tripsPerDate = tripList[$scope.shiftDate];
+
+      var validTrips = (0, _lodash.filter)(tripsPerDate, function (obj) {
+         return obj.fuel_expenses;
+      });
+
+      if (tripsPerDate.length > validTrips.length) {
+         // alert('Not all rows saved!');
+
+         message = '<strong>Not all rows saved!</strong>';
+         flashWindow = Flash.create('danger', message, 5000, { class: 'custom-class', id: 'custom-id' }, true);
+      } else {
+         var data = { reportDate: $scope.shiftDate };
+         TripService.closeDailyDay(data).then(function () {
+            console.log('saved');
+
+            TripService.our1_1().then(function (data) {
+               tripList = data.data;
+
+               $scope.lastReport = data.last;
+               $scope.dailyList = tripList;
+
+               adjustData();
+            });
+         });
+      }
+   };
+
+   $scope.showPayouts = function () {
+
+      var data = {
+         start: $scope.shiftDate,
+         driver_id: $scope.currentDriver.id
+      };
+
+      PayoutService.perRange(data).then(function (data) {
+         console.log('Payouts');
+         console.log(data);
+         data = (0, _lodash.map)(data, function (o) {
+            o.amount = Number(o.amount);
+            return o;
+         });
+
+         $scope.payouts = data;
+         calcPayoutTotal();
+
+         $scope.isShowingPayouts = true;
+      });
+   };
+
+   function calcPayoutTotal() {
+      $scope.totalPayouts = (0, _lodash.sumBy)($scope.payouts, 'amount');
+      $scope.residualToPay = $scope.currentDriver.wage - $scope.totalPayouts;
+   }
+
+   $scope.selectPayout = function (payout) {
+      $scope.payouts = (0, _lodash.map)($scope.payouts, function (c) {
+         if (c.id === payout.id) {
+            if (PayoutService.current() == payout) {
+               PayoutService.select(undefined);
+               c.selected = false;
+               return c;
+            } else {
+               PayoutService.select(payout);
+               c.selected = true;
+               return c;
+            }
+         } else {
+            c.selected = false;
+            return c;
+         }
+      });
+
+      $scope.currentPayout = PayoutService.current();
+   };
+
+   $scope.addPayout = function () {
+      var newPayout = {
+         amount: Number($scope.residualToPay.toFixed(2)),
+         driver_id: $scope.currentDriver.id,
+         report_date: $scope.shiftDate,
+         payed_at: (0, _date.formattedToSave)(new Date()),
+         editing: true,
+         selected: false,
+         new: true,
+         id: getCounter(),
+         is_daily: 1
+      };
+
+      $scope.isPayoutEditing = true;
+
+      $scope.payouts.push(newPayout);
+   };
+
+   $scope.updatePayout = function (payout) {
+      payout.editing = true;
+      $scope.isPayoutEditing = true;
+      payout.selected = false;
+   };
+
+   $scope.deletePayout = function (payout) {
+      $scope.payouts = (0, _lodash.filter)($scope.payouts, function (o) {
+         return o.id != payout.id;
+      });
+      calcPayoutTotal();
+
+      // !!!!!!!!!!! Delete from server
+      PayoutService.remove(payout).then(function (data) {
+         console.log('payout removed!');
+
+         $scope.showPayouts();
+      });
+   };
+
+   $scope.checkPayoutEnter = function (keyEvent, payout) {
+      if (keyEvent.which == 13) {
+         if ((0, _lodash.sumBy)($scope.payouts, 'amount') > $scope.currentDriver.wage) {
+            message = '<strong>Sum of payout is more than wage of the driver!</strong>';
+            flashWindow = Flash.create('danger', message, 5000, { class: 'custom-class', id: 'custom-id' }, true);
+         } else {
+            payout.editing = false;
+            $scope.isPayoutEditing = false;
+            payout.selected = false;
+
+            calcPayoutTotal();
+            // !!!!!!!!!! Update on server
+            if (payout.new) {
+               PayoutService.add(payout).then(function (data) {
+                  console.log('payout added!');
+                  $scope.showPayouts();
+               });
+            } else {
+               PayoutService.update(payout).then(function (data) {
+                  console.log('payout updated!');
+                  $scope.showPayouts();
+               });
+            }
+         }
+      }
+   };
+
+   $scope.closePayouts = function () {
+      $scope.isShowingPayouts = false;
+
+      // !!! Refresh data in report
+      refreshReport();
+   };
+
+   function refreshReport() {
+      TripService.our1_1().then(function (data) {
+         $scope.hasSelectedRow = false;
+
+         tripList = data.data;
+         $scope.lastReport = data.last;
+         adjustData();
+
+         $scope.isShowingPayouts = false;
+
+         $scope.currentDriver = undefined;
+         $scope.shiftDate = undefined;
+         $scope.isShowingDetails = false;
+
+         $scope.dailyList = tripList;
+      });
+   }
+
+   $scope.saveDriverCalc = function () {
+
+      var d = $scope.currentDriver;
+
+      var totalDeficit = 0;
+
+      if (d.income < 0) totalDeficit = d.income;
+      if (d.wage + d.covered < 0) totalDeficit += d.wage + d.covered;
+
+      var deficitAfterAdjustments = Number((totalDeficit + d.deferred_debt).toFixed(2));
+
+      if (deficitAfterAdjustments < 0) {
+         $scope.newDebt = {
+            additionAmount: deficitAfterAdjustments
+         };
+
+         $scope.newDebt.debtLeftToPay = d.debt_residual ? d.debt_residual - d.debt : 0;
+
+         $scope.obj = {
+            newDebtIterationSum: -($scope.newDebt.debtLeftToPay + $scope.newDebt.additionAmount),
+            debtDeacreasingByWage: true
+         };
+
+         if (-$scope.newDebt.additionAmount + $scope.newDebt.debtLeftToPay > 1000) {
+            $scope.obj.debtMinWage = 1000;
+         } else {
+            $scope.obj.debtMinWage = -$scope.newDebt.additionAmount + $scope.newDebt.debtLeftToPay;
+         }
+
+         if (d.last_debt) {
+            if (d.last_debt.min_daily_wage > 0) {
+               $scope.obj.debtRule = 2;
+            } else {
+               if (d.last_debt.is_total_income_as_fine == 1) {
+                  $scope.obj.debtRule = 3;
+               } else {
+                  if (d.last_debt.is_total_income_as_fine != 1 && d.last_debt.min_daily_wage == 0) {
+                     $scope.obj.debtRule = 1;
+                  } else {
+                     alert('!!! Neither of cases !!!');
+                  }
+               }
+            }
+         } else {
+            $scope.obj.debtRule = 3;
+         }
+
+         $scope.isShowingDebtWindow = true;
+      } else {
+
+         var data = {
+            driver_id: d.id,
+            debt: d.debt,
+            fine: d.fine,
+            franchise: d.franchise,
+            fuel: d.fuel,
+            rent: d.rental,
+            ya_cash: d.yandex_cash,
+            ya_non_cash: d.yandex_non_cash,
+            hand: d.from_hand_amount,
+            // wage_rule: d.rule_default_id,
+            dated: $scope.shiftDate,
+            group: d.work_type_id,
+            covered: d.covered,
+            cover_note: '',
+            deferred_debt: d.deferred_debt ? d.deferred_debt : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0 };
+
+         if (d.driver_part == 0.6) data.wage_rule = 2;
+         if (d.driver_part == 0.5) data.wage_rule = 3;
+         if (d.driver_part == 0.4) data.wage_rule = 4;
+
+         saveDriverDay(data);
+      }
+   };
+
+   function saveDriverDay(data) {
+      TripService.saveDayDriverWithdrawals(data).then(function () {
+         console.log('saved');
+
+         TripService.our1_1().then(function (data) {
+            tripList = data.data;
+
+            $scope.lastReport = data.last;
+            $scope.dailyList = tripList;
+
+            adjustData();
+
+            var tripsPerDate = tripList[$scope.shiftDate];
+
+            var validTrips = (0, _lodash.filter)(tripsPerDate, function (obj) {
+               return obj.fuel_expenses;
+            });
+
+            if (tripsPerDate.length == validTrips.length) {
+               $scope.dayAllowedForSaving = false;
+            }
+         });
+      });
+   }
+
+   $scope.closeDebtWindow = function () {
+      $scope.isShowingDebtWindow = false;
+   };
+
+   $scope.saveNewDebtRule = function () {
+
+      var d = $scope.currentDriver;
+
+      $scope.obj.newDebtIterationSum = isNaN($scope.obj.newDebtIterationSum) ? 0 : $scope.obj.newDebtIterationSum;
+
+      // Check iteration sum
+      if ($scope.obj.debtRule == 1 && $scope.obj.newDebtIterationSum > -($scope.newDebt.debtLeftToPay + $scope.newDebt.additionAmount)) {
+         message = '<strong>Iteration sum can\'t be more than total debt!</strong>';
+         flashWindow = Flash.create('danger', message, 5000, { class: 'custom-class', id: 'custom-id' }, true);
+      } else {
+         if ($scope.obj.debtRule == 4) {
+            d.covered_company_deficit = d.covered_company_deficit ? d.covered_company_deficit - $scope.newDebt.additionAmount : -$scope.newDebt.additionAmount;
+            // Save drive day
+            saveDriverDay(makeDriverDayDataForSaving());
+         }
+
+         if ($scope.obj.debtRule == 1 || $scope.obj.debtRule == 2 || $scope.obj.debtRule == 3) {
+            // remove current debt
+
+            d.deferred_debt = -$scope.newDebt.additionAmount;
+            // Save drive day
+            saveDriverDay(makeDriverDayDataForSaving());
+
+            // add new debt
+            var sumOfNewDebt = d.deferred_debt + $scope.newDebt.debtLeftToPay;
+            addDebt(makeNewDebtRules(sumOfNewDebt)).then(function () {
+               if (d.last_debt) {
+                  closeDebt($scope.newDebt.debtLeftToPay);
+               }
+            });
+
+            // if (d.last_debt) {
+            //    closeDebt($scope.newDebt.debtLeftToPay)
+            // }
+
+            // // add new debt
+            // var sumOfNewDebt = d.deferred_debt + $scope.newDebt.debtLeftToPay;
+            // addDebt(makeNewDebtRules(sumOfNewDebt));
+         }
+         $scope.isShowingDebtWindow = false;
+
+         refreshReport();
+      }
+   };
+
+   function closeDebt(residual) {
+      var data = {
+         amount: residual,
+         shift: $scope.shiftDate,
+         driver_id: $scope.currentDriver.id
+      };
+
+      DebtService.close(data).then(function (respond) {
+         console.log('dedt closed');
+         console.log(respond);
+      });
+   }
+
+   function addDebt(rules) {
+      return DebtService.add(rules).then(function (respond) {
+         console.log('dedt added');
+         console.log(respond);
+      });
+   }
+
+   function makeNewDebtRules(amount) {
+
+      var d = $scope.currentDriver;
+
+      var rule = {
+         fined_at: (0, _date.formattedToSave)(new Date()),
+         notes: '',
+         driver_id: d.id,
+         rule_type_id: 1,
+         total_sum: amount
+      };
+
+      // iterated 
+      if ($scope.obj.debtRule == 1) {
+         rule.iteration_sum = $scope.obj.newDebtIterationSum;
+         rule.is_total_income_as_fine = 0;
+      }
+
+      // min wage
+      if ($scope.obj.debtRule == 2) {
+         rule.iteration_sum = 0;
+         rule.is_total_income_as_fine = 0;
+         rule.min_daily_wage = $scope.obj.debtMinWage;
+         // rule.iteration_count = 1;
+      }
+
+      // whole wage
+      if ($scope.obj.debtRule == 3) {
+         rule.iteration_sum = 0;
+         rule.is_total_income_as_fine = 1;
+      }
+
+      console.log('new debt rule');
+      console.log(rule);
+
+      return rule;
+   }
+
+   function makeDriverDayDataForSaving() {
+      var d = $scope.currentDriver;
+
+      var data = {
+         driver_id: d.id,
+         debt: d.debt,
+         fine: d.fine,
+         franchise: d.franchise,
+         fuel: d.fuel,
+         rent: d.rental,
+         ya_cash: d.yandex_cash,
+         ya_non_cash: d.yandex_non_cash,
+         hand: d.from_hand_amount,
+         dated: $scope.shiftDate,
+         group: d.work_type_id,
+         covered: d.covered,
+         cover_note: '',
+         deferred_debt: d.deferred_debt ? d.deferred_debt : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0 };
+
+      if (d.driver_part == 0.6) data.wage_rule = 2;
+      if (d.driver_part == 0.5) data.wage_rule = 3;
+      if (d.driver_part == 0.4) data.wage_rule = 4;
+
+      return data;
+   }
+}
+module.exports = DailyCtrl;
+
+},{"../../constants/common":42,"../../libs/date":43,"lodash":38}],54:[function(require,module,exports){
+module.exports = "<div class=row><div class=col-md-12 ng-show=hasSelectedRow><button class=\"btn btn-primary\" ng-click=showDetails()>Details</button> <button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=showPayouts()>Payouts</button> <button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=saveDriverCalc()>Save Calc</button> <button class=\"btn btn-primary\" ng-show=dayAllowedForSaving ng-click=saveDayCalc()>Save Day</button></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><table class=\"table table-bordered table-condensed table_2200px\"><thead><tr><td rowspan=2>#</td><td rowspan=2>Диспетчер</td><td rowspan=2>Фио</td><td rowspan=2>Авто</td><td class=td_80px rowspan=2>Всего,<br>нал</td><td class=td_80px rowspan=2>Всего,<br>без комис</td><td class=td_80px rowspan=2>Всего,<br>c комис</td><td class=td_80px rowspan=2>Fuel</td><td class=td_80px rowspan=2>Rental</td><td class=td_80px rowspan=2>Franchise</td><td class=td_80px rowspan=2>Fines</td><td class=td_80px rowspan=2>Debt</td><td class=td_80px rowspan=2>Wage Rule</td><td class=td_80px rowspan=2>Wage</td><td class=td_80px rowspan=2>Income</td><td class=td_80px rowspan=2>Deficit<br>Covered<br>by us</td><td class=td_80px rowspan=2>Deficit<br>Covered<br>by Driver</td><td class=td_80px rowspan=2>Payed</td><td class=td_80px rowspan=2>To Pay</td><td class=td_80px rowspan=2>Deferred<br>to debt</td><td colspan=4>Uber</td><td colspan=5>Gett</td><td colspan=4>Yandex</td><td rowspan=2>От борта</td></tr><tr><td class=td_80px>Cash</td><td class=td_80px>Misc</td><td class=td_80px>Income<br>excl.%</td><td class=td_80px>Income<br>incl.%</td><td class=td_80px>Cash</td><td class=td_80px>Misc</td><td class=td_80px>Income<br>incl.%</td><td class=td_80px>Income<br>excl.%</td><td class=td_80px>Resid<br>on acc.</td><td class=td_80px>Cash</td><td class=td_80px>Non-cash</td><td class=td_80px>Income<br>incl.%</td><td class=td_80px>Income<br>excl.%</td></tr></thead><tbody><tr ng-repeat-start=\"(shift_date, data) in dailyList\"></tr><tr ng-repeat=\"driver in data\" ng-class=\"driver.selected ? 'item-selected' : ( driver.fuel_expenses ? 'row-already-saved' : '')\"><td ng-click=\"selectDriver(shift_date, driver)\">{{$index + 1}}</td><td>dispatcher</td><td>{{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic }}</td><td>{{driver.state_number}}</td><td class=\"digit cash_column\">{{driver.total_cash | asPrice}}</td><td class=\"digit total_netto_column\">{{driver.total_netto | asPrice}}</td><td class=digit>{{driver.total | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingFuel\">{{driver.fuel | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editFuel(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingFuel class=numberInput type=number ng-model=driver.fuel></td><td class=digit>{{driver.rental | asPrice}}</td><td class=digit>{{driver.franchise | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFranchise(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1)\"></span></td><td class=digit>{{driver.fine | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFine(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></td><td class=digit>{{driver.debt | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeDebt(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></td><td class=\"\"><select ng-change=changeRule(driver) ng-model=driver.rule_default_id ng-init=driver.rule_default_id ng-disabled=driver.fuel_expenses><option value=1>default</option><option value=2>60/40</option><option value=3>50/50</option><option value=4>40/60</option></select></td><td class=\"digit wage_column\">{{driver.wage | asPrice}}</td><td class=\"digit income_column\">{{driver.income | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingCover\">{{driver.covered | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editCover(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingCover class=numberInput type=number ng-model=driver.covered></td><td class=digit>{{driver.covered_company_deficit | asPrice}}</td><td class=digit>{{driver.total_payouts | asPrice}}</td><td class=\"digit to-pay-column\">{{ (driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt )| asPrice}}</td><td class=digit>{{driver.deferred_debt | asPrice}}</td><td class=digit>{{driver.uber_sum_cash | asPrice}}</td><td class=digit>{{driver.uber_correction_result | asPrice}}</td><td class=digit>{{driver.uber_total_netto | asPrice}}</td><td class=digit>{{driver.uber_total | asPrice}}</td><td class=digit>{{driver.gett_sum_cash | asPrice}}</td><td class=digit>{{driver.gett_correction_result | asPrice}}</td><td class=digit>{{driver.gett_sum_fare | asPrice}}</td><td class=digit>{{driver.gett_total | asPrice}}</td><td class=digit>{{driver.gett_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_non_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.yandex_total | asPrice}}</td><td class=digit>{{driver.yandex_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.from_hand_amount ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td></tr><tr ng-repeat-end class=success><td colspan=25>Total for a day {{shift_date}}</td></tr></tbody></table></div><div class=cover ng-show=\"isShowingDetails || isShowingPayouts || isShowingDebtWindow\"></div><div class=cover-modal ng-if=isShowingPayouts><div id=modal-payouts><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name=='!!!! Наличными !!!'\">Cash !!!</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Card Number: {{currentDriver.card_number}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Bank: {{currentDriver.bank_name}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.beneficiar.length > 1\">Beneficiar: {{currentDriver.beneficiar}}</span></center></div></div><div class=row><table class=\"table table-bordered table-condensed\"><thead><tr><th>Payed at</th><th>Charged</th><th>Payed</th></tr></thead><tbody><tr><td></td><td class=digit>{{(currentDriver.wage) | asPrice}}</td><td></td></tr><tr ng-repeat=\"payout in payouts\" ng-click=selectPayout(payout) ng-class=\"payout.selected ? 'item-selected' : ''\"><td>{{payout.payed_at}}</td><td></td><td class=digit><span ng-show=\"! payout.editing\">{{payout.amount | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=updatePayout(payout)></span> <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=deletePayout(payout)></span></span> <input ng-keypress=\"checkPayoutEnter($event, payout)\" ng-show=payout.editing class=numberInput type=number ng-model=payout.amount></td></tr><tr class=payouts-total><td>TOTAL</td><td class=digit>{{(currentDriver.wage) | asPrice}}</td><td class=digit>{{totalPayouts | asPrice}}</td></tr></tbody></table></div><div class=row>Residual to Pay : <b>{{ residualToPay | asPrice }}</b></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-8><center><button class=\"btn btn-primary\" ng-click=addPayout() ng-show=\"residualToPay > 0 && ! isPayoutEditing && currentDriver.wage > 0\">Add</button></center></div><div class=col-md-4><center><button class=\"btn btn-primary\" ng-click=closePayouts() ng-show=\"! isPayoutEditing\">Close</button></center></div></div></div></div><div class=cover-modal ng-if=isShowingDebtWindow><div id=modal-debt><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span>Residual from current debt: {{ newDebt.debtLeftToPay }}</span></center></div></div><div class=row><div class=col-md-12><center><span>New deficit: {{ newDebt.additionAmount }}</span></center></div></div><br><div class=row ng-show=\"currentDriver.last_debt && newDebt.debtLeftToPay > 0\"><div class=col-md-12><p><center>Current Debt conditions:</center></p><p ng-show=\"currentDriver.last_debt.min_daily_wage > 0\">Min Daily Wage: {{currentDriver.last_debt.min_daily_wage}}</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine == 1\">All wage charged as the debt payment</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine != 1 && currentDriver.last_debt.min_daily_wage == 0 \">Iteration Sum: {{currentDriver.last_debt.iteration_sum}}</p></div></div><br><div class=row><div class=col-md-12><center><span>New debt conditions:</span></center></div></div><div class=row><div class=col-md-6><p><b>Charge rule</b></p><p><input ng-model=obj.debtRule type=radio ng-value=1> Iteration Charge</p><p><input ng-model=obj.debtRule type=radio ng-value=2> Min Wage</p><p><input ng-model=obj.debtRule type=radio ng-value=3> Whole Wage to Charge</p><p><input ng-model=obj.debtRule type=radio ng-value=4 ng-disabled=\"! (currentDriver.wage > 0 && currentDriver.wage > -newDebt.additionAmount)\"> Cover by current wage</p></div><div class=col-md-6><p>Iteration Sum: <input ng-model=obj.newDebtIterationSum type=number ng-disabled=\"! (obj.debtRule==1)\"></p><p>Min Wage: <input ng-model=obj.debtMinWage type=number ng-disabled=\"! (obj.debtRule==2)\"></p><p>Decrease debt by current wage <input ng-model=obj.debtDecreasingByWage type=checkbox ng-disabled=\"! (currentDriver.wage > 0 )\"></p></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-12><center><button class=\"btn btn-primary\" ng-click=saveNewDebtRule()>Save Debt Rule</button> <button class=\"btn btn-primary\" ng-click=closeDebtWindow()>Close</button></center></div></div></div></div>";
+
+},{}],55:[function(require,module,exports){
+'use strict';
+
+var _date = require('../../libs/date');
+
+var _number = require('../../libs/number');
+
+var controller = require('./daily-ctrl');
+var tripService = require('../../services/TripService');
+var payoutService = require('../../services/PayoutService');
+var debtService = require('../../services/DebtService');
+
+require('angular-flash-alert');
+
+angular.module('dailyModule', ['ngFlash']).config(['$httpProvider', function ($httpProvider) {
+  $httpProvider.defaults.withCredentials = true;
+}]).run(function ($rootScope) {
+  $rootScope.$on('$stateChangeError', function () {
+    console.error(arguments[5]);
+  });
+}).filter('formatRu', function () {
+  return function (datetime) {
+    return (0, _date.formattedToRu)(new Date(datetime.substr(0, 10)));
+  };
+}).filter('asPrice', function () {
+  return function (price) {
+    return (0, _number.numberSplitted)(Number(price));
+  };
+}).filter('getObjName', function () {
+  return function (obj) {
+    // console.log(obj);
+    return Object.keys(obj)[0];
+  };
+}).filter('getObjArray', function () {
+  return function (obj) {
+    return Object.values(obj)[0];
+  };
+}).factory('TripService', ['$http', tripService]).factory('PayoutService', ['$http', payoutService]).factory('DebtService', ['$http', debtService]).controller('DailyCtrl', ['$scope', '$state', 'tripList', 'TripService', 'PayoutService', 'DebtService', 'Flash', controller]);
+
+module.exports = {
+  template: require('./daily.tpl'),
+  resolve: {
+    tripList: ['TripService', function (TripService) {
+      return TripService.our1_1().then(function (data) {
+        return data;
+      });
+    }]
+  },
+  controller: 'DailyCtrl'
+};
+
+},{"../../libs/date":43,"../../libs/number":44,"../../services/DebtService":47,"../../services/PayoutService":51,"../../services/TripService":52,"./daily-ctrl":53,"./daily.tpl":54,"angular-flash-alert":2}],56:[function(require,module,exports){
 'use strict';
 
 var _lodash = require('lodash');
@@ -66717,10 +67677,10 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 
 module.exports = DriverCardCtrl;
 
-},{"../../../constants/common":42,"lodash":38}],52:[function(require,module,exports){
+},{"../../../constants/common":42,"lodash":38}],57:[function(require,module,exports){
 module.exports = "<div class=\"panel panel-info\"><div class=panel-heading>Карточка водителя</div><div class=\"panel panel-body\"><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Фамилия</span> <input class=form-control maxlength=30 type=text ng-model=surname></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Имя</span> <input class=form-control maxlength=30 type=text ng-model=firstname></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Отчество</span> <input class=form-control maxlength=30 type=text ng-model=patronymic></div></div></div><br><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Email</span> <input class=form-control maxlength=50 type=text ng-model=mail></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Телефон</span> <span class=input-group-addon>8</span> <input class=form-control ui-br-phone-number type=text ng-model=phone></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Телефон 2</span> <span class=input-group-addon>8</span> <input class=form-control ui-br-phone-number type=text ng-model=phone2></div></div></div><br><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Номер карты</span> <input class=form-control ng-disabled=isCash type=text ng-model=cardNumber ng-model-options={allowInvalid:true} ui-credit-card></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Банк</span><select ng-change=changeBank() class=form-control ng-model=driverBank ng-init=\"driverBank=currentBank\"><option ng-repeat=\"bank in banks\" ng-value=bank.id>{{ bank.name }}</option></select></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Другой владелец карты</span> <input class=form-control ng-disabled=isCash type=text ng-model=beneficiar></div></div></div><br><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Группа</span><select class=form-control ng-model=driverGroup ng-init=\"driverGroup=currentGroup\"><option ng-repeat=\"group in groups\" ng-value=group.id>{{ group.name }}</option></select></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата выхода</span> <input class=form-control type=date ng-model=firstDay></div></div><div class=col-md-2><div class=input-group><span class=input-group-addon>Активный</span> <input class=form-control type=checkbox ng-model=active></div></div><div class=col-md-2><div class=input-group><span class=input-group-addon>Аренда</span> <input class=form-control type=checkbox ng-model=rent></div></div></div><br><div class=row><div class=col-md-12><div class=input-group><span class=input-group-addon>Примечания</span> <input class=form-control type=text ng-model=notes></div></div></div></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=\"panel panel-default\"><div class=panel-body><center><button class=\"btn btn-primary\" ng-click=save()>Сохранить</button> <button class=\"btn btn-warning\" ng-click=backToList()>Отмена</button></center></div></div>";
 
-},{}],53:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 'use strict';
 
 require('angular-input-masks');
@@ -66755,7 +67715,7 @@ module.exports = {
   controller: 'DriverCardCtrl'
 };
 
-},{"../../../services/BankService":46,"../../../services/DriverService":47,"../../../services/GroupService":48,"./driver-card-ctrl":51,"./driver-card.tpl":52,"angular-flash-alert":2,"angular-input-masks":3}],54:[function(require,module,exports){
+},{"../../../services/BankService":46,"../../../services/DriverService":48,"../../../services/GroupService":49,"./driver-card-ctrl":56,"./driver-card.tpl":57,"angular-flash-alert":2,"angular-input-masks":3}],59:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -66819,10 +67779,10 @@ function DriverCtrl($scope, $state, driverList, Flash, DriverService) {
 
 module.exports = DriverCtrl;
 
-},{"lodash":38}],55:[function(require,module,exports){
+},{"lodash":38}],60:[function(require,module,exports){
 module.exports = "<div class=row><div class=col-md-6><input ng-model=textFilter type=text ng-change=useFilter() placeholder=Фильтр><br><button class=\"btn btn-info\" ng-click=add()>Добавить водителя</button> <button class=\"btn btn-info\" ng-if=currentDriver ng-click=edit()>Изменить водителя</button></div></div><div class=driver-div><table class=\"table table-bordered\"><thead><tr><td>Фамилия</td><td>Имя</td><td>Отчество</td><td width=110px>Группа</td><td width=120px>Телефоны</td><td>Номер карты</td><td>Актив</td><td>Аренда</td></tr></thead><tbody><tr ng-class=\"driver.selected ? 'item-selected' : ''\" ng-repeat=\"driver in filteredObjects\" ng-click=select(driver)><td>{{ driver.surname }}</td><td>{{ driver.firstname }}</td><td>{{ driver.patronymic }}</td><td>{{ driver.type_name }}</td><td><span ng-if=\"driver.phone != 0\">{{ driver.phone | ruPhone }}</span> <span ng-if=\"driver.phone2 != 0\"><br>{{ driver.phone2 | ruPhone }}</span></td><td>{{ driver.card_number !=0 ? driver.card_number : \"Cash\" }}</td><td>{{ driver.active == 1 ? \"Да\" : \"Нет\" }}</td><td>{{ driver.rent == 1 ? \"Да\" : \"Нет\" }}</td></tr></tbody></table></div>";
 
-},{}],56:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 var _phones = require('../../libs/phones');
@@ -66858,7 +67818,7 @@ module.exports = {
   controller: 'DriverCtrl'
 };
 
-},{"../../libs/phones":45,"../../services/DriverService":47,"./driver-controller":54,"./drivers.tpl":55,"angular-flash-alert":2}],57:[function(require,module,exports){
+},{"../../libs/phones":45,"../../services/DriverService":48,"./driver-controller":59,"./drivers.tpl":60,"angular-flash-alert":2}],62:[function(require,module,exports){
 'use strict';
 
 function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
@@ -66912,10 +67872,10 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
 
 module.exports = ImportCtrl;
 
-},{}],58:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = "<h3>Import {{ partner }} data in Template</h3><form name=form><div class=\"btn btn-primary\" ngf-select ng-model=file name=file ngf-pattern=\"'.csv'\" ngf-accept=\"'.csv'\" ngf-max-size=2MB ngf-min-height=100 ngf-resize=\"{width: 100, height: 100}\">Select</div><button ng-click=sendFile(this)>Upload</button></form><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div>";
 
-},{}],59:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 require('ng-file-upload');
@@ -66964,7 +67924,7 @@ module.exports = {
   controller: 'ImportCtrl'
 };
 
-},{"../../services/ImportService":49,"./import-ctrl":57,"./import.tpl":58,"angular-flash-alert":2,"ng-file-upload":40}],60:[function(require,module,exports){
+},{"../../services/ImportService":50,"./import-ctrl":62,"./import.tpl":63,"angular-flash-alert":2,"ng-file-upload":40}],65:[function(require,module,exports){
 'use strict';
 
 var _date = require('../../libs/date');
@@ -67012,7 +67972,7 @@ module.exports = {
   controller: 'WeeklyCtrl'
 };
 
-},{"../../libs/date":43,"../../libs/number":44,"../../services/TripService":50,"./weekly-ctrl":61,"./weekly.tpl":62}],61:[function(require,module,exports){
+},{"../../libs/date":43,"../../libs/number":44,"../../services/TripService":52,"./weekly-ctrl":66,"./weekly.tpl":67}],66:[function(require,module,exports){
 'use strict';
 
 var _lodash = require('lodash');
@@ -67122,7 +68082,7 @@ function WeeklyCtrl($scope, $state, TripService) {
 
 module.exports = WeeklyCtrl;
 
-},{"lodash":38}],62:[function(require,module,exports){
+},{"lodash":38}],67:[function(require,module,exports){
 module.exports = "<div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата начала периода</span> <input class=form-control ng-model=start type=\"date\"></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата окочания преиода</span> <input class=form-control ng-model=end type=\"date\"></div></div><div class=col-md-4><button class=\"btn btn-primary\" ng-click=makeSummary()>Сформировать</button></div></div><div class=row><h3>Фрилансер 7/0 UBER</h3><table class=\"table table-bordered\"><thead><tr><td>ФИО</td><td>Доход</td><td>Наш Интерес<br>(5%)</td><td>К выдаче</td></tr></thead><tbody ng-if=\"uber_free7_0.length > 0\"><tr ng-repeat=\"el in uber_free7_0\"><td>{{ el.surname }} {{el.firstname}} {{el.patronymic}}</td><td class=digit>{{ el.sum_result | asPrice }}</td><td class=digit>{{ ((el.sum_result - el.sum_cash) * 0.05) | asPrice }}</td><td class=digit>{{ ((el.sum_result - el.sum_cash) * 0.95) | asPrice }}</td></tr></tbody></table></div><div class=row><h3>Фрилансер 7/0 GET</h3><table class=\"table table-bordered\"><thead><tr><td>ФИО</td><td>Доход</td><td>Интерес Get<br>(17.7%)</td><td>Наш Интерес<br>(3.3%)</td><td>Нал</td><td>К выдаче</td></tr></thead><tbody ng-if=\"get_free7_0.length > 0\"><tr ng-repeat=\"el in get_free7_0\"><td>{{ el.surname }} {{el.firstname}} {{el.patronymic}}</td><td class=digit>{{ el.sum_fare | asPrice }}</td><td class=digit>{{ ((el.sum_fare) * 0.177) | asPrice }}</td><td class=digit>{{ ((el.sum_fare) * 0.033) | asPrice }}</td><td class=digit>{{ el.sum_cash | asPrice }}</td><td class=digit>{{ ((el.sum_fare) * 0.79 - el.sum_cash) | asPrice }}</td></tr></tbody></table></div><div class=row><h3>Автопарки</h3><table class=\"table table-condensed table-bordered\" ng-repeat=\"park in parks\"><thead><tr><td rowspan=2><b>{{park[0].group_name}}</b></td><td colspan=3>Uber</td><td colspan=5>Get</td><td width=90px rowspan=2>Всего,<br>к выдаче</td></tr><tr><td width=80px>Доход</td><td width=80px>Нам, 10%</td><td width=80px>К выдаче</td><td width=80px>Доход</td><td width=80px>Комиссия</td><td width=80px>Нам,4.3%</td><td width=80px>Нал</td><td width=80px>К выдаче</td></tr></thead><tboby><tr ng-repeat=\"driv in park\"><td>{{ driv.surname }} {{driv.firstname}} {{driv.patronymic}}</td><td class=digit>{{ driv.uber_sum_result ? (driv.uber_sum_result | asPrice) : \"0.00\" }}</td><td class=digit>{{ ((driv.uber_sum_result - driv.uber_sum_cash) * 0.1) | asPrice }}</td><td class=digit>{{ ((driv.uber_sum_result - driv.uber_sum_cash) * 0.9) | asPrice }}</td><td class=digit>{{ driv.get_sum_fare | asPrice }}</td><td class=digit>{{ ((driv.get_sum_fare) * 0.177) | asPrice }}</td><td class=digit>{{ ((driv.get_sum_fare) * 0.033) | asPrice }}</td><td class=digit>{{ driv.get_sum_cash | asPrice }}</td><td class=digit>{{ ((driv.get_sum_fare) * 0.79 - driv.get_sum_cash) | asPrice }}</td><td class=digit><b>{{ ((driv.get_sum_fare) * 0.79 - driv.get_sum_cash + (driv.uber_sum_result - driv.uber_sum_cash) * 0.9) | asPrice }}</b></td></tr></tboby></table></div>";
 
 },{}]},{},[41])

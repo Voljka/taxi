@@ -176,5 +176,24 @@ echo '<br> Successfully loaded: '. $successfull_loads_count;
 echo '<br> Skipped drivers with bad contacts: '. $bad_contacts_count;
 echo '<br> Skipped existing trips count: '. $already_exists_trips_count;
 
+if ($bad_contacts_count == 0 && $successfull_loads_count > 0) {
+// if ($successfull_loads_count > 0) {
+	$query = "INSERT INTO uber_completed_imports (`import_for_date`) VALUES ";
+
+	$start_date = date("Y-m-d", strtotime($rangeStartAt));
+	$end_date = date("Y-m-d", strtotime($rangeEndAt));
+
+	$next_date = $start_date;
+
+	while ($next_date <= $end_date) {
+		$query .= "('$next_date'),";
+
+		$next_date = date("Y-m-d", strtotime($next_date) + 24*60*60);
+	};
+
+    $query = substr($query, 0, strlen($query) - 1 );
+
+    $result = mysql_query($query) or die(mysql_error());
+}
 
 ?>

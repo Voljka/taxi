@@ -1,51 +1,59 @@
 'use strict'
 
-require('ng-file-upload');
+var controller = require('./daily-ctrl');
+var tripService = require('../../services/TripService');
+var payoutService = require('../../services/PayoutService');
+var debtService = require('../../services/DebtService');
 
-var controller = require('./import-ctrl');
-var importService = require('../../services/ImportService');
+import { formattedToRu } from '../../libs/date';
+import { numberSplitted } from '../../libs/number';
+
 require('angular-flash-alert');
 
-angular.module('importModule', ['ngFlash', 'ngFileUpload'])
+angular.module('dailyModule', ['ngFlash'])
   .config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.withCredentials = true;
   }])
-  .config((FlashProvider) => {
-      FlashProvider.setTimeout(5000);
-      FlashProvider.setShowClose(true);
-  })
   .run(function($rootScope) {
      $rootScope.$on('$stateChangeError', function() {
           console.error(arguments[5]);
      });
   })
-  // .directive('fileUpload', function () {
-  //     return {
-  //         scope: true,        //create a new scope
-  //         link: function (scope, el, attrs) {
-  //             el.bind('change', function (event) {
-  //                 var files = event.target.files;
-  //                 //iterate files since 'multiple' may be specified on the element
-  //                 for (var i = 0;i<files.length;i++) {
-  //                     //emit event upward
-  //                     scope.$emit("fileSelected", { file: files[i] });
-  //                 }                                       
-  //             });
-  //         }
-  //     };
-  // })
-  .factory('ImportService', ['$http', importService])
-  .controller('ImportCtrl', ['$scope', '$state', 'ImportService', 'Upload', 'Flash', controller]);
+  .filter('formatRu', function(){
+    return function(datetime){
+      return formattedToRu(new Date(datetime.substr(0,10)));
+    }
+  })
+  .filter('asPrice', function(){
+    return function(price){
+      return numberSplitted(Number(price));
+    }
+  })
+  .filter('getObjName', function(){
+    return function(obj){
+      // console.log(obj);
+      return Object.keys(obj)[0];
+    }
+  })
+  .filter('getObjArray', function(){
+    return function(obj){
+      return Object.values(obj)[0];
+    }
+  })
+  .factory('TripService', ['$http', tripService])
+  .factory('PayoutService', ['$http', payoutService])
+  .factory('DebtService', ['$http', debtService])
+  .controller('DailyCtrl', ['$scope', '$state', 'tripList','TripService','PayoutService', 'DebtService', 'Flash', controller]);
 
 module.exports = {
-  template: require('./import.tpl'), 
+  template: require('./daily.tpl'), 
   resolve: {
-    // driverList: ['DriverService', function (DriverService) {
-  		// return DriverService.all()
-  		// 	.then(function(data) {
-  		// 		return data;
-  		// 	})
-    // }],
+    tripList: ['TripService', function (TripService) {
+     return TripService.our1_1()
+       .then(function(data) {
+         return data;
+       })
+    }],
   },  
-  controller: 'ImportCtrl'
+  controller: 'DailyCtrl'
 };

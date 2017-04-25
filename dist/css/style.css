@@ -16,3 +16,110 @@ table {
 
 .digit {
   text-align: right; }
+
+.td_70px {
+  width: 80px !important; }
+
+.table_2200px {
+  width: 2360px !important; }
+
+.cash_column {
+  background: Turquoise; }
+
+.total_netto_column {
+  background: SkyBlue; }
+
+.wage_column {
+  background: GoldenRod; }
+
+.income_column {
+  background: Plum; }
+
+.cancel-btn {
+  color: Grey; }
+
+.cancel-btn:hover {
+  color: Red; }
+
+.edit-btn {
+  color: Grey; }
+
+.edit-btn:hover {
+  color: SkyBlue; }
+
+.numberInput {
+  width: 80px !important; }
+
+.to-pay-column {
+  background: LightGrey; }
+
+.daily-report-details {
+  position: fixed;
+  height: 500px;
+  top: 200px;
+  background: LightCyan;
+  z-index: 20; }
+
+.cover {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  background: darkgrey;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  opacity: 0.8;
+  text-align: center; }
+
+.cover-modal {
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  opacity: 0.8;
+  display: flex; }
+
+#modal-details {
+  padding: 25px;
+  z-index: 50;
+  width: 80%;
+  display: inline-block;
+  margin: auto;
+  background: LightCyan;
+  border: 2px solid black; }
+
+.table-details {
+  padding: 0px; }
+
+.table-caption {
+  background: LightGrey; }
+
+.table-details > tbody > tr > th, .table-details > tbody > tr > td {
+  padding-top: 2px;
+  padding-bottom: 2px; }
+
+.row-already-saved {
+  background: LightGreen; }
+
+#modal-payouts {
+  padding: 25px;
+  z-index: 50;
+  width: 400px;
+  display: inline-block;
+  margin: auto;
+  background: LightCyan;
+  border: 2px solid black; }
+
+.payouts-total {
+  background: LightGrey;
+  font-weight: bold; }
+
+#modal-debt {
+  padding: 25px;
+  z-index: 50;
+  width: 80%;
+  display: inline-block;
+  margin: auto;
+  background: LightCyan;
+  border: 2px solid black; }
