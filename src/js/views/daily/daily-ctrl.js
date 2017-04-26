@@ -109,7 +109,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
                o.franchise = o.fuel_expenses ? Number(o.fran_from_income) : Number(o.franchise_planned_payment);
                o.fine = o.fuel_expenses ? Number(o.fine_from_income) + Number(o.fine_from_franchise) : Number(o.fine_planned_payment);
-               o.rental = o.fuel_expenses ? Number(o.rent_from_income) + Number(o.rent_from_franchise) : Number(o.rental_daily_cost);
+               o.rental = o.fuel_expenses ? Number(o.rent_from_income) + Number(o.rent_from_franchise) : (o.is_rented ? Number(o.rental_daily_cost) : 0);
 
                var common_wage_rules = o.rule_default_id == CALC_WAGE_BY_COMMON_RULE;
 
@@ -812,6 +812,42 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
       return data;
    }
+
+  $scope.total_topay = function(data){
+    var result = 0;
+
+    data.forEach(function(o){
+      var topay = o.wage - o.total_payouts + o.covered + o.income_deficit + o.deferred_debt;
+      if (topay > 0)
+        result += topay;
+    })
+
+    return result;
+  }
+
+  // $scope.total_wage = function(data){
+  //   var result = 0;
+
+  //   data.forEach(function(o){
+  //     var driver_topay = o.wage - o.total_payouts + o.covered + o.income_deficit + o.deferred_debt;
+  //     if (driver_topay > 0)
+  //       result += driver_topay;
+  //   })
+
+  //   return result;
+  // }
+
+  $scope.total_income = function(data){
+    var result = 0;
+
+    data.forEach(function(o){
+      var income = o.income - o.covered_company_deficit;
+      if (income > 0)
+        result += income;
+    })
+
+    return result;
+  }
 
 }
 module.exports = DailyCtrl; 

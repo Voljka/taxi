@@ -21,7 +21,7 @@ table {
   width: 80px !important; }
 
 .table_2200px {
-  width: 2360px !important; }
+  width: 2500px !important; }
 
 .cash_column {
   background: Turquoise; }
@@ -123,3 +123,18 @@ table {
   margin: auto;
   background: LightCyan;
   border: 2px solid black; }
+
+#modal-rental_costs {
+  padding: 25px;
+  z-index: 50;
+  width: 80%;
+  display: inline-block;
+  margin: auto;
+  background: LightCyan;
+  border: 2px solid black; }
+
+.total {
+  font-weight: bold; }
+
+.table-header-middled {
+  vertical-align: middle; }

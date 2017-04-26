@@ -1,16 +1,16 @@
     <div class="row">
         <div class="col-md-12" ng-show="hasSelectedRow">
-            <button class="btn btn-primary" ng-click="showDetails()">
-                Details
-            </button>
+<!--             <button class="btn btn-primary" ng-click="showDetails()">
+                Детали
+            </button> -->
             <button class="btn btn-primary" ng-show="rowAllowedForSaving" ng-click="showPayouts()">
-                Payouts
+                Выплаты
             </button>
             <button class="btn btn-primary" ng-show="rowAllowedForSaving" ng-click="saveDriverCalc()">
-                Save Calc
+                Сохранить расчет по водителю
             </button>
             <button class="btn btn-primary" ng-show="dayAllowedForSaving" ng-click="saveDayCalc()">
-                Save Day
+                Закрыть день
             </button>
         </div>
     </div>
@@ -32,38 +32,38 @@
             <td class="td_80px" rowspan="2">Всего,<br>нал</td>
             <td class="td_80px" rowspan="2">Всего,<br>без комис</td>
             <td class="td_80px" rowspan="2">Всего,<br>c комис</td>
-            <td class="td_80px" rowspan="2">Fuel</td>
-            <td class="td_80px" rowspan="2">Rental</td>
-            <td class="td_80px" rowspan="2">Franchise</td>
-            <td class="td_80px" rowspan="2">Fines</td>
-            <td class="td_80px" rowspan="2">Debt</td>
-            <td class="td_80px" rowspan="2">Wage Rule</td>
-            <td class="td_80px" rowspan="2">Wage</td>
-            <td class="td_80px" rowspan="2">Income</td>
-            <td class="td_80px" rowspan="2">Deficit<br>Covered<br>by us</td>
-            <td class="td_80px" rowspan="2">Deficit<br>Covered<br>by Driver</td>
-            <td class="td_80px" rowspan="2">Payed</td>
-            <td class="td_80px" rowspan="2">To Pay</td>
-            <td class="td_80px" rowspan="2">Deferred<br>to debt</td>
+            <td class="td_80px" rowspan="2">Топливо</td>
+            <td class="td_80px" rowspan="2">Аренда<br>авто</td>
+            <td class="td_80px" rowspan="2">Франш.</td>
+            <td class="td_80px" rowspan="2">Штрафы</td>
+            <td class="td_80px" rowspan="2">Долг</td>
+            <td class="td_80px" rowspan="2">Доля з/п</td>
+            <td class="td_80px" rowspan="2">З/П</td>
+            <td class="td_80px" rowspan="2">Доход<br>компании</td>
+            <td class="td_80px" rowspan="2">Убыток<br>покрытый<br>компанией</td>
+            <td class="td_80px" rowspan="2">Убыток<br>компании,<br>покрытый<br>водителем</td>
+            <td class="td_80px" rowspan="2">Олпачено</td>
+            <td class="td_80px" rowspan="2">К оплате<br>(остаток)</td>
+            <td class="td_80px" rowspan="2">Перенесено<br>в долг</td>
             <td colspan="4">Uber</td>
             <td colspan="5">Gett</td>
             <td colspan="4">Yandex</td>
             <td rowspan="2">От борта</td>
           </tr>
           <tr>
-            <td class="td_80px">Cash</td>
-            <td class="td_80px">Misc</td>
-            <td class="td_80px">Income<br>excl.%</td>
-            <td class="td_80px">Income<br>incl.%</td>
-            <td class="td_80px">Cash</td>
-            <td class="td_80px">Misc</td>
-            <td class="td_80px">Income<br>incl.%</td>
-            <td class="td_80px">Income<br>excl.%</td>
-            <td class="td_80px">Resid<br>on acc.</td>
-            <td class="td_80px">Cash</td>
-            <td class="td_80px">Non-cash</td>
-            <td class="td_80px">Income<br>incl.%</td>
-            <td class="td_80px">Income<br>excl.%</td>
+            <td class="td_80px">Нал</td>
+            <td class="td_80px">Коррекции</td>
+            <td class="td_80px">Доход<br>без комиссии</td>
+            <td class="td_80px">Доход<br>с комиссией</td>
+            <td class="td_80px">Нал</td>
+            <td class="td_80px">Коррекции</td>
+            <td class="td_80px">Доход<br>с комиссией</td>
+            <td class="td_80px">Доход<br>без комиссии</td>
+            <td class="td_80px">Остаток<br>на счете</td>
+            <td class="td_80px">Нал</td>
+            <td class="td_80px">Безнал</td>
+            <td class="td_80px">Доход<br>с комиссией</td>
+            <td class="td_80px">Доход<br>без комиссии</td>
           </tr>
         </thead>
         <tbody>
@@ -93,7 +93,7 @@
 
                 <td class="">
                     <select ng-change="changeRule(driver)" ng-model="driver.rule_default_id" ng-init="driver.rule_default_id" ng-disabled="driver.fuel_expenses">   
-                        <option value="1">default</option>
+                        <option value="1">расчет</option>
                         <option value="2">60/40</option>
                         <option value="3">50/50</option>
                         <option value="4">40/60</option>
@@ -133,8 +133,18 @@
                 <td class="digit"><input class="numberInput" type="number" ng-model="driver.from_hand_amount" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
 
             </tr>
-            <tr ng-repeat-end class="success">
-                <td colspan="25">Total for a day {{shift_date}}</td>
+            <tr ng-repeat-end class="success total">
+                <td colspan="4">Итого за день {{shift_date}}</td>
+                <td class="digit">{{sumBy(data,'total_cash') | asPrice }}</td>
+                <td class="digit">{{sumBy(data,'total_netto') | asPrice }}</td>
+                <td class="digit">{{sumBy(data,'total') | asPrice }}</td>
+                <td colspan="7"></td>
+                <!-- <td class="digit">{{ total_wage(data) | asPrice }}</td> -->
+                <td class="digit">{{ total_income(data) | asPrice }}</td>
+                <td colspan="2"></td>
+                <td class="digit">{{sumBy(data,'total_payouts') | asPrice }}</td>
+                <td class="digit">{{ total_topay(data) | asPrice }}</td>
+                <td colspan="15"></td>
             </tr>
             
         </tbody>
@@ -295,7 +305,7 @@
                 <div class="col-md-12">
                     <center>
                         <span>
-                            Residual from current debt: {{ newDebt.debtLeftToPay }}
+                            Долг на сегодняшний день: {{ newDebt.debtLeftToPay }}
                         </span>
                     </center>    
                 </div>
@@ -305,7 +315,7 @@
                 <div class="col-md-12">
                     <center>
                         <span>
-                            New deficit: {{ newDebt.additionAmount }}
+                            Убыток за текущий день: {{ newDebt.additionAmount }}
                         </span>
                     </center>    
                 </div>
@@ -315,10 +325,10 @@
 
             <div class="row" ng-show="currentDriver.last_debt && newDebt.debtLeftToPay > 0">
                 <div class="col-md-12">
-                    <p><center>Current Debt conditions:</center></p>
-                    <p ng-show="currentDriver.last_debt.min_daily_wage > 0"> Min Daily Wage: {{currentDriver.last_debt.min_daily_wage}}</p>
-                    <p ng-show="currentDriver.last_debt.is_total_income_as_fine == 1"> All wage charged as the debt payment </p>
-                    <p ng-show="currentDriver.last_debt.is_total_income_as_fine != 1 && currentDriver.last_debt.min_daily_wage == 0 ">Iteration Sum: {{currentDriver.last_debt.iteration_sum}} </p>
+                    <p><center>Условия текущего долга:</center></p>
+                    <p ng-show="currentDriver.last_debt.min_daily_wage > 0"> Минимальная выплачиваемая зарплата : {{currentDriver.last_debt.min_daily_wage}}</p>
+                    <p ng-show="currentDriver.last_debt.is_total_income_as_fine == 1"> Вся з/п списывается </p>
+                    <p ng-show="currentDriver.last_debt.is_total_income_as_fine != 1 && currentDriver.last_debt.min_daily_wage == 0 ">Ежесменно изымаемая сумма из з/п: {{currentDriver.last_debt.iteration_sum}} </p>
                 </div>
             </div>
             <br>
@@ -327,7 +337,7 @@
                 <div class="col-md-12">
                     <center>
                         <span>
-                            New debt conditions: 
+                            Новые услвоия поагешния долга: 
                         </span>
                     </center>    
                 </div>
@@ -335,17 +345,17 @@
 
             <div class="row">
                 <div class="col-md-6">
-                    <p><b>Charge rule</b></p>
+                    <p><b>Правила расчета суммы изымаемого долга</b></p>
 
-                    <p><input ng-model="obj.debtRule" type="radio" ng-value="1"> Iteration Charge </p>
-                    <p><input ng-model="obj.debtRule" type="radio" ng-value="2" > Min Wage </p>
-                    <p><input ng-model="obj.debtRule" type="radio" ng-value="3" > Whole Wage to Charge </p>
-                    <p><input ng-model="obj.debtRule" type="radio" ng-value="4" ng-disabled="! (currentDriver.wage > 0 && currentDriver.wage > -newDebt.additionAmount)"> Cover by current wage </p>
+                    <p><input ng-model="obj.debtRule" type="radio" ng-value="1"> Списывание равными суммами </p>
+                    <p><input ng-model="obj.debtRule" type="radio" ng-value="2" > Списание  с минимальной з/п  </p>
+                    <p><input ng-model="obj.debtRule" type="radio" ng-value="3" > Вся з/п списывается </p>
+                    <p><input ng-model="obj.debtRule" type="radio" ng-value="4" ng-disabled="! (currentDriver.wage > 0 && currentDriver.wage > -newDebt.additionAmount)"> Погасить за счет текущей з/п </p>
                 </div>
                 <div class="col-md-6">
-                    <p> Iteration Sum: <input ng-model="obj.newDebtIterationSum" type="number" ng-disabled="! (obj.debtRule==1)"> </p>
-                    <p> Min Wage: <input ng-model="obj.debtMinWage" type="number" ng-disabled="! (obj.debtRule==2)"> </p>
-                    <p> Decrease debt by current wage <input ng-model="obj.debtDecreasingByWage" type="checkbox" ng-disabled="! (currentDriver.wage > 0 )"> </p>
+                    <p> Ежесменная сумма: <input ng-model="obj.newDebtIterationSum" type="number" ng-disabled="! (obj.debtRule==1)"> </p>
+                    <p> Минимальная з/п: <input ng-model="obj.debtMinWage" type="number" ng-disabled="! (obj.debtRule==2)"> </p>
+                    <p> Погасить максимум из текущей з/п <input ng-model="obj.debtDecreasingByWage" type="checkbox" ng-disabled="! (currentDriver.wage > 0 )"> </p>
 
                 </div>
             </div>
@@ -360,10 +370,10 @@
                 <div class="col-md-12">
                     <center>
                         <button class="btn btn-primary" ng-click="saveNewDebtRule()">
-                            Save Debt Rule
+                            Сохранить правло списания долга
                         </button>
                         <button class="btn btn-primary" ng-click="closeDebtWindow()">
-                            Close
+                            Закрыть
                         </button>
                     </center>
                 </div>

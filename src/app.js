@@ -7,6 +7,9 @@ var driverCardTemplate = require('./js/views/drivers/card');
 var importTemplate = require('./js/views/import');
 var weeklyTemplate = require('./js/views/weekly');
 var dailyTemplate = require('./js/views/daily');
+var shiftTemplate = require('./js/views/shifts');
+var roadfineTemplate = require('./js/views/roadfines');
+var autoparkTemplate = require('./js/views/park');
 
 var app = angular
 	.module('taxiApp', [
@@ -17,6 +20,9 @@ var app = angular
 		'importModule',
 		'weeklyModule',
 		'dailyModule',
+		'shiftModule',
+		'roadFinesModule',
+		'parkModule',
 	])
 
 	.controller('MainCtrl', function($scope) {
@@ -72,10 +78,26 @@ var app = angular
 	        .state('weekly', {
 	            url: '/weekly_summary',
 	            views: {
-	            	// 'content': {
-	            	// 	template: '<h1>Weekly Report</h1>'
-	            	// }
 	            	'content': weeklyTemplate
+	            }
+	        })
+
+	        .state('shifts', {
+	            url: '/shifts',
+	            views: {
+	            	'content': shiftTemplate
+	            }
+	        })
+	        .state('roadfines', {
+	            url: '/roadfines',
+	            views: {
+	            	'content': roadfineTemplate
+	            }
+	        })
+	        .state('autopark', {
+	            url: '/autopark',
+	            views: {
+	            	'content': autoparkTemplate
 	            }
 	        })
 

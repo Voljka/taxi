@@ -18,6 +18,17 @@ function DriverService($http) {
       });
   }
 
+  function own_only() {
+    return $http
+      .get(API_SERVER + '/own_only.php', { cache: false })
+      .then(function (data) {
+        return data.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+  }
+
   function add(data) {
 
     return $http
@@ -63,6 +74,7 @@ function DriverService($http) {
     select     : select,
     add        : add,
     update     : update,
+    own_only : own_only,
 
   };
 }

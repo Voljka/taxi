@@ -8,11 +8,13 @@ const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/current
 // touch it!
 GetURL('https://partners.uber.com/p3/money/statements/index',$aRes);
 
+print_r($aRes);
+
 GetURL(URL_STATEMENTS, $aRes);
 
 $aRes[URL_STATEMENTS]["HTML"]=preg_replace("|([^\{]+)(.*)|is", "\${2}", $aRes[URL_STATEMENTS]["HTML"]);
 
-// print_r($aRes[URL_STATEMENTS]["HTML"]) . '<br>';
+print_r($aRes[URL_STATEMENTS]["HTML"]) . '<br>';
 
 $aRes = json_decode($aRes[URL_STATEMENTS]["HTML"], true);
 
@@ -25,8 +27,8 @@ if (!array_key_exists('drivers', $aRes['body'])) {
 $rangeStartAt = $_POST['periodStart'];
 $rangeEndAt = $_POST['periodEnd'];
 
-$rangeStartAt = "2017-03-27T00:00:00";
-$rangeEndAt = "2017-04-02T23:59:59";
+$rangeStartAt = "2017-04-24T00:00:00";
+$rangeEndAt = "2017-04-27T23:59:59";
 
 /// setup variables
 $row = 1;
