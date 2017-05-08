@@ -841,7 +841,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
     var result = 0;
 
     data.forEach(function(o){
-      var income = o.income - o.covered_company_deficit;
+      var income = o.income + o.covered_company_deficit;
       if (income > 0)
         result += income;
     })

@@ -6,7 +6,7 @@
 
     </div>
     <div class="col-md-6">
-        <button class="btn btn-warning" ng-disabled="currentAuto.editing || !currentAuto || currentAuto.is_rented" ng-click="setRentCost()">Установить стомиость аренды</button>
+        <button class="btn btn-warning" ng-disabled="currentAuto.editing || !currentAuto || currentAuto.is_rented" ng-click="setRentCost()">Установить стоимость аренды</button>
     </div>
 </div>
 

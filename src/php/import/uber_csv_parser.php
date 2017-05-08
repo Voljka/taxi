@@ -9,6 +9,8 @@ $MISC = 2;
 
 require ('../config/db.config.php');
 
+file_put_contents('gett_import.sql', date("Y-m-d"));
+
 // echo $file['tmp_name'];
 if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 
@@ -112,6 +114,8 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
                 $query = substr($query, 0, strlen($query) - 1 );
                 // echo $insert_query . $query . PHP_EOL;
 
+                file_put_contents('uber_import.sql', $insert_query . $query . "\n", FILE_APPEND);
+
                 $result = mysql_query($insert_query . $query) or die(mysql_error());
 
             }
@@ -123,6 +127,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
             if (strlen($query) > 0) {
                 $query = substr($query, 0, strlen($query) - 1 );
                 // echo $insert_query . $query . PHP_EOL;
+                file_put_contents('uber_import.sql', $insert_query . $query . "\n", FILE_APPEND);
 
                 $result = mysql_query($insert_query . $query) or die(mysql_error());
 
