@@ -23,6 +23,8 @@
     $rent = $params['rent'];
     $ya_cash = $params['ya_cash'];
     $ya_non_cash = $params['ya_non_cash'];
+    $rbt_total = $params['rbt_total'];
+    $rbt_comission = $params['rbt_comission'];
     $hand = $params['hand'];
     $wage_rule = $params['wage_rule'];
     $shift = $params['dated'];
@@ -120,16 +122,18 @@
 		$result = mysql_query($query) or die(mysql_error());
 		
 	} else {
-		$query = "INSERT INTO driver_withdrawals ";
-		$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
-		$query .= "VALUES (";
+		if ($rent > 0) {
+			$query = "INSERT INTO driver_withdrawals ";
+			$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
+			$query .= "VALUES (";
 
-		$query .= "$RENT_FROM_INCOME, $driver_id, '$shift', $rent ";
+			$query .= "$RENT_FROM_INCOME, $driver_id, '$shift', $rent ";
 
-		$query .= ")";
+			$query .= ")";
 
-		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
-		$result = mysql_query($query) or die(mysql_error());
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+		}
 	}
 
 
@@ -154,16 +158,18 @@
 		$result = mysql_query($query) or die(mysql_error());
 
 	} else {
-		$query = "INSERT INTO driver_withdrawals ";
-		$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
-		$query .= "VALUES (";
+		if ($fine > 0) {
+			$query = "INSERT INTO driver_withdrawals ";
+			$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
+			$query .= "VALUES (";
 
-		$query .= "$FINE_FROM_INCOME, $driver_id, '$shift', $fine ";
+			$query .= "$FINE_FROM_INCOME, $driver_id, '$shift', $fine ";
 
-		$query .= ")";
+			$query .= ")";
 
-		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
-		$result = mysql_query($query) or die(mysql_error());
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+		}
 	}
 
 	// Debt
@@ -184,16 +190,18 @@
 		$result = mysql_query($query) or die(mysql_error());
 
 	} else {
-		$query = "INSERT INTO driver_withdrawals ";
-		$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
-		$query .= "VALUES (";
+		if ($debt > 0) {
+			$query = "INSERT INTO driver_withdrawals ";
+			$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
+			$query .= "VALUES (";
 
-		$query .= "$DEBT_FROM_INCOME, $driver_id, '$shift', $debt ";
+			$query .= "$DEBT_FROM_INCOME, $driver_id, '$shift', $debt ";
 
-		$query .= ")";
+			$query .= ")";
 
-		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
-		$result = mysql_query($query) or die(mysql_error());
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+		}
 	}
 
 	// Franchise
@@ -214,16 +222,18 @@
 		$result = mysql_query($query) or die(mysql_error());
 
 	} else {
-		$query = "INSERT INTO driver_withdrawals ";
-		$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
-		$query .= "VALUES (";
+		if ($franchise > 0) {
+			$query = "INSERT INTO driver_withdrawals ";
+			$query .= "(withdrawal_type_id, driver_id, payed_at, amount) ";
+			$query .= "VALUES (";
 
-		$query .= "$FRANCHISE_FROM_INCOME, $driver_id, '$shift', $franchise ";
+			$query .= "$FRANCHISE_FROM_INCOME, $driver_id, '$shift', $franchise ";
 
-		$query .= ")";
+			$query .= ")";
 
-		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
-		$result = mysql_query($query) or die(mysql_error());
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+		}
 	}
 
 	// yandex
@@ -250,6 +260,37 @@
 		$query .= "VALUES (";
 
 		$query .= "$driver_id, '$shift', $ya_cash, $ya_non_cash ";
+
+		$query .= ")";
+
+		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+		$result = mysql_query($query) or die(mysql_error());
+	}
+
+	// rbt
+    $query = "SELECT id FROM rbt_data ";
+    $query .= " WHERE driver_id = $driver_id AND shift_date = '$shift' ";
+
+	$result = mysql_query($query) or die(mysql_error());
+
+	if (mysql_num_rows($result) > 0) {
+	    $query = "UPDATE rbt_data SET ";
+	    $query .= " driver_id = $driver_id,";
+	    $query .= " shift_date = '$shift',";
+	    $query .= " total_brutto = $rbt_total,";
+	    $query .= " comission = $rbt_comission ";
+
+	    $query .= " WHERE driver_id = $driver_id AND shift_date = '$shift' ";
+
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+		$result = mysql_query($query) or die(mysql_error());
+
+	} else {
+		$query = "INSERT INTO rbt_data ";
+		$query .= "(driver_id, shift_date, total_brutto, comission) ";
+		$query .= "VALUES (";
+
+		$query .= "$driver_id, '$shift', $rbt_total, $rbt_comission ";
 
 		$query .= ")";
 

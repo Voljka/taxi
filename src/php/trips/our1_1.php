@@ -197,6 +197,8 @@
 		$debts[] = $row;
 	};
 
+	file_put_contents('debt_request.sql', $query . "\n");
+
 	// get array of debts payments
 	$query = "SELECT * FROM driver_withdrawals ";
 	$query .= " WHERE withdrawal_type_id IN ($DEBT_FROM_FRANCHISE, $DEBT_FROM_INCOME) AND payed_at <='$end_date' ";
@@ -208,6 +210,7 @@
 	{
 		$debts_payed[] = $row;
 	};
+	file_put_contents('debt_request.sql', $query . "\n", FILE_APPEND);
 
 	// get array of franchise payments
 	$query = "SELECT * FROM driver_withdrawals ";
@@ -250,8 +253,7 @@
 		$franchise_daily_rules = get_daily_franchise(substr($current_start_date,0,10));
 		// print_r($franchise_daily_rules);
 
-		$query = "SELECT drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, yandex_daily_data.cash yandex_cash, yandex_daily_data.non_cash yandex_non_cash, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount, gett_data.gett_sum_fare, gett_data.gett_sum_comission, gett_data.gett_sum_cash, gett_data.gett_sum_result, uber_data.uber_sum_fare, uber_data.uber_sum_comission, uber_data.uber_sum_cash, uber_data.uber_sum_result, gett_corrections.gett_correction_fare, gett_corrections.gett_correction_comission, gett_corrections.gett_correction_cash, gett_corrections.gett_correction_result, uber_corrections.uber_correction_fare, uber_corrections.uber_correction_comission, uber_corrections.uber_correction_cash, uber_corrections.uber_correction_result ";
-
+		$query = "SELECT drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, yandex_daily_data.cash yandex_cash, yandex_daily_data.non_cash yandex_non_cash, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount, gett_data.gett_sum_fare, gett_data.gett_sum_comission, gett_data.gett_sum_cash, gett_data.gett_sum_result, uber_data.uber_sum_fare, uber_data.uber_sum_comission, uber_data.uber_sum_cash, uber_data.uber_sum_result, gett_corrections.gett_correction_fare, gett_corrections.gett_correction_comission, gett_corrections.gett_correction_cash, gett_corrections.gett_correction_result, uber_corrections.uber_correction_fare, uber_corrections.uber_correction_comission, uber_corrections.uber_correction_cash, uber_corrections.uber_correction_result, rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission ";
 
 		$query .= " FROM drivers ";
 
@@ -294,7 +296,7 @@
 		$query .= "FROM trips	";
 		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
 					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.mediator_id=$GETT AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
+		$query .= "WHERE trips.payment_type_id<>$MISC_PAYMENT AND trips.mediator_id=$GETT AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
 
 		$query .= "	GROUP BY trips.driver_id 
 					) AS gett_data ";
@@ -309,7 +311,7 @@
 		$query .= "FROM trips	";
 		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
 					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.mediator_id=$UBER AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
+		$query .= "WHERE trips.payment_type_id<>$MISC_PAYMENT AND trips.mediator_id=$UBER AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
 
 		$query .= "	GROUP BY trips.driver_id 
 					) AS uber_data ";
@@ -397,6 +399,9 @@
 		// Yandex Taximeter data
 		$query .= "LEFT JOIN yandex_daily_data ON yandex_daily_data.trip_date='" . substr($current_start_date,0,10) . "' AND yandex_daily_data.driver_id = drivers.id ";
 
+		// RBT data
+		$query .= "LEFT JOIN rbt_data ON rbt_data.shift_date='" . substr($current_start_date,0,10) . "' AND rbt_data.driver_id = drivers.id ";
+
 		// Company expenses for a driver (for complete reports)
 		$query .= "LEFT JOIN company_expenses ON company_expenses.charged_at='" . substr($current_start_date,0,10) . "' AND company_expenses.driver_id IS NOT NULL AND company_expenses.driver_id = drivers.id AND company_expenses.expense_type_id=$EXPENSES_COVERED_BY_COMPANY ";
 
@@ -422,7 +427,7 @@
 		$query .= "LEFT JOIN banks ON drivers.bank_id=banks.id ";
 
 
-	    $query .= " WHERE uber_data.uber_sum_fare IS NOT NULL OR gett_data.gett_sum_fare IS NOT NULL ";
+	    $query .= " WHERE uber_data.uber_sum_fare IS NOT NULL OR gett_data.gett_sum_fare IS NOT NULL OR gett_corrections.gett_correction_fare IS NOT NULL OR uber_corrections.uber_correction_fare IS NOT NULL OR yandex_daily_data.cash IS NOT NULL OR yandex_daily_data.non_cash IS NOT NULL OR from_hand_trips_total.amount IS NOT NULL ";	    
 	    $query .= " GROUP BY drivers.id ";
 	    $query .= " ORDER BY drivers.surname, drivers.firstname, drivers.patronymic";
 
@@ -432,11 +437,11 @@
 
 		$respond = array();
 		
-		file_put_contents('111.res', substr($current_start_date,0,10) . "\n", FILE_APPEND);
+		// file_put_contents('111.res', substr($current_start_date,0,10) . "\n", FILE_APPEND);
 		while ($row = mysql_fetch_assoc($result)) 
 		{
 			// if ($row['uber_completeness'] && $row['gett_completeness']) {
-			file_put_contents('111.res', $row['id'] . ' ' . floatval($row['fuel_expenses']) , FILE_APPEND);
+			// file_put_contents('111.res', $row['id'] . ' ' . floatval($row['fuel_expenses']) , FILE_APPEND);
 			if (floatval($row['fuel_expenses']) > 0) {
 				// file_put_contents('111.res', $row['id'] . ' out' . "\n", FILE_APPEND);
 
@@ -444,7 +449,7 @@
 				// file_put_contents('111.res', $row['id'] . ' in' . "\n", FILE_APPEND);
 			// Autocalc debt
 				$driver = $row['id'];
-				file_put_contents('tmp.res', '$driver_id = ' . $driver . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', "\n $driver_id = " . $driver . ' DATE : ' . substr($current_start_date,0,10) .  "\n", FILE_APPEND);
 				$debt_info = get_debt_until_date(substr($current_start_date,0,10), $driver);
 				$driver_debts = $debt_info['total_debts'];
 				$driver_last_debt = $debt_info['current_debt'];
@@ -453,13 +458,15 @@
 
 				$already_calced_debt = $debt_payments_calced[$driver] ? $debt_payments_calced[$driver] : 0;
 
-				file_put_contents('tmp.res', '$debt_already_payed = ' . $debt_already_payed, FILE_APPEND);
-				file_put_contents('tmp.res', '$already_calced_debt = ' . $already_calced_debt, FILE_APPEND);
+				file_put_contents('tmp.res', '$driver_debts = ' . $driver_debts . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', '$debt_already_payed = ' . $debt_already_payed . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', '$already_calced_debt = ' . $already_calced_debt . "\n", FILE_APPEND);
 
 				if ($driver_debts > ($debt_already_payed + $already_calced_debt)) {
 					$residual_payment = $driver_debts - $debt_already_payed - $already_calced_debt;
+					file_put_contents('tmp.res', '$residual_payment = ' . $residual_payment . "\n", FILE_APPEND);
 
-					$row['debt_planned_payment'] = ($residual_payment > $driver_last_debt['iteration_sum']) ? $driver_last_debt['iteration_payment'] : $residual_payment;
+					$row['debt_planned_payment'] = ($residual_payment > $driver_last_debt['iteration_sum']) ? $driver_last_debt['iteration_sum'] : $residual_payment;
 					$row['debt_min_wage'] = $driver_last_debt['min_daily_wage'];
 					$row['debt_residual'] = $residual_payment;
 					$row['debt_all_as_debt'] = $driver_last_debt['is_total_income_as_fine'];
@@ -487,16 +494,19 @@
 				$already_payed_franchise = get_payed_franchise_until_date(substr($current_start_date,0,10), $driver);
 				$already_calced_franchise = $franchise_payments_calced[$driver] ? $franchise_payments_calced[$driver] : 0;
 
-				file_put_contents('tmp.res', '$already_payed_franchise = ' . $already_payed_franchise, FILE_APPEND);
-				file_put_contents('tmp.res', '$already_calced_franchise = ' . $already_calced_franchise, FILE_APPEND);
-				file_put_contents('tmp.res', "franchise_daily_rules['daily_total_amount'] = " . $franchise_daily_rules['daily_total_amount'], FILE_APPEND);
+				file_put_contents('tmp.res', '$already_payed_franchise = ' . $already_payed_franchise  . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', '$already_calced_franchise = ' . $already_calced_franchise  . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', "franchise_daily_rules['daily_total_amount'] = " . $franchise_daily_rules['daily_total_amount'] . "\n", FILE_APPEND);
 
 				if (($already_payed_franchise + $already_calced_franchise) < $franchise_daily_rules['daily_total_amount']) {
 
 						$residual_payment = $franchise_daily_rules['daily_total_amount'] - $already_payed_franchise - $already_calced_franchise;
+						file_put_contents('tmp.res', '$residual_franchise = ' . $residual_payment . "\n", FILE_APPEND);
 
 						$row['franchise_planned_payment'] = ($residual_payment > $franchise_daily_rules['sum_for_daily']) ? $franchise_daily_rules['sum_for_daily'] : $residual_payment;
 						$franchise_payments_calced[$driver] = $franchise_payments_calced[$driver] ? $franchise_payments_calced[$driver] + $row['franchise_planned_payment'] : $row['franchise_planned_payment'];
+				} else {
+					$row['franchise_planned_payment'] = 0;
 				}
 			}
 

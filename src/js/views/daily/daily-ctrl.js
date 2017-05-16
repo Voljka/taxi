@@ -6,6 +6,8 @@ import { CALC_WAGE_BY_COMMON_RULE } from '../../constants/common';
 
 function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService, Flash) {
 
+    Flash.clear();
+
     $scope.payouts = [];
     $scope.totalPayouts = [];
     $scope.residualToPay = 0;
@@ -82,6 +84,9 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
                o.yandex_cash = o.yandex_cash ? Number(o.yandex_cash) : 0; 
                o.yandex_non_cash = o.yandex_non_cash ? Number(o.yandex_non_cash) : 0;
+
+               o.rbt_total = o.rbt_total ? Number(o.rbt_total) : 0; 
+               o.rbt_comission = o.rbt_comission ? Number(o.rbt_comission) : 0;
 
                o.from_hand_amount = Number(o.from_hand_amount);
                o.fine_planned_payment = o.fine_planned_payment ? Number(o.fine_planned_payment) : 0;
@@ -194,6 +199,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
    $scope.checkEnter = function(keyEvent, driver) {
      if (keyEvent.which == 13){
       driver.editingFuel = false;
+      driver.manually_entered = true;
       driver.editingCover = false;
       recalcWage(driver);
      } 
@@ -265,11 +271,18 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       driver.yandex_total = driver.yandex_non_cash + driver.yandex_cash;
       driver.yandex_total_netto = Number(((driver.yandex_non_cash + driver.yandex_cash) *0.8).toFixed(2));
 
-      driver.total_cash = driver.from_hand_amount + driver.uber_sum_cash + driver.gett_sum_cash + driver.yandex_cash;
-      driver.total = driver.from_hand_amount + driver.uber_total + driver.gett_total + driver.yandex_total;
-      driver.total_netto = Number((driver.total * 0.8).toFixed(2));
+      driver.rbt_total_netto = driver.rbt_total - driver.rbt_comission; 
+      driver.rbt_dispatcher_wage = driver.rbt_total * 0.1;
 
-      driver.fuel = driver.fuel_expenses ? Number(driver.fuel_expenses) : fuelByTotal(driver.total);
+      driver.total_cash = driver.from_hand_amount + driver.uber_sum_cash + driver.gett_sum_cash + driver.yandex_cash + driver.rbt_total;
+      driver.total = driver.from_hand_amount + driver.uber_total + driver.gett_total + driver.yandex_total + driver.rbt_total_netto;
+      driver.total_netto = Number((driver.total * 0.8 + driver.from_hand_amount * 0.2 + driver.rbt_total_netto * 0.2).toFixed(2));
+
+      if (driver.manually_entered) {
+        // driver
+      } else {
+        driver.fuel = driver.fuel_expenses ? Number(driver.fuel_expenses) : fuelByTotal(driver.total);
+      }
 
       var common_wage_rules = driver.rule_default_id == CALC_WAGE_BY_COMMON_RULE;
 
@@ -280,30 +293,20 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             driver.debt = Number(driver.debt_from_income) + Number(driver.debt_from_franchise);
          }
          
-         // if (common_wage_rules) {
-         //     if (driver.total >= 7000) {
-         //         driver.wage = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine - driver.debt).toFixed(2));
-         //     } else {
-         //         driver.wage = Number(((driver.total_netto - driver.fuel) * (1 - driver.driver_part) - driver.franchise - driver.fine - driver.debt).toFixed(2));
-         //     }
-         // } else {
-             driver.wage = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine - driver.debt).toFixed(2));
-         // }
+         driver.wage = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine - driver.debt).toFixed(2));
       } else {
          var wage_before_debt; 
 
          if (common_wage_rules) {
+             driver.driver_part = 0.6;
              if (driver.total < 7000) {
-                 driver.driver_part = 1 - driver.driver_part;
+                driver.rule_default_id = "4";
+                wage_before_debt = Number(((driver.total_netto - driver.fuel) * (1 - driver.driver_part) - driver.franchise - driver.fine).toFixed(2));
+             } else {
+                driver.rule_default_id = "2";
+                wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
              }
 
-             wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
-
-             // if (driver.total >= 7000) {
-             //     wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
-             // } else {
-             //     wage_before_debt = Number(((driver.total_netto - driver.fuel) * (1 - driver.driver_part) - driver.franchise - driver.fine).toFixed(2));
-             // }
          } else {
              wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
          }
@@ -317,8 +320,9 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                driver.debt = 0;
             } else {
 
-               if (driver.debt_min_wage != 0) {
+               if (driver.debt_min_wage) {
                   if ((wage_before_debt - driver.debt_min_wage) >= driver.debt_residual) {
+
                      driver.debt = driver.debt_residual;
                   } else {
                      if (wage_before_debt > 0) {
@@ -344,10 +348,9 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          driver.wage = wage_before_debt - driver.debt;
       }
 
-      // driver.wage = driver.wage - driver.covered_company_deficit;
-
-      driver.income = Number((driver.total_netto - driver.fuel - driver.rental - driver.wage).toFixed(2));
+      driver.income = Number((driver.total_netto - driver.fuel - driver.rental - (driver.wage < 0 ? 0 : driver.wage)).toFixed(2));
       driver.income_deficit = driver.income < 0 ? driver.income : 0;
+      driver.left_to_pay = (driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt - driver.total_cash + driver.fuel)
    }
 
 
@@ -594,7 +597,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                if (d.last_debt.is_total_income_as_fine == 1) {
                   $scope.obj.debtRule = 3;
                } else {
-                  if (d.last_debt.is_total_income_as_fine != 1 && d.last_debt.min_daily_wage == 0) {
+                  if (d.last_debt.is_total_income_as_fine != 1 && ! d.last_debt.min_daily_wage) {
                      $scope.obj.debtRule = 1;
                   } else {
                      alert('!!! Neither of cases !!!');
@@ -619,6 +622,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             ya_cash : d.yandex_cash,
             ya_non_cash : d.yandex_non_cash,
             hand : d.from_hand_amount,
+            rbt_total : d.rbt_total,
+            rbt_comission : d.rbt_comission,
             // wage_rule: d.rule_default_id,
             dated: $scope.shiftDate,
             group: d.work_type_id,
@@ -628,12 +633,15 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          }
 
-         if (d.driver_part == 0.6)
-            data.wage_rule = 2;
-         if (d.driver_part == 0.5)
-            data.wage_rule = 3;
-         if (d.driver_part == 0.4)
-            data.wage_rule = 4;
+         // if (d.driver_part == 0.6)
+         //    data.wage_rule = 2;
+         // if (d.driver_part == 0.5)
+         //    data.wage_rule = 3;
+         // if (d.driver_part == 0.4)
+         //    data.wage_rule = 4;
+          data.wage_rule = d.rule_default_id;
+
+          console.log(data);
 
          saveDriverDay(data);
       }
@@ -747,7 +755,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       var d = $scope.currentDriver;
 
       var rule = {
-         fined_at: formattedToSave(new Date()),
+         //fined_at: formattedToSave(new Date()),
+         fined_at: $scope.shiftDate,
          notes: '',
          driver_id: d.id,
          rule_type_id: 1,
@@ -794,6 +803,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          rent : d.rental,
          ya_cash : d.yandex_cash,
          ya_non_cash : d.yandex_non_cash,
+         rbt_total : d.rbt_total,
+         rbt_comission : d.rbt_comission,
          hand : d.from_hand_amount,
          dated: $scope.shiftDate,
          group: d.work_type_id,
@@ -803,12 +814,16 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       }
 
-      if (d.driver_part == 0.6)
-         data.wage_rule = 2;
-      if (d.driver_part == 0.5)
-         data.wage_rule = 3;
-      if (d.driver_part == 0.4)
-         data.wage_rule = 4;
+      data.wage_rule = d.rule_default_id;
+
+      console.log(data);
+
+      // if (d.driver_part == 0.6)
+      //    data.wage_rule = 2;
+      // if (d.driver_part == 0.5)
+      //    data.wage_rule = 3;
+      // if (d.driver_part == 0.4)
+      //    data.wage_rule = 4;
 
       return data;
    }

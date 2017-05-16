@@ -1,9 +1,9 @@
 <?php
 require_once('func.inc.php');
 
-// const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/current";
+const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/current";
 
-const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/51f1bdd9-0f71-444a-9765-69eee55e2346";
+// const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/1225b9fd-1304-660e-393e-1207ef6ffc9b";
 
 // touch it!
 GetURL('https://partners.uber.com/p3/money/statements/index',$aRes);
@@ -14,7 +14,7 @@ GetURL(URL_STATEMENTS, $aRes);
 
 $aRes[URL_STATEMENTS]["HTML"]=preg_replace("|([^\{]+)(.*)|is", "\${2}", $aRes[URL_STATEMENTS]["HTML"]);
 
-print_r($aRes[URL_STATEMENTS]["HTML"]);
+// print_r($aRes[URL_STATEMENTS]["HTML"]);
 
 $aRes = json_decode($aRes[URL_STATEMENTS]["HTML"], true);
 
@@ -23,19 +23,45 @@ if (!array_key_exists('drivers', $aRes['body'])) {
 	die();
 }
 
+function in_array_except($element, $array, $exception_list){
+
+	// file_put_contents( 'uber_strict_parser.sql',"Element: ". $element. " Trips Count: ". count($array). "Exceptions Count: ". count($exception_list). "\n", FILE_APPEND);
+
+	$index = -1;
+	for ($j=0; $j < count($array) ; $j++ ) { 
+
+		if ($array[$j] == $element){
+			// file_put_contents( 'uber_strict_parser.sql',"!!!!At least element is found!!!!". "\n", FILE_APPEND);
+			if (count($exception_list) == 0 || ! in_array($j, $exception_list) ){
+				$index = $j;
+				break;
+
+			}
+		}
+	}
+
+	return $index;
+
+}
+
 function find_by_3_columns($trip, $trip_type, $trip_note){
 
 	global $trip_ids, $payment_ids, $notes, $MISC;
 	$presense = -1;
+	$last_index = undefined;
+	$exceptions = array(); 
+	
+	file_put_contents( 'uber_strict_parser.sql', "PARAMS: trip = ". $trip . " exceptions " . $exceptions .  "\n", FILE_APPEND);
 
-	$cur_index = array_search($trip, $trip_ids);
-	// file_put_contents('uber_strict_parser.sql', $trip .  ' '  . $trip_type . ' ' .  $trip_note . "\n", FILE_APPEND);
-	// file_put_contents('uber_strict_parser.sql', '$cur_index = ' . $cur_index . "\n", FILE_APPEND);
+	//$cur_index = array_search($trip, $trip_ids);
+	$cur_index = in_array_except($trip, $trip_ids, $exceptions);
 
-	// echo $trip .  ' '  . $trip_type . ' ' .  $trip_note . "<br>";
-	// echo '$cur_index = ' . $cur_index . "<br>";
+	file_put_contents( 'uber_strict_parser.sql', "trip = ". $trip . " trip type " . $trip_type . " trip notes = " . $trip_note  . ' cur_index =  ' . $cur_index. "\n", FILE_APPEND);
 
 	while ($cur_index > -1){
+
+		$exceptions[] = $cur_index;
+
 		if ($trip_type == $MISC) {
 			if ($payment_ids[$cur_index] == $trip_type && $notes[$cur_index] == $trip_note){
 				$presense = $cur_index;
@@ -48,28 +74,13 @@ function find_by_3_columns($trip, $trip_type, $trip_note){
 			}
 		}
 
-		$cur_index = array_search($trip, $trip_ids);
-		// echo '$cur_index = ' . $cur_index . "<br>";
-		// file_put_contents('uber_strict_parser.sql', '$cur_index = ' . $cur_index . "\n", FILE_APPEND);
+		// $cur_index = array_search($trip, $trip_ids);
+		file_put_contents( 'uber_strict_parser.sql', "PARAMS 2 : trip = ". $trip . " exceptions " . $exceptions .  "\n", FILE_APPEND);
+		$cur_index = in_array_except($trip, $trip_ids, $exceptions);
+
+		file_put_contents( 'uber_strict_parser.sql', "Second!!!! trip = ". $trip . " trip type " . $trip_type . " trip notes = " . $trip_note . ' cur_index =  ' . $cur_index . "\n", FILE_APPEND);
 	}
 
-
-
-
-
-	// for ($i=0; $i < count($trip_ids) ; $i++) { 
-	// 	if ($trip_type == $MISC) {
-	// 		if ($trip_ids[$i] == $trip && $payment_ids[$i] == $trip_type && $notes[$i] == $trip_note){
-	// 			$presense = true;
-	// 			break;
-	// 		}
-	// 	} else {
-	// 		if ($trip_ids[$i] == $trip && $payment_ids[$i] == $trip_type){
-	// 			$presense = true;
-	// 			break;
-	// 		}
-	// 	}
-	// }
 
 	return $presense;
 }
@@ -81,10 +92,10 @@ $rangeEndAt = $_POST['periodEnd'];
 // $rangeStartAt = "2017-05-04T00:00:00";
 // $rangeEndAt = "2017-05-10T23:59:59";
 
-$rangeStartAt = "2017-04-24 00:00:00";
-$rangeEndAt = "2017-05-01 05:00:00";
+$rangeStartAt = "2017-05-08 00:00:00";
+$rangeEndAt = "2017-05-15 11:59:59";
 // $adjustmentsAt = date('Y:m:d') . ' 08:00:00';
-$adjustmentsAt = '2017-04-24' . ' 08:00:00';
+$adjustmentsAt = '2017-05-14' . ' 16:00:00';
 
 
 /// setup variables
@@ -139,17 +150,12 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 
 	if (!array_key_exists("trip_earnings",$aD)){
 		// var_dump($aD);
-		// file_put_contents('uber_strict_parser.sql', "trip_earnings not exists\n", FILE_APPEND);
 		
 	}
 	else {
-		// file_put_contents('uber_strict_parser.sql', "trip_earnings exists\n", FILE_APPEND);
 
 		$driver_phone = $aD['contact_number'];
 		$driver_name = $aD['last_name'] . ' ' . $aD['first_name'];
-
-		// file_put_contents('uber_strict_parser.sql', "$driver_name $driver_phone \n", FILE_APPEND);
-
 
         // If driver exists in DB
         $driver_index = array_search($driver_phone, $phones);
@@ -159,7 +165,7 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 
         if (! $driver_index) {
 
-            $contact = 'Fullname: ' . $driver_name . ' Phone: ' . $driver_phone;
+            $contact = 'ФИО: ' . $driver_name . ' Тел: ' . $driver_phone;
             $bad_contacts_count++;
 
             if ( array_search($contact, $bad_contacts) > -1 ) {
@@ -195,7 +201,6 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 	            if (! $is_trip_to_write) {
 	                $already_exists_trips_count++;
 	            } else {
-	            	// if (!$is_trip_a_recalc || ($is_trip_a_recalc && $aTrip['uber_adjustment_delta'])) {
 			            $successfull_loads_count++;
 			            $query .= "(". $UBER . ',';
 
@@ -228,7 +233,6 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 
 			            $query .= $ids[$driver_index] ;
 			            $query .= "),";
-	            	// }
 	            }
 			}
 	    }
@@ -245,12 +249,12 @@ if (strlen($query) > 0) {
 
 echo '<br><br><br><br><br>';
 
-echo '<br>Bad Contacts: <br>';
+echo '<br>Нераспознанные водители: <br>';
 echo $bad_contact_list . '<br>';
 
-echo '<br> Successfully loaded: '. $successfull_loads_count;
-echo '<br> Skipped drivers with bad contacts: '. $bad_contacts_count;
-echo '<br> Skipped existing trips count: '. $already_exists_trips_count;
+echo '<br> Успешно загружено записей : '. $successfull_loads_count;
+echo '<br> Пропущено водителей: '. $bad_contacts_count;
+echo '<br> Пропущены уже существующие записи: '. $already_exists_trips_count;
 
 file_put_contents('uber_strict_parser.sql', "\nBad Contacts: \n", FILE_APPEND);
 file_put_contents('uber_strict_parser.sql', $bad_contact_list . "\n", FILE_APPEND);

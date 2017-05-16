@@ -29,8 +29,8 @@ function TripService($http) {
   function our1_1(){
 
     var range = {
-      start: "2017-04-24",
-      end: "2017-05-01"
+      start: "2017-05-08",
+      end: "2017-05-14" 
     }
 
     return $http

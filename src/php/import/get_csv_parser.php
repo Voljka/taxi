@@ -109,7 +109,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 
 										  $bad_contacts_count++;
 
-										  echo "Bad Contact line " . $row . "\n";
+										  // echo "Bad Contact line " . $row . "\n";
 
 										  if ( array_search($contact, $bad_contacts) > -1 ) {
 										  } else {
@@ -188,7 +188,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 		  }
 	 }
 
-	 echo '<br>Bad Contacts: <br>';
+	 echo '<br>Нераспозанные водители: <br>';
 	 echo $bad_contact_list . '<br>';
 
 	 file_put_contents('gett_import.sql', "\nBad Contacts: \n", FILE_APPEND);
@@ -198,10 +198,10 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 	 file_put_contents('gett_import.sql', '<br> Skipped existing trips count: '. $already_exists_trips_count . "\n", FILE_APPEND);
 	 file_put_contents('gett_import.sql', '<br> Cancelled trips count: '. $cancelled_trips . "\n", FILE_APPEND);
 
-	 echo '<br> Successfully loaded: '. $successfull_loads_count;
-	 echo '<br> Skipped trips with bad contacts: '. $bad_contacts_count;
-	 echo '<br> Skipped existing trips count: '. $already_exists_trips_count;    
-	 echo '<br> Cancelled trips: '. $cancelled_trips;    
+	 echo '<br> Успешно загружено записей: '. $successfull_loads_count;
+	 echo '<br> Пропущено поездок по нераспознанным водителям: '. $bad_contacts_count;
+	 echo '<br> Пропущено существующих поездок: '. $already_exists_trips_count;    
+	 echo '<br> Отмененные поездки: '. $cancelled_trips;    
 	 
 	 fclose($handle);
 } else {

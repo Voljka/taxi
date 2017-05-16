@@ -5,6 +5,8 @@ import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../li
 
 function RoadFinesCtrl($scope, $state, autolist, finelist, driverlist, RoadFineService, Flash) {
 
+  Flash.clear();
+
   $scope.autolist = autolist;
   $scope.fines = finelist.map(function(o){
     o.fine_amount = Number(o.fine_amount);

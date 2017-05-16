@@ -5,6 +5,8 @@ function DriverCtrl($scope, $state, driverList, Flash, DriverService) {
 
 	$scope.drivers = driverList;
 	$scope.currentDriver = undefined;
+	Flash.clear();
+
 
 	filterObjects($scope.drivers); 
 

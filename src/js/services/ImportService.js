@@ -33,6 +33,18 @@ function ImportService($http){
       });
   }
 
+  function uberCurrent() {
+
+    return $http
+      .get('php/vendor/statement1.php')
+      .then(function (data) {
+        return data.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+  }
+
   function test(files) {
 
     return $http({
@@ -71,6 +83,7 @@ function ImportService($http){
     uploadUber :  uberDataUpload,
     uploadGet  :  getDataUpload,
     test : test,
+    uberCurrent: uberCurrent,
 
   };
 }

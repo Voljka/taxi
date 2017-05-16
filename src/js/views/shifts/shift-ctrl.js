@@ -6,6 +6,7 @@ import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../li
 function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftService, Flash) {
 
   $scope.shifts = [];
+  Flash.clear();
 
   $scope.shiftDate = new Date();
 

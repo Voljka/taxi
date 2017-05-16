@@ -3,11 +3,20 @@
 function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
 
 	$scope.files = [];
+    Flash.clear();
 
 	if ($state.current.name == 'uber_load') {
+        $scope.isLoading = true;
+
 		$scope.partner = "Uber";
+        ImportService.uberCurrent()
+            .then(function(respond){
+                var id = Flash.create('danger', respond, 0, {class: 'custom-class', id: 'custom-id'}, true);
+                $scope.isLoading = false;
+            })
 	} else {
-		$scope.partner = "Get";
+		$scope.partner = "Gett";
+        $scope.isLoading = false;
 	}
     
     // $scope.$on("fileSelected", function (event, args) {

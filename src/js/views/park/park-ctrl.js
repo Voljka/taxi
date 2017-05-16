@@ -5,6 +5,8 @@ import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../li
 
 function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
 
+  Flash.clear();
+
   function adjustList(list){
     $scope.autolist = list.map( function(o){
 

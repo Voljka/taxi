@@ -48,6 +48,7 @@
             <td colspan="4">Uber</td>
             <td colspan="5">Gett</td>
             <td colspan="4">Yandex</td>
+            <td colspan="4">РБТ</td>
             <td rowspan="2">От борта</td>
           </tr>
           <tr>
@@ -64,6 +65,11 @@
             <td class="td_80px">Безнал</td>
             <td class="td_80px">Доход<br>с комиссией</td>
             <td class="td_80px">Доход<br>без комиссии</td>
+
+            <td class="td_80px">Доход<br>с комиссией</td>
+            <td class="td_80px">Комиссия</td>
+            <td class="td_80px">Доход<br>без комиссии</td>
+            <td class="td_80px">ЗП<br>диспетчера</td>
           </tr>
         </thead>
         <tbody>
@@ -111,11 +117,12 @@
                 <td class="digit">{{driver.covered_company_deficit | asPrice}}</td>
 
                 <td class="digit">{{driver.total_payouts | asPrice}}</td>
-                <td class="digit to-pay-column">{{ (driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt )| asPrice}}</td>
+                <!-- <td class="digit to-pay-column">{{ (driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt )| asPrice}}</td> -->
+                <td class="digit to-pay-column">{{ (driver.left_to_pay )| asPrice}}</td>
                 <td class="digit">{{driver.deferred_debt | asPrice}}</td>
 
                 <td class="digit">{{driver.uber_sum_cash | asPrice}}</td>
-                <td class="digit">{{driver.uber_correction_result | asPrice}}</td>
+                <td class="digit">{{driver.uber_correction_fare | asPrice}}</td>
                 <td class="digit">{{driver.uber_total_netto | asPrice}}</td>
                 <td class="digit">{{driver.uber_total | asPrice}}</td>
 
@@ -129,6 +136,11 @@
                 <td class="digit"> <input class="numberInput" type="number" ng-model="driver.yandex_non_cash" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
                 <td class="digit">{{driver.yandex_total | asPrice}}</td>
                 <td class="digit">{{driver.yandex_total_netto | asPrice}}</td>
+
+                <td class="digit"> <input class="numberInput" type="number" ng-model="driver.rbt_total" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
+                <td class="digit"> <input class="numberInput" type="number" ng-model="driver.rbt_comission" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
+                <td class="digit">{{driver.rbt_total_netto | asPrice}}</td>
+                <td class="digit">{{driver.rbt_dispatcher_wage | asPrice}}</td>
 
                 <td class="digit"><input class="numberInput" type="number" ng-model="driver.from_hand_amount" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
 
@@ -144,7 +156,7 @@
                 <td colspan="2"></td>
                 <td class="digit">{{sumBy(data,'total_payouts') | asPrice }}</td>
                 <td class="digit">{{ total_topay(data) | asPrice }}</td>
-                <td colspan="15"></td>
+                <td colspan="19"></td>
             </tr>
             
         </tbody>
