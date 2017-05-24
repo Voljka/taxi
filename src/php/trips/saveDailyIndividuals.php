@@ -26,6 +26,8 @@
     $rbt_total = $params['rbt_total'];
     $rbt_comission = $params['rbt_comission'];
     $hand = $params['hand'];
+    $is_bonus = $params['is_bonus'];
+    $total = $params['total'];
     $wage_rule = $params['wage_rule'];
     $shift = $params['dated'];
     $group_id = $params['group'];
@@ -46,6 +48,8 @@
 	    $query .= " report_date = '$shift',";
 	    $query .= " driver_id = $driver_id, ";
 	    $query .= " group_id = $group_id, ";
+	    $query .= " total = $total, ";
+	    $query .= " is_bonus = $is_bonus, ";
 	    $query .= " deferred_debt = $deferred_debt, ";
 	    $query .= " covered_company_deficit = $covered_company_deficit, ";
 	    $query .= " fuel_expenses = $fuel, ";
@@ -76,10 +80,12 @@
 
 	} else {
 		$query = "INSERT INTO daily_individual_cases ";
-		$query .= "(driver_id, group_id, report_date, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
+		$query .= "(driver_id, total, group_id, report_date, is_bonus, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
 		$query .= "VALUES (";
 
 		$query .= "$driver_id,";
+		$query .= "$total,";
+		$query .= "$is_bonus,";
 		$query .= "$group_id,";
 		$query .= "'$shift',";
 		$query .= "$fuel,";
@@ -100,6 +106,23 @@
 
 		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
 		$result = mysql_query($query) or die(mysql_error());
+
+		if ($is_bonus == 1) {
+		    $query = "SELECT id FROM last_bonus_days ";
+		    $query .= " WHERE driver_id = $driver_id ";
+
+			$result = mysql_query($query) or die(mysql_error());		
+			if (mysql_num_rows($result) > 0) {
+				$query = "UPDATE last_bonus_days SET last_bonus_day='$shift' ";
+				$query = " WHERE driver_id = $driver_id ";
+				file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			} else {
+				$query = "INSERT INTO last_bonus_days (driver_id, last_bonus_day) ";
+				$query = " VALUES ($driver_id, '$shift')";
+				file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			}
+			$result = mysql_query($query) or die(mysql_error());
+		}
 	}
 
 	// Rent

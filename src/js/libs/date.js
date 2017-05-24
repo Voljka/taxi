@@ -1,11 +1,24 @@
 'use strict'
 
 export function formattedToSave(dat) {
+	dat = treatAsUTC(dat);
 	var curr_date = dat.getDate();
 	var curr_month = dat.getMonth() + 1;
 	var curr_year = dat.getFullYear();
 
 	return (curr_year + "-" + (curr_month < 10 ? "0"+curr_month : curr_month ) + "-" + (curr_date < 10 ? "0"+curr_date : curr_date ));
+}
+
+export function formattedToSaveTime(dat) {
+	var curr_date = dat.getDate();
+	var curr_month = dat.getMonth() + 1;
+	var curr_year = dat.getFullYear();
+
+	var curr_hour = dat.getHours();
+	var curr_min = dat.getMinutes();
+	var curr_ss = dat.getSeconds();
+
+	return (curr_year + "-" + (curr_month < 10 ? "0"+curr_month : curr_month ) + "-" + (curr_date < 10 ? "0"+curr_date : curr_date ) +  ' ' + (curr_hour < 10 ? "0"+curr_hour : curr_hour ) +  ':' + (curr_min < 10 ? "0"+curr_min : curr_min ) +  ':' + (curr_ss < 10 ? "0"+curr_ss : curr_ss ));
 }
 
 export function formattedToRu(dat) {

@@ -7,12 +7,19 @@
     $auto_id = $params['auto_id'];
     $dispatcher_id = $params['dispatcher_id'];
     $driver_id = $params['driver_id'];
+    if (! $params['finish_time']) {
+        $finish_time = "NULL";
+    } else {
+        $finish_time = "'" . $params['finish_time'] . "'";
+    }
+    $start_time = $params['start_time'];
+    $km = $params['km'];
     $shift_date = $params['shift_date'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "shifts";
 
-	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, dispatcher_id=$dispatcher_id ";
+	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, dispatcher_id=$dispatcher_id, km=$km, start_time='$start_time', finish_time=$finish_time ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

@@ -6,6 +6,9 @@
     $id = $params['id'];
     $auto_id = $params['auto_id'];
     $fined_at = $params['fined_at'];
+    $fine_place = $params['fine_place'];
+    $fixation_type = $params['fixation_type'];
+    $driver_id = $params['driver_id'];
     $notes = $params['notes'];
     $fine_amount = $params['fine_amount'];
     $fine_number = $params['fine_number'];
@@ -14,7 +17,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "road_fines";
 
-	$query = "UPDATE $table SET fined_at='$fined_at', auto_id=$auto_id, notes = '$notes', fine_amount = $fine_amount, fine_number = $fine_number, inputed_at = '$inputed_at' ";
+	$query = "UPDATE $table SET fined_at='$fined_at', auto_id=$auto_id, notes = '$notes', fine_amount = $fine_amount, fine_number = $fine_number, inputed_at = '$inputed_at', fixation_type = $fixation_type, $fine_place = '$fine_place', driver_id = $driver_id ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

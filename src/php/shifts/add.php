@@ -6,16 +6,26 @@
 
     $auto_id = $params['auto_id'];
     $dispatcher_id = $params['dispatcher_id'];
+    if (! $params['finish_time']) {
+	    $finish_time = "NULL";
+    } else {
+	    $finish_time = "'" . $params['finish_time'] . "'";
+    }
+    $start_time = $params['start_time'];
+    $km = $params['km'];
     $driver_id = $params['driver_id'];
     $shift_date = $params['shift_date'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "shifts";
 
-	$query = "INSERT INTO $table (auto_id, dispatcher_id, driver_id, shift_date) VALUES (";
+	$query = "INSERT INTO $table (auto_id, dispatcher_id, driver_id, start_time, finish_time, km, shift_date) VALUES (";
     $query .="$auto_id,";
 	$query .="$dispatcher_id,";
 	$query .="$driver_id,";
+	$query .="'$start_time',";
+	$query .="$finish_time,";
+	$query .="$km,";
     $query .="'$shift_date')";
 
 	file_put_contents('../logs/shifts.log', date("Y-m-d H:i:s") . ' ' .$query . PHP_EOL , FILE_APPEND);

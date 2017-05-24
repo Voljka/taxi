@@ -13,6 +13,7 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
       o.is_rented = o.is_rented == 1 ? true : false;
       o.cost_weekly = Number(o.cost_weekly);
       o.cost_daily = Number(o.cost_daily);
+      o.year_created = Number(o.year_created);
 
       return o;
     });
@@ -47,7 +48,12 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
     var newRecord = {
       model: '',
       state_number: '',
-      is_rented: false,
+      is_rented: true,
+      
+      color: "",
+      year_created: 2010,
+      sts : "",
+      license: "",
 
       editing: true,
       new: true,    
@@ -81,6 +87,11 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
       model : record.model,
       state_number : record.state_number,
       is_rented : Number(record.is_rented),
+
+      color: record.color,
+      year_created: record.year_created,
+      sts : record.sts,
+      license: record.license,
     }
 
     if (record.new) {

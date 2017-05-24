@@ -1,7 +1,7 @@
 'use strict';
 
 import { map, filter, isDate, assign, groupBy, omit, find, isEmpty, sumBy } from 'lodash';
-import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../libs/date';
+import { datePlusDays, formattedToSave, formattedToSaveTime, daysBetween, treatAsUTC } from '../../libs/date';
 
 function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftService, Flash) {
 
@@ -12,7 +12,8 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
   $scope.autolist = autolist;
   $scope.dispatcherlist = dispatcherlist;
-  $scope.cabdrivers = driverlist;
+
+  useFilter();
 
   var message, flashWindow;
 
@@ -56,6 +57,10 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       group_id: driverlist[0].work_type_id,
       group_name: driverlist[0].group_name,
       editing: true,
+      shift_date: $scope.shiftDate,
+      start_time: new Date(formattedToSave( $scope.shiftDate ) + ' 12:00:00'),
+      finish_time: undefined,
+      km: 0,
       new: true,
     }
 
@@ -81,38 +86,93 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
   }
 
   $scope.saveShift = function(record){
-    record.editing = false;
 
     var isPresent = checkPresense(record);
+    var isValidClose = checkKmAndFinishDatePresenceSimultanuously(record);
+
     if (isPresent.length > 0) {
       message = isPresent;
-      flashWindow = Flash.create('danger', message, 5000, {class: 'custom-class', id: 'custom-id'}, true);
+      flashWindow = Flash.create('danger', message, 0, {class: 'custom-class', id: 'custom-id'}, true);
     } else {
-      var data = {
-        auto_id: record.auto_id,
-        driver_id: record.driver_id,
-        dispatcher_id: record.dispatcher_id,
-        shift_date : formattedToSave( $scope.shiftDate ),
-      }
-
-      if (record.new) {
-
-        ShiftService.add(data)
-        .then(function(respond){
-          console.log('shift added');
-          refreshShift();
-        })
+      if (isValidClose.length > 0) {
+        message = isValidClose;
+        flashWindow = Flash.create('danger', message, 0, {class: 'custom-class', id: 'custom-id'}, true);
       } else {
 
-        data.id = record.id;
 
-        ShiftService.update(data)
-        .then(function(respond){
-          console.log('shift added');
-          refreshShift();
-        })
+        checkLastShiftCloseness(record)
+          .then(function(respond){
+            
+            if (respond.length ==0 || respond.finish_time){
+              var data = {
+                auto_id: record.auto_id,
+                driver_id: record.driver_id,
+                dispatcher_id: record.dispatcher_id,
+                start_time: formattedToSaveTime(record.start_time),
+                finish_time: record.finish_time ? formattedToSaveTime(record.finish_time) : undefined,
+                km: record.km,
+                shift_date : formattedToSave( $scope.shiftDate ),
+              }
+
+              if (record.new) {
+
+                ShiftService.add(data)
+                .then(function(respond){
+                  flashWindow.clear();
+                  record.editing = false;
+                  console.log('shift added');
+                  refreshShift();
+                })
+              } else {
+
+                data.id = record.id;
+
+                ShiftService.update(data)
+                .then(function(respond){
+                  record.editing = false;
+                  flashWindow.clear();
+                  console.log('shift updated');
+                  refreshShift();
+                })
+
+              }
+            } else {
+              message = "У данного водителя не закрыта предыдущая смена. Закройте ее перед тем, добавлять сведения о новой  ";
+              flashWindow = Flash.create('danger', message, 0, {class: 'custom-class', id: 'custom-id'}, true);
+            }
+          })
       }
     }
+  }
+
+  function checkLastShiftCloseness(record){
+    var curRecord = {
+      shift_date: formattedToSave( record.shift_date ),
+      driver_id: record.driver_id,
+    }
+
+    return ShiftService.lastShift(curRecord);
+  }
+
+  function checkKmAndFinishDatePresenceSimultanuously(record){
+    var result = "";
+
+    if (! isDate(record.start_time)) {
+      result += "Неверный формат времени получения авто!";
+    }
+
+    if (record.finish_time && record.start_time >= record.finish_time ) {
+      result += "Авто не может быть сдано раньше чем получено!";
+    }
+
+    if (isDate(record.finish_time) && record.km == 0) {
+      result += "Не указаны показания счетчика при сдаче авто!";
+    } else {
+      if (record.km > 0 && ! isDate(record.finish_time)){
+        result += "Неверно указано время сдачи авто!";
+      }
+    }
+    return result;
   }
 
   function checkPresense(record){
@@ -144,7 +204,14 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
     ShiftService.perDate(data)
     .then(function(list){
-      $scope.shifts = list;
+
+      $scope.shifts = list.map(function(o){
+        o.start_time = new Date( o.start_time);
+        o.km = Number(o.km);
+        o.finish_time = o.finish_time ? new Date(o.finish_time) : undefined ;
+        return o;
+      });
+
     })
   }
 
@@ -170,6 +237,18 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       }
     })
     console.log(record);
+  }
+
+  function useFilter(){
+    
+    if (! $scope.cabdrivers) {
+      $scope.cabdrivers = driverlist;
+    } else {
+      $scope.cabdrivers = _.filter( driverlist, function(o) {
+        var driver = o.surname.toLowerCase();
+        return driver.indexOf($scope.surnameFilter.toLowerCase()) > -1
+      }) 
+    }
   }
 
 }

@@ -3,7 +3,7 @@
 var controller = require('./roadfine-ctrl');
 var parkService = require('../../services/AutoparkService');
 var roadFineService = require('../../services/RoadFineService');
-// var shiftService = require('../../services/ShiftService');
+var shiftService = require('../../services/ShiftService');
 // var dispatcherService = require('../../services/DispatcherService');
 var driverService = require('../../services/DriverService');
 
@@ -42,12 +42,12 @@ angular.module('roadFinesModule', ['ngFlash'])
       return Object.values(obj)[0];
     }
   })
-  // .factory('ShiftService', ['$http', shiftService])
+  .factory('ShiftService', ['$http', shiftService])
   .factory('DriverService', ['$http', driverService])
   .factory('RoadFineService', ['$http', roadFineService])
   .factory('AutoparkService', ['$http', parkService])
   // .factory('DispatcherService', ['$http', dispatcherService])
-  .controller('RoadFinesCtrl', ['$scope', '$state', 'autolist', 'finelist', 'driverlist', 'RoadFineService', 'Flash', controller]);
+  .controller('RoadFinesCtrl', ['$scope', '$state', 'autolist', 'finelist', 'driverlist', 'RoadFineService', 'ShiftService', 'Flash', controller]);
 
 module.exports = {
   template: require('./roadfines.tpl'), 

@@ -1,0 +1,10 @@
+2017-04-26 19:05:13 UPDATE own_auto_park SET model='Skoda Fabia Universal 1.2', state_number = 'Б222ББ777', is_rented = 1  WHERE id=2 
+2017-04-26 19:05:20 UPDATE own_auto_park SET model='Skoda Fabia Universal 1.2', state_number = 'Б222ББ777', is_rented = 1  WHERE id=2 
+2017-04-26 19:05:40 INSERT INTO own_auto_park (model, state_number, is_rented) VALUES ('Hammer','VASYA',1)
+2017-04-26 19:38:23 UPDATE own_auto_park SET model='Audi A3', state_number = 'А111АА777', is_rented = 0  WHERE id=1 
+2017-04-26 19:38:27 UPDATE own_auto_park SET model='Skoda Fabia Universal 1.2', state_number = 'Б222ББ777', is_rented = 0  WHERE id=2 
+2017-04-26 20:31:18 UPDATE auto_rental_costs SET ended_at='2017-04-25'  WHERE id=2 
+2017-04-26 20:31:18 INSERT INTO auto_rental_costs (cost_weekly, cost_daily, auto_id, started_at, ended_at) VALUES (6000,6000,2,'2017-04-26',NULL)
+2017-04-26 20:32:42 UPDATE auto_rental_costs SET ended_at='2017-04-25'  WHERE id=2 
+2017-04-26 20:32:42 INSERT INTO auto_rental_costs (cost_weekly, cost_daily, auto_id, started_at, ended_at) VALUES (12000,6000,2,'2017-04-26',NULL)
+2017-05-12 18:13:41 UPDATE own_auto_park SET model='Audi A3', state_number = 'А111АА777', is_rented = 0  WHERE id=1 

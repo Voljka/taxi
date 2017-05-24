@@ -9,9 +9,10 @@
 
 	$query .= " LEFT JOIN own_auto_park ON own_auto_park.id = $table.auto_id ";
 
-	$query .= " LEFT JOIN shifts ON road_fines.auto_id = shifts.auto_id AND road_fines.fined_at BETWEEN (CONCAT(shifts.shift_date, ' 12:00:00')) AND CONCAT(DATE_ADD(shifts.shift_date, INTERVAL 1 DAY), ' 11:59:59') ";	
+	// $query .= " LEFT JOIN shifts ON road_fines.auto_id = shifts.auto_id AND road_fines.fined_at BETWEEN (CONCAT(shifts.shift_date, ' 12:00:00')) AND CONCAT(DATE_ADD(shifts.shift_date, INTERVAL 1 DAY), ' 11:59:59') ";	
 
-	$query .= " LEFT JOIN drivers ON drivers.id = shifts.driver_id ";
+	// $query .= " LEFT JOIN drivers ON drivers.id = shifts.driver_id ";
+	$query .= " LEFT JOIN drivers ON drivers.id = $table.driver_id ";
 	$query .= " LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
 
 	file_put_contents('all_autopark.sql', $query);

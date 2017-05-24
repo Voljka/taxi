@@ -7,11 +7,15 @@
     $model = $params['model'];
     $state_number = $params['state_number'];
     $is_rented = $params['is_rented'];
+    $color = $params['color'];
+    $sts = $params['sts'];
+    $license = $params['license'];
+    $year_created = $params['year_created'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "own_auto_park";
 
-	$query = "UPDATE $table SET model='$model', state_number = '$state_number', is_rented = $is_rented ";
+	$query = "UPDATE $table SET model='$model', state_number = '$state_number', is_rented = $is_rented, color = '$color', sts = '$sts', license = '$license', year_created = $year_created ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

@@ -3,7 +3,8 @@ require_once('func.inc.php');
 
 const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/current";
 
-// const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/1225b9fd-1304-660e-393e-1207ef6ffc9b";
+// const URL_STATEMENTS="https://partners.uber.com/p3/money/statements/view/e498c661-71eb-dced-1cc4-7251714317d0";
+// echo "In<br>";
 
 // touch it!
 GetURL('https://partners.uber.com/p3/money/statements/index',$aRes);
@@ -14,7 +15,7 @@ GetURL(URL_STATEMENTS, $aRes);
 
 $aRes[URL_STATEMENTS]["HTML"]=preg_replace("|([^\{]+)(.*)|is", "\${2}", $aRes[URL_STATEMENTS]["HTML"]);
 
-// print_r($aRes[URL_STATEMENTS]["HTML"]);
+print_r($aRes[URL_STATEMENTS]["HTML"]);
 
 $aRes = json_decode($aRes[URL_STATEMENTS]["HTML"], true);
 
@@ -127,7 +128,9 @@ while ($row1 = mysql_fetch_assoc($query_result))
     $phones2[] = $row1['phone2'];
 };
 
-$query_uber_trips = "SELECT mediator_trip_id, payment_type_id, notes FROM trips WHERE mediator_id = 1 AND date_time BETWEEN '$rangeStartAt' AND '$rangeEndAt'";
+$query_uber_trips = "SELECT mediator_trip_id, payment_type_id, notes FROM trips WHERE mediator_id = 1 ";
+
+// $query_uber_trips = "SELECT mediator_trip_id, payment_type_id, notes FROM trips WHERE mediator_id = 1 AND date_time BETWEEN '$rangeStartAt' AND '$rangeEndAt'";
 
 $query_result = mysql_query($query_uber_trips) or die(mysql_error());        
 
@@ -244,7 +247,7 @@ if (strlen($query) > 0) {
     // echo $insert_query . $query . PHP_EOL;
 	file_put_contents('uber_strict_parser.sql', "\n$insert_query $query \n", FILE_APPEND);
 
-    $result = mysql_query($insert_query . $query) or die(mysql_error());
+    // $result = mysql_query($insert_query . $query) or die(mysql_error());
 }
 
 echo '<br><br><br><br><br>';

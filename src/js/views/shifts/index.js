@@ -6,7 +6,7 @@ var shiftService = require('../../services/ShiftService');
 var dispatcherService = require('../../services/DispatcherService');
 var driverService = require('../../services/DriverService');
 
-import { formattedToRu } from '../../libs/date';
+import { formattedToRu, formattedToSaveTime } from '../../libs/date';
 import { numberSplitted } from '../../libs/number';
 
 require('angular-flash-alert');
@@ -23,6 +23,13 @@ angular.module('shiftModule', ['ngFlash'])
   .filter('formatRu', function(){
     return function(datetime){
       return formattedToRu(new Date(datetime.substr(0,10)));
+    }
+  })
+  .filter('localTime', function(){
+    return function(datetime){
+      if (! datetime) 
+        return "";
+      return formattedToSaveTime(datetime);
     }
   })
   .filter('asPrice', function(){

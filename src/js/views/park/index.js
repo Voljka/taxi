@@ -24,6 +24,8 @@ angular.module('parkModule', ['ngFlash'])
   })
   .filter('asPrice', function(){
     return function(price){
+      if (!price)
+        return "";
       return numberSplitted(Number(price));
     }
   })

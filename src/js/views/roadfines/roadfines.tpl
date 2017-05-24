@@ -19,9 +19,12 @@
                 <tr>
                     <td>Дата и время<br>выписки штрафа</td>
                     <td>Гос номер авто</td>
+                    <td>Водитель</td>
                     <td>Сумма штрафа</td>
-                    <td>Наршуение</td>
-                    <td>Номер штрафа</td>
+                    <td>Нарушение</td>
+                    <td>Место</td>
+                    <td>Тип<br>фиксации</td>
+                    <td>Номер<br>постановления</td>
                     <td>Дата ввода<br>в программу</td>
                     <td></td>
                 </tr>
@@ -45,6 +48,15 @@
                             </select>                       
                         </span>
                     </td>
+                    <td>    
+                        <span ng-if="record.driver_id">
+                        {{record.surname + " "  + record.firstname + " " + record.patronymic}}
+                        </span>
+                        <br>
+                        <button ng-disabled="! isDate(record.fine_date)" class="btn btn-primary" ng-click="joinDriver(record)">
+                            Привязать водителя
+                        </button>
+                    </td>
 
                     <td class="digit">
                         <span ng-show="! record.editing">{{record.fine_amount | asPrice}}</span>
@@ -60,6 +72,25 @@
                         </span>
 
                      </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.fine_place}}</span>
+                        <span ng-show="record.editing">
+                            <input type="text" width="150px" maxlength="70" ng-model="record.fine_place">
+                        </span>
+
+                     </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.fixation_type == "1" ? "Видео" : "Постан/Квит" }}</span>
+                        <span ng-show="record.editing">
+                            <select ng-model="record.fixation_type">   
+                                <option value="1">Видео</option>   
+                                <option value="2">Постан/Квит</option>   
+                            </select>                       
+                        </span>
+                    </td>
+
                     <td>
                         <span ng-show="! record.editing">{{record.fine_number}}</span>
                         <span ng-show="record.editing">

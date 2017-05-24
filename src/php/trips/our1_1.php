@@ -1,6 +1,57 @@
 <?
 	require ('../config/db.config.php');
 
+	function is_bonus_day($driver_id, $shift_date){
+
+		$query = "SELECT last_bonus_day FROM last_bonus_days ";
+		$query .= "		WHERE driver_id = $driver_id ";
+
+		// file_put_contents('bonus_day_checking.sql', $query . "\n", FILE_APPEND);
+
+		$result = mysql_query($query) or die(mysql_error());
+
+		while ($row = mysql_fetch_assoc($result)) 
+		{
+			$last_bonus_day = $row['last_bonus_day'];
+		};
+
+		$query = "SELECT shifts.*, daily_individual_cases.total FROM shifts ";
+		$query .= "		LEFT JOIN daily_individual_cases ON daily_individual_cases.report_date = shifts.shift_date AND daily_individual_cases.driver_id = shifts.driver_id ";
+		$query .= "		WHERE shifts.shift_date < '$shift_date' AND shifts.driver_id = $driver_id AND daily_individual_cases.fuel_expenses IS NOT NULL";
+		$query .= "		ORDER BY shifts.shift_date DESC LIMIT 6";
+
+		// file_put_contents('bonus_day_checking.sql', $query . "\n", FILE_APPEND);
+
+		$result = mysql_query($query) or die(mysql_error());
+
+		$sum_per_sprint = 0;
+		$days_in_sprint = 0;
+
+		$bonus_day = 0;
+
+		while ($row = mysql_fetch_assoc($result)) 
+		{
+			$sum_per_sprint += $row['total'];
+			$days_in_sprint++;
+			$first_date_in_sprint = $row['shift_date'];
+		};
+
+		// file_put_contents('bonus_day_checking.sql', 'in sprint: days = ' . $days_in_sprint . ' sum_per_sprint = ' . $sum_per_sprint . ' first_date_in_sprint '. $first_date_in_sprint . ' last_bonus_day = '. $last_bonus_day . "\n", FILE_APPEND);
+
+		// file_put_contents('bonus_day_checking.sql', '$days_in_sprint == 6 is ' . ($days_in_sprint == 6) . ' $sum_per_sprint > 60000 is ' . ($sum_per_sprint > 60000) . ' ($first_date_in_sprint > $last_bonus_day) || ! $last_bonus_day) is '. (($first_date_in_sprint > $last_bonus_day) || ! $last_bonus_day) . "\n", FILE_APPEND);
+
+		if (($days_in_sprint == 6) && ($sum_per_sprint > 60000) && (($first_date_in_sprint > $last_bonus_day) || ! $last_bonus_day)) {
+			$bonus_day = 1;
+			// file_put_contents('bonus_day_checking.sql', "!!!! VALID\n", FILE_APPEND);
+		} else {
+			// file_put_contents('bonus_day_checking.sql', "!!!! NOT VALID \n", FILE_APPEND);
+
+
+		}
+
+		return $bonus_day;
+	}
+
 	function calc_current_debt_payment(){
 		return $res;
 	}
@@ -39,9 +90,8 @@
 		$res = array();
 		$total_fines = 0;
 
-		// print_r($debts);
-
 		for ($p = 0; $p < count($fines); $p++){
+
 			if ($fines[$p]['inputed_at'] <= $finish_date && $fines[$p]['driver_id'] == $driver) {
 					$total_fines += $fines[$p]['fine_amount'];
 			}
@@ -114,8 +164,68 @@
 		return $res;
 	}
 
+	function uber_data_for_shift($driverId, $starttime, $endtime){
+
+		global $UBER, $REGULAR_TRIP;
+
+		return get_sum_data($UBER, $REGULAR_TRIP, $starttime, $endtime, $driverId);
+	}
+
+	function get_sum_data($agent, $payment_type, $starttime, $endtime, $driverId){
+		global $OUR1_1, $MISC_PAYMENT;
+
+		$query1 = "SELECT 
+						driver_id, 
+						SUM(trips.fare) sum_fare, 
+						SUM(trips.comission) sum_comission, 
+						SUM(trips.cash) sum_cash, 
+						SUM(trips.result) sum_result ";
+		$query1 .= "FROM trips	";
+		$query1 .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
+					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
+		$query1 .= "WHERE trips.payment_type_id IN (" . $payment_type .") AND trips.mediator_id=$agent AND trips.driver_id= $driverId AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$starttime' AND '$endtime'  ";
+
+		$query1 .= "	GROUP BY trips.driver_id ";
+
+		file_put_contents('uber_data.sql', $query1 . "\n", FILE_APPEND);
+
+		$result = mysql_query($query1) or die(mysql_error());
+		$result_set = array();
+		
+		while ($row = mysql_fetch_assoc($result)) 
+		{
+			$result_set['sum_fare'] = $row['sum_fare'];
+			$result_set['sum_result'] = $row['sum_result'];
+			$result_set['sum_comission'] = $row['sum_comission'];
+			$result_set['sum_cash'] = $row['sum_cash'];
+		};
+
+		return $result_set;
+	}
+
+	function uber_corrections_for_shift($driverId, $starttime, $endtime){
+		global $UBER, $MISC_PAYMENT;
+
+		return get_sum_data($UBER, $MISC_PAYMENT, $starttime, $endtime, $driverId);
+	}
+
+	function gett_corrections_for_shift($driverId, $starttime, $endtime){
+		global $GETT, $MISC_PAYMENT;
+
+		return get_sum_data($GETT, $MISC_PAYMENT, $starttime, $endtime, $driverId);
+		
+	}
+
+	function gett_data_for_shift($driverId, $starttime, $endtime){
+		global $GETT, $REGULAR_TRIP;
+
+		return get_sum_data($GETT, $REGULAR_TRIP, $starttime, $endtime, $driverId);
+		
+	}
+
 	file_put_contents('tmp.res', "");
 	file_put_contents('111.res', "");
+	file_put_contents('bonus_day_checking.sql', "");
 
     $params = json_decode(file_get_contents('php://input'),true);
 
@@ -124,6 +234,7 @@
 
     $OUR1_1 = 2;
 
+    $REGULAR_TRIP = "1,3";
     $MISC_PAYMENT = 2;
 
     $UBER = 1;
@@ -155,9 +266,7 @@
 	};
 
 	// get array of fines
-	$query = "SELECT road_fines.*, shifts.driver_id FROM road_fines ";
-
-	$query .= " LEFT JOIN shifts ON road_fines.auto_id = shifts.auto_id AND road_fines.fined_at BETWEEN (CONCAT(shifts.shift_date, ' 12:00:00')) AND CONCAT(DATE_ADD(shifts.shift_date, INTERVAL 1 DAY), ' 11:59:59') ";
+	$query = "SELECT * FROM road_fines ";
 
 	$query .= " WHERE inputed_at <= '$end_date'";
 	$result = mysql_query($query) or die(mysql_error());
@@ -248,81 +357,24 @@
 	$franchise_payments_calced = array();
 	$fines_payments_calced = array();
 
+	file_put_contents("select_our1_1.sql", "\n");
+	file_put_contents('uber_data.sql', "\n" );
+	file_put_contents('fines_charged.sql', "\n");
+
+
 	// Loop by selected date range
 	for ($j = 1; $j < 8; $j++) {
 		$franchise_daily_rules = get_daily_franchise(substr($current_start_date,0,10));
 		// print_r($franchise_daily_rules);
 
-		$query = "SELECT drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, yandex_daily_data.cash yandex_cash, yandex_daily_data.non_cash yandex_non_cash, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount, gett_data.gett_sum_fare, gett_data.gett_sum_comission, gett_data.gett_sum_cash, gett_data.gett_sum_result, uber_data.uber_sum_fare, uber_data.uber_sum_comission, uber_data.uber_sum_cash, uber_data.uber_sum_result, gett_corrections.gett_correction_fare, gett_corrections.gett_correction_comission, gett_corrections.gett_correction_cash, gett_corrections.gett_correction_result, uber_corrections.uber_correction_fare, uber_corrections.uber_correction_comission, uber_corrections.uber_correction_cash, uber_corrections.uber_correction_result, rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission ";
+		$query = "SELECT shifts.driver_id, shifts.start_time, shifts.finish_time, shifts.km, drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, yandex_daily_data.cash yandex_cash, yandex_daily_data.non_cash yandex_non_cash, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt,daily_individual_cases.is_bonus, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount ,";
+		$query .= " rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission ";
 
-		$query .= " FROM drivers ";
+		$query .= " FROM shifts ";
 
-		// Uber adjustments
-		$query .= "LEFT JOIN (
-						SELECT 
-							driver_id, SUM(trips.fare) uber_correction_fare, SUM(trips.comission) uber_correction_comission, 
-								SUM(trips.cash) uber_correction_cash, 
-								SUM(trips.result) uber_correction_result ";
-		$query .= "FROM trips	";
-		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
-					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.payment_type_id=$MISC_PAYMENT AND trips.mediator_id=$UBER AND work_types.id = $OUR1_1 AND trips.driver_id= drivers.id AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
-
-		$query .= "	GROUP BY trips.driver_id 
-					) AS uber_corrections ";
-		$query .= "ON uber_corrections.driver_id = drivers.id ";
-
-		// Gett adjustments
-		$query .= "LEFT JOIN (
-						SELECT 
-							driver_id, SUM(trips.fare) gett_correction_fare, SUM(trips.comission) gett_correction_comission, 
-								SUM(trips.cash) gett_correction_cash, 
-								SUM(trips.result) gett_correction_result ";
-		$query .= "FROM trips	";
-		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
-					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.payment_type_id=$MISC_PAYMENT AND trips.mediator_id=$GETT AND work_types.id = $OUR1_1 AND trips.driver_id= drivers.id AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
-
-		$query .= "	GROUP BY trips.driver_id 
-					) AS gett_corrections ";
-		$query .= "ON gett_corrections.driver_id = drivers.id ";
-
-		// Gett total data
-		$query .= "LEFT JOIN (
-						SELECT 
-							driver_id, SUM(trips.fare) gett_sum_fare, SUM(trips.comission) gett_sum_comission, 
-								SUM(trips.cash) gett_sum_cash, 
-								SUM(trips.result) gett_sum_result ";
-		$query .= "FROM trips	";
-		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
-					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.payment_type_id<>$MISC_PAYMENT AND trips.mediator_id=$GETT AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
-
-		$query .= "	GROUP BY trips.driver_id 
-					) AS gett_data ";
-		$query .= "ON gett_data.driver_id = drivers.id ";
-
-		// Uber total data
-		$query .= "LEFT JOIN (
-						SELECT 
-							driver_id, SUM(trips.fare) uber_sum_fare, SUM(trips.comission) uber_sum_comission, 
-								SUM(trips.cash) uber_sum_cash, 
-								SUM(trips.result) uber_sum_result ";
-		$query .= "FROM trips	";
-		$query .= "	LEFT JOIN drivers ON drivers.id = trips.driver_id 
-					LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
-		$query .= "WHERE trips.payment_type_id<>$MISC_PAYMENT AND trips.mediator_id=$UBER AND trips.driver_id= drivers.id AND work_types.id = $OUR1_1 AND drivers.active = 1 AND date_time BETWEEN '$current_start_date' AND '$current_end_date' ";
-
-		$query .= "	GROUP BY trips.driver_id 
-					) AS uber_data ";
-		$query .= "ON uber_data.driver_id = drivers.id ";
-
-		// Default Rule
+		$query .= "LEFT JOIN drivers ON shifts.driver_id = drivers.id ";
 		$query .= "LEFT JOIN rule_defaults ON drivers.rule_default_id = rule_defaults.id ";
 		
-		// Shift
-		$query .= "LEFT JOIN shifts ON shifts.driver_id = drivers.id ";
-
 		// Auto 
 		$query .= "LEFT JOIN own_auto_park ON shifts.auto_id = own_auto_park.id AND shifts.shift_date='" .substr($current_start_date,0,10) ."' ";
 
@@ -426,12 +478,11 @@
 		// Bank 
 		$query .= "LEFT JOIN banks ON drivers.bank_id=banks.id ";
 
-
-	    $query .= " WHERE uber_data.uber_sum_fare IS NOT NULL OR gett_data.gett_sum_fare IS NOT NULL OR gett_corrections.gett_correction_fare IS NOT NULL OR uber_corrections.uber_correction_fare IS NOT NULL OR yandex_daily_data.cash IS NOT NULL OR yandex_daily_data.non_cash IS NOT NULL OR from_hand_trips_total.amount IS NOT NULL ";	    
-	    $query .= " GROUP BY drivers.id ";
+	    $query .= " WHERE shifts.shift_date ='". substr($current_start_date,0,10)."' ";	    
+	    // $query .= " GROUP BY drivers.id ";
 	    $query .= " ORDER BY drivers.surname, drivers.firstname, drivers.patronymic";
 
-		file_put_contents("select_our1_1.sql", $query);
+		file_put_contents("select_our1_1.sql", $query . "\n\n\n", FILE_APPEND);
 
 		$result = mysql_query($query) or die(mysql_error());
 
@@ -440,16 +491,44 @@
 		// file_put_contents('111.res', substr($current_start_date,0,10) . "\n", FILE_APPEND);
 		while ($row = mysql_fetch_assoc($result)) 
 		{
-			// if ($row['uber_completeness'] && $row['gett_completeness']) {
-			// file_put_contents('111.res', $row['id'] . ' ' . floatval($row['fuel_expenses']) , FILE_APPEND);
+			file_put_contents('select_our1_1.sql', "start_Time " . $row['start_time'] . "\n", FILE_APPEND);
+			file_put_contents('select_our1_1.sql', "end_Time " . ($row['finish_time'] ? $row['finish_time'] : $current_end_date) . "\n", FILE_APPEND);
+			$ub = uber_data_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+
+			$row['uber_sum_cash'] = $ub['sum_cash'];
+			$row['uber_sum_result'] = $ub['sum_result'];
+			$row['uber_sum_comission'] = $ub['sum_comission'];
+			$row['uber_sum_fare'] = $ub['sum_fare'];
+
+			$ubc = uber_corrections_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+
+			$row['uber_correction_cash'] = $ubc['sum_cash'];
+			$row['uber_correction_result'] = $ubc['sum_result'];
+			$row['uber_correction_comission'] = $ubc['sum_comission'];
+			$row['uber_correction_fare'] = $ubc['sum_fare'];
+
+			$gt_ = gett_data_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+
+			$row['gett_sum_cash'] = $gt_['sum_cash'];
+			$row['gett_sum_result'] = $gt_['sum_result'];
+			$row['gett_sum_comission'] = $gt_['sum_comission'];
+			$row['gett_sum_fare'] = $gt_['sum_fare'];
+
+			$gt_c = gett_corrections_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+
+			$row['gett_correction_cash'] = $gt_c['sum_cash'];
+			$row['gett_correction_result'] = $gt_c['sum_result'];
+			$row['gett_correction_comission'] = $gt_c['sum_comission'];
+			$row['gett_correction_fare'] = $gt_c['sum_fare'];
+
+			$row['is_bonus_day'] = is_bonus_day($row['driver_id'], substr($current_start_date,0,10));
+
 			if (floatval($row['fuel_expenses']) > 0) {
-				// file_put_contents('111.res', $row['id'] . ' out' . "\n", FILE_APPEND);
 
 			} else {
-				// file_put_contents('111.res', $row['id'] . ' in' . "\n", FILE_APPEND);
-			// Autocalc debt
-				$driver = $row['id'];
+				$driver = $row['driver_id'];
 				file_put_contents('tmp.res', "\n $driver_id = " . $driver . ' DATE : ' . substr($current_start_date,0,10) .  "\n", FILE_APPEND);
+
 				$debt_info = get_debt_until_date(substr($current_start_date,0,10), $driver);
 				$driver_debts = $debt_info['total_debts'];
 				$driver_last_debt = $debt_info['current_debt'];
@@ -480,8 +559,9 @@
 				$fines_charged = get_fines_until_date(substr($current_start_date,0,10), $driver);
 				$already_calced_fines = $fines_payments_calced[$driver] ? $fines_payments_calced[$driver] : 0;
 
-				file_put_contents('tmp.res', '$already_payed_fines = ' . $already_payed_fines, FILE_APPEND);
-				file_put_contents('tmp.res', '$already_calced_fines = ' . $already_calced_fines, FILE_APPEND);
+				file_put_contents('tmp.res', 'fines charged = ' . $fines_charged . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', '$already_payed_fines = ' . $already_payed_fines . "\n", FILE_APPEND);
+				file_put_contents('tmp.res', '$already_calced_fines = ' . $already_calced_fines . "\n", FILE_APPEND);
 
 				if ($fines_charged > ($already_payed_fines + $already_calced_fines)) {
 					$residual_payment = $fines_charged - $already_payed_fines - $already_calced_fines;

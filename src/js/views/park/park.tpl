@@ -6,7 +6,7 @@
 
     </div>
     <div class="col-md-6">
-        <button class="btn btn-warning" ng-disabled="currentAuto.editing || !currentAuto || currentAuto.is_rented" ng-click="setRentCost()">Установить стоимость аренды</button>
+        <button class="btn btn-warning" ng-disabled="currentAuto.editing || !currentAuto || ! currentAuto.is_rented" ng-click="setRentCost()">Установить стоимость аренды</button>
     </div>
 </div>
 
@@ -24,6 +24,10 @@
                     <td>#</td>
                     <td>Гос номер машины</td>
                     <td>Модель</td>
+                    <td>Цвет</td>
+                    <td>СТС</td>
+                    <td>Лицензия</td>
+                    <td>Год<br>выпуска</td>
                     <td>Арендован</td>
                     <td>Аренда за смену</td>
                     <td>Аренда за неделю</td>
@@ -45,6 +49,34 @@
                         <span ng-show="! record.editing">{{record.model}}</span>
                         <span ng-show="record.editing">
                             <input type="text" maxlength="30" ng-model="record.model">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.color}}</span>
+                        <span ng-show="record.editing">
+                            <input type="text" maxlength="30" ng-model="record.color">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.sts}}</span>
+                        <span ng-show="record.editing">
+                            <input type="text" maxlength="30" ng-model="record.sts">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.license}}</span>
+                        <span ng-show="record.editing">
+                            <input type="text" maxlength="30" ng-model="record.license">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.year_created}}</span>
+                        <span ng-show="record.editing">
+                            <input type="number" ng-model="record.year_created">
                         </span>
                     </td>
 
@@ -85,13 +117,13 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon">Текущая аренда за смену </span>
-                    <input class="form-control" type="number" ng-model="obj.lastWeekly">
+                    <input class="form-control" type="number" ng-model="obj.lastDaily">
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon">Текущая аренда в неделю</span>
-                    <input class="form-control" type="number" ng-model="obj.newWeekly">
+                    <input class="form-control" type="number" ng-model="obj.lastWeekly">
                 </div>
             </div>
         </div>
@@ -100,13 +132,13 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon">Устанавливаемая аренда за смену </span>
-                    <input class="form-control" type="number" ng-model="obj.lastDaily">
+                    <input class="form-control" type="number" ng-model="obj.newDaily">
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-addon">Устанавливаемая аренда в неделю</span>
-                    <input class="form-control" type="number" ng-model="obj.newDaily">
+                    <input class="form-control" type="number" ng-model="obj.newWeekly">
                 </div>
             </div>
         </div>
