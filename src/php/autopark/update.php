@@ -10,12 +10,15 @@
     $color = $params['color'];
     $sts = $params['sts'];
     $license = $params['license'];
+    $license_deadline = $params['license_deadline'];
+    $osago = $params['osago'];
+    $osago_deadline = $params['osago_deadline'];
     $year_created = $params['year_created'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "own_auto_park";
 
-	$query = "UPDATE $table SET model='$model', state_number = '$state_number', is_rented = $is_rented, color = '$color', sts = '$sts', license = '$license', year_created = $year_created ";
+	$query = "UPDATE $table SET model='$model', state_number = '$state_number', is_rented = $is_rented, color = '$color', sts = '$sts', license = '$license', license_deadline = '$license_deadline', osago = '$osago', osago_deadline = '$osago_deadline', year_created = $year_created ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

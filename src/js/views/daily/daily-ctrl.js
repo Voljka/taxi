@@ -100,6 +100,9 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                o.rbt_total = o.rbt_total ? Number(o.rbt_total) : 0; 
                o.rbt_comission = o.rbt_comission ? Number(o.rbt_comission) : 0;
 
+               o.malyutka_total = o.malyutka_total ? Number(o.malyutka_total) : 0; 
+               o.malyutka_netto = o.malyutka_total * 0.8; 
+
                o.from_hand_amount = Number(o.from_hand_amount);
                o.fine_planned_payment = o.fine_planned_payment ? Number(o.fine_planned_payment) : 0;
 
@@ -112,9 +115,9 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                o.yandex_total = o.yandex_non_cash + o.yandex_cash;
                o.yandex_total_netto = Number(((o.yandex_non_cash + o.yandex_cash) *0.8).toFixed(2));
 
-               o.total_cash = o.from_hand_amount + o.uber_sum_cash + o.gett_sum_cash + o.yandex_cash;
-               o.total = o.from_hand_amount + o.uber_total + o.gett_total + o.yandex_total;
-               o.total_netto = Number((o.total * 0.8).toFixed(2));
+               // o.total_cash = o.from_hand_amount + o.uber_sum_cash + o.gett_sum_cash + o.yandex_cash + o.malyutka_total;
+               // o.total = o.from_hand_amount + o.uber_total + o.gett_total + o.yandex_total;
+               // o.total_netto = Number((o.total * 0.8).toFixed(2));
 
                o.covered_company_deficit = o.covered_company_deficit ? Number(o.covered_company_deficit) : 0;
 
@@ -132,7 +135,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
                if (o.fuel_expenses) {
                    if (o.uniq_is60_40 == 1) {
-                       // console.log(o.id, '60/40'); 
+                       console.log(o.id, '60/40'); 
                        o.driver_part = 0.6;
                        o.rule_default_id = "2";
 
@@ -140,12 +143,24 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                        if (o.uniq_is50_50 == 1) {
                            o.driver_part = 0.5;
                            o.rule_default_id = "3";
-                             // console.log(o.id, '50/50'); 
+                             console.log(o.id, '50/50'); 
                        } else {
                            if (o.uniq_is40_60 == 1) {
                                o.driver_part = 0.4;
                                o.rule_default_id = "4";
-                             // console.log(o.id, '40/60'); 
+                             console.log(o.id, '40/60'); 
+                           } else {
+                             if (o.is_bonus == 1 && o.is_manual_bonus_day == 0) {
+                                 o.rule_default_id = "5";
+                                console.log(o.id, 'auto bonus rule'); 
+                             } else {
+                               if (o.is_bonus == 1 && o.is_manual_bonus_day == 1) {
+                                   o.rule_default_id = "6";
+                                  console.log(o.id, 'manual bonus rule'); 
+                               } 
+                              
+                             }
+
                            }
                        } 
                    }
@@ -167,9 +182,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
     $scope.isShowingPayouts = false;
 
-
     console.log(tripList);
-    // console.log($scope.lastReport);
     
     $scope.currentDriver = undefined;
     $scope.shiftDate = undefined;
@@ -226,7 +239,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       if (! driver.selected) {
          $scope.currentDriver = driver;
          $scope.shiftDate = for_date;
-   
+
          if (daysBetween($scope.lastReport, for_date).toFixed(0) < 2 && driver.uber_completeness && driver.gett_completeness && driver.finish_time) {
             $scope.rowAllowedForSaving = true;
          } else {
@@ -286,8 +299,10 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       driver.rbt_total_netto = driver.rbt_total - driver.rbt_comission; 
       driver.rbt_dispatcher_wage = driver.rbt_total * 0.1;
 
-      driver.total_cash = driver.from_hand_amount + driver.uber_sum_cash + driver.gett_sum_cash + driver.yandex_cash + driver.rbt_total;
-      driver.total = driver.from_hand_amount + driver.uber_total + driver.gett_total + driver.yandex_total + driver.rbt_total_netto;
+      driver.malyutka_total_netto = driver.malyutka_total * 0.8; 
+
+      driver.total_cash = driver.from_hand_amount + driver.uber_sum_cash + driver.gett_sum_cash + driver.yandex_cash + driver.rbt_total + driver.malyutka_total;
+      driver.total = driver.from_hand_amount + driver.uber_total + driver.gett_total + driver.yandex_total + driver.rbt_total_netto + driver.malyutka_total;
       driver.total_netto = Number((driver.total * 0.8 + driver.from_hand_amount * 0.2 + driver.rbt_total_netto * 0.2).toFixed(2));
 
       if (driver.manually_entered) {
@@ -383,18 +398,42 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
    $scope.changeRule = function(driver){
       if (driver.rule_default_id == CALC_WAGE_BY_COMMON_RULE) {
          driver.driver_part = 0.6;
+         driver.is_bonus_day = 0;
+         driver.is_bonus = 0;
+         driver.is_manual_bonus_day = 0;
       } 
 
       if (driver.rule_default_id == 2) {
          driver.driver_part = 0.6;
+         driver.is_bonus_day = 0;
+         driver.is_bonus = 0;
+         driver.is_manual_bonus_day = 0;
       } 
 
       if (driver.rule_default_id == 3) {
          driver.driver_part = 0.5;
+         driver.is_bonus_day = 0;
+         driver.is_bonus = 0;
+         driver.is_manual_bonus_day = 0;
       } 
 
       if (driver.rule_default_id == 4) {
          driver.driver_part = 0.4;
+         driver.is_bonus_day = 0;
+         driver.is_bonus = 0;
+         driver.is_manual_bonus_day = 0;
+      } 
+
+      if (driver.rule_default_id == 5) {
+         driver.is_bonus_day = 1;
+         driver.is_bonus = 1;
+         driver.is_manual_bonus_day = 0;
+      } 
+
+      if (driver.rule_default_id == 6) {
+         driver.is_bonus_day = 1;
+         driver.is_bonus = 1;
+         driver.is_manual_bonus_day = 1;
       } 
 
       recalcWage(driver);
@@ -645,9 +684,11 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             rent : d.rental,
             ya_cash : d.yandex_cash,
             ya_non_cash : d.yandex_non_cash,
-            is_bonus : (d.is_bonus == 1 || d.is_bonus_day == 1),
+            is_bonus : (d.is_bonus == 1 || d.is_bonus_day == 1) ? 1 : 0,
+            is_manual_bonus_day : (Number(d.rule_default_id) == 6) ? 1 : 0,
             hand : d.from_hand_amount,
             rbt_total : d.rbt_total,
+            malyutka_total : d.malyutka_total,
             rbt_comission : d.rbt_comission,
             total: d.total,
             // wage_rule: d.rule_default_id,
@@ -817,9 +858,11 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          ya_cash : d.yandex_cash,
          ya_non_cash : d.yandex_non_cash,
          rbt_total : d.rbt_total,
+         malyutka_total : d.malyutka_total,
          rbt_comission : d.rbt_comission,
          total: d.total,
-         is_bonus : (d.is_bonus == 1 || d.is_bonus_day == 1),
+         is_bonus : (d.is_bonus == 1 || d.is_bonus_day == 1) ? 1 : 0,
+         is_manual_bonus_day : (Number(d.rule_default_id) == 6) ? 1 : 0,
          hand : d.from_hand_amount,
          dated: $scope.shiftDate,
          group: d.work_type_id,
@@ -828,6 +871,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          deferred_debt: d.deferred_debt ? d.deferred_debt : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       }
+      console.log(data);
 
       data.wage_rule = d.rule_default_id;
 

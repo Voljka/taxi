@@ -17,7 +17,7 @@
 
 		$query = "SELECT shifts.*, daily_individual_cases.total FROM shifts ";
 		$query .= "		LEFT JOIN daily_individual_cases ON daily_individual_cases.report_date = shifts.shift_date AND daily_individual_cases.driver_id = shifts.driver_id ";
-		$query .= "		WHERE shifts.shift_date < '$shift_date' AND shifts.driver_id = $driver_id AND daily_individual_cases.fuel_expenses IS NOT NULL";
+		$query .= "		WHERE daily_individual_cases.is_manual_bonus_day = 0 AND  shifts.shift_date < '$shift_date' AND shifts.driver_id = $driver_id AND daily_individual_cases.fuel_expenses IS NOT NULL";
 		$query .= "		ORDER BY shifts.shift_date DESC LIMIT 6";
 
 		// file_put_contents('bonus_day_checking.sql', $query . "\n", FILE_APPEND);
@@ -223,9 +223,29 @@
 		
 	}
 
+	function yandex_data_for_shift($driverId, $shift_date){
+		$query1 = "SELECT * ";
+		$query1 .= " FROM yandex_daily_data ";
+		$query1 .= " WHERE driver_id = $driverId AND trip_date = '$shift_date' ";
+
+		file_put_contents('yandex_data.sql', $query1 . "\n", FILE_APPEND);
+
+		$result = mysql_query($query1) or die(mysql_error());
+		$result_set = array();
+		
+		while ($row = mysql_fetch_assoc($result)) 
+		{
+			$result_set['cash'] = $row['cash'];
+			$result_set['non_cash'] = $row['non_cash'];
+		};
+
+		return $result_set;
+	}
+
 	file_put_contents('tmp.res', "");
 	file_put_contents('111.res', "");
 	file_put_contents('bonus_day_checking.sql', "");
+	file_put_contents('yandex_data.sql', "\n");
 
     $params = json_decode(file_get_contents('php://input'),true);
 
@@ -367,8 +387,9 @@
 		$franchise_daily_rules = get_daily_franchise(substr($current_start_date,0,10));
 		// print_r($franchise_daily_rules);
 
-		$query = "SELECT shifts.driver_id, shifts.start_time, shifts.finish_time, shifts.km, drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, yandex_daily_data.cash yandex_cash, yandex_daily_data.non_cash yandex_non_cash, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt,daily_individual_cases.is_bonus, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount ,";
-		$query .= " rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission ";
+		$query = "SELECT shifts.driver_id, shifts.start_time, shifts.finish_time, shifts.km, shifts.uber_driver_id, shifts.yandex_driver_id, drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.deferred_debt,daily_individual_cases.is_bonus, daily_individual_cases.is_manual_bonus_day, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount ,";
+		$query .= " rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission, ";
+		$query .= " malyutka.total_brutto malyutka_total ";
 
 		$query .= " FROM shifts ";
 
@@ -449,7 +470,10 @@
 		$query .= 	"ON rent_inc.driver_id = drivers.id ";
 
 		// Yandex Taximeter data
-		$query .= "LEFT JOIN yandex_daily_data ON yandex_daily_data.trip_date='" . substr($current_start_date,0,10) . "' AND yandex_daily_data.driver_id = drivers.id ";
+		// $query .= "LEFT JOIN yandex_daily_data ON yandex_daily_data.trip_date='" . substr($current_start_date,0,10) . "' AND yandex_daily_data.driver_id = drivers.id ";
+
+		// Malyutka data
+		$query .= "LEFT JOIN malyutka ON malyutka.shift_date='" . substr($current_start_date,0,10) . "' AND malyutka.driver_id = drivers.id ";
 
 		// RBT data
 		$query .= "LEFT JOIN rbt_data ON rbt_data.shift_date='" . substr($current_start_date,0,10) . "' AND rbt_data.driver_id = drivers.id ";
@@ -491,16 +515,23 @@
 		// file_put_contents('111.res', substr($current_start_date,0,10) . "\n", FILE_APPEND);
 		while ($row = mysql_fetch_assoc($result)) 
 		{
-			file_put_contents('select_our1_1.sql', "start_Time " . $row['start_time'] . "\n", FILE_APPEND);
-			file_put_contents('select_our1_1.sql', "end_Time " . ($row['finish_time'] ? $row['finish_time'] : $current_end_date) . "\n", FILE_APPEND);
-			$ub = uber_data_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+			// file_put_contents('select_our1_1.sql', "start_Time " . $row['start_time'] . "\n", FILE_APPEND);
+			// file_put_contents('select_our1_1.sql', "end_Time " . ($row['finish_time'] ? $row['finish_time'] : $current_end_date) . "\n", FILE_APPEND);
+
+			$yandex_driver = $row['yandex_driver_id'] ? $row['yandex_driver_id'] : $row['driver_id'];
+			$uber_driver = $row['uber_driver_id'] ? $row['uber_driver_id'] : $row['driver_id'];
+
+			file_put_contents('select_our1_1.sql', "yandex_driver " . $yandex_driver . "\n", FILE_APPEND);
+			file_put_contents('select_our1_1.sql', "uber_driver " . $uber_driver . "\n", FILE_APPEND);
+
+			$ub = uber_data_for_shift($uber_driver, $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
 
 			$row['uber_sum_cash'] = $ub['sum_cash'];
 			$row['uber_sum_result'] = $ub['sum_result'];
 			$row['uber_sum_comission'] = $ub['sum_comission'];
 			$row['uber_sum_fare'] = $ub['sum_fare'];
 
-			$ubc = uber_corrections_for_shift($row['driver_id'], $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
+			$ubc = uber_corrections_for_shift($uber_driver, $row['start_time'], ($row['finish_time'] ? $row['finish_time'] : $current_end_date));
 
 			$row['uber_correction_cash'] = $ubc['sum_cash'];
 			$row['uber_correction_result'] = $ubc['sum_result'];
@@ -520,6 +551,16 @@
 			$row['gett_correction_result'] = $gt_c['sum_result'];
 			$row['gett_correction_comission'] = $gt_c['sum_comission'];
 			$row['gett_correction_fare'] = $gt_c['sum_fare'];
+
+			file_put_contents('select_our1_1.sql', "Before calc yandex data " . "\n", FILE_APPEND);
+
+			$ya = yandex_data_for_shift($yandex_driver, substr($current_start_date,0,10));
+
+			$row['yandex_cash'] = $ya['cash'];
+			$row['yandex_non_cash'] = $ya['non_cash'];
+
+			file_put_contents('select_our1_1.sql', "yandex_cash " . $ya['cash'] . "\n", FILE_APPEND);
+			file_put_contents('select_our1_1.sql', "yandex_non_cash " . $ya['non_cash'] . "\n", FILE_APPEND);
 
 			$row['is_bonus_day'] = is_bonus_day($row['driver_id'], substr($current_start_date,0,10));
 

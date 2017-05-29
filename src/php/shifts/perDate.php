@@ -20,7 +20,7 @@
 	$query .= " WHERE shift_date = '$shift_date' AND drivers.work_type_id IN ($OUR_1_1, $OUR_7_0) ";
 	$query .= " ORDER BY drivers.surname, drivers.firstname, drivers.patronymic ";
 
-	file_put_contents('shift_per_date.sql', $query);
+	file_put_contents('shift_per_date.sql', date("Y-m-d H:i:s"). "\n" . $query);
 	
 	$result = mysql_query($query) or die(mysql_error());
 

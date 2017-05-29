@@ -27,6 +27,9 @@
                     <td>Цвет</td>
                     <td>СТС</td>
                     <td>Лицензия</td>
+                    <td>Лицензия<br>заканчивается</td>
+                    <td>ОСАГО</td>
+                    <td>ОСАГО<br>заканчивается</td>
                     <td>Год<br>выпуска</td>
                     <td>Арендован</td>
                     <td>Аренда за смену</td>
@@ -74,6 +77,27 @@
                     </td>
 
                     <td>
+                        <span ng-show="! record.editing">{{record.license_deadline | formatRu}}</span>
+                        <span ng-show="record.editing">
+                            <input type="date" ng-model="record.license_deadline_input">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.osago}}</span>
+                        <span ng-show="record.editing">
+                            <input type="text" maxlength="20" ng-model="record.osago">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! record.editing">{{record.osago_deadline | formatRu}}</span>
+                        <span ng-show="record.editing">
+                            <input type="date" ng-model="record.osago_deadline_input">
+                        </span>
+                    </td>
+
+                    <td>
                         <span ng-show="! record.editing">{{record.year_created}}</span>
                         <span ng-show="record.editing">
                             <input type="number" ng-model="record.year_created">
@@ -104,6 +128,12 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="row">
+    <flash-message>
+        <div class="flash-div">{{ flash.text}}</div>
+    </flash-message>
 </div>
 
 <div class="cover" ng-show="isShowingCosts">

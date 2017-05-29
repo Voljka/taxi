@@ -40,6 +40,8 @@
                     <td>Модель авто</td>
                     <td>Гос номер авто</td>
                     <td>Авто получено</td>
+                    <td>Uber<br>учетная запись</td>
+                    <td>Yandex<br>учетная запись</td>
                     <td>Авто сдано</td>
                     <td>Километраж<br>при сдаче</td>
                     <td>Группа</td>
@@ -75,6 +77,31 @@
                         <span ng-show="driver.editing">
                             <input type="date" ng-model="driver.start_time">
                             <input type="time" ng-model="driver.start_time">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! driver.editing">
+                            {{driver.uber_surname + ' ' + driver.uber_firstname + ' ' + driver.uber_patronymic}}
+                        </span>
+                        <span ng-if="driver.editing">
+                            <select ng-change="changeUberDriver(driver)" ng-model="driver.uber_driver_id">   
+                                <option value="999999">Под собой</option>
+                                <option ng-repeat="ub in uberdrivers" ng-value="ub.id">{{ub.surname + ' ' + ub.firstname + ' ' + ub.patronymic}}</option>   
+                            </select>                       
+                        </span>
+                    </td>
+
+
+                    <td>
+                        <span ng-show="! driver.editing">
+                            {{driver.yandex_surname + ' ' + driver.yandex_firstname + ' ' + driver.yandex_patronymic}}
+                        </span>
+                        <span ng-if="driver.editing">
+                            <select ng-change="changeYandexDriver(driver)" ng-model="driver.yandex_driver_id">   
+                                <option value="999999">Под собой</option>
+                                <option ng-repeat="ya in yandexdrivers" ng-value="ya.id">{{ya.surname + ' ' + ya.firstname + ' ' + ya.patronymic}}</option>   
+                            </select>                       
                         </span>
                     </td>
 

@@ -7,6 +7,8 @@
     $RULE_50_50 = 3;
     $RULE_40_60 = 4;
     $RULE_DEFAULT = 1;
+    $MANUAL_BONUS = 6;
+    $AUTO_BONUS = 5;
 
     $FINE_FROM_INCOME = 4;
     $DEBT_FROM_INCOME = 2;
@@ -24,9 +26,11 @@
     $ya_cash = $params['ya_cash'];
     $ya_non_cash = $params['ya_non_cash'];
     $rbt_total = $params['rbt_total'];
+    $malyutka_total = $params['malyutka_total'];
     $rbt_comission = $params['rbt_comission'];
     $hand = $params['hand'];
     $is_bonus = $params['is_bonus'];
+    $is_manual_bonus_day = $params['is_manual_bonus_day'];
     $total = $params['total'];
     $wage_rule = $params['wage_rule'];
     $shift = $params['dated'];
@@ -50,6 +54,7 @@
 	    $query .= " group_id = $group_id, ";
 	    $query .= " total = $total, ";
 	    $query .= " is_bonus = $is_bonus, ";
+	    $query .= " is_manual_bonus_day = $is_manual_bonus_day, ";
 	    $query .= " deferred_debt = $deferred_debt, ";
 	    $query .= " covered_company_deficit = $covered_company_deficit, ";
 	    $query .= " fuel_expenses = $fuel, ";
@@ -80,14 +85,15 @@
 
 	} else {
 		$query = "INSERT INTO daily_individual_cases ";
-		$query .= "(driver_id, total, group_id, report_date, is_bonus, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
+		$query .= "(driver_id, total, group_id, report_date, is_bonus, is_manual_bonus_day, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
 		$query .= "VALUES (";
 
 		$query .= "$driver_id,";
 		$query .= "$total,";
-		$query .= "$is_bonus,";
 		$query .= "$group_id,";
 		$query .= "'$shift',";
+		$query .= "$is_bonus,";
+		$query .= "$is_manual_bonus_day,";
 		$query .= "$fuel,";
 		$query .= "$deferred_debt,";
 		$query .= "$covered_company_deficit,";
@@ -100,6 +106,10 @@
 	    	$query .= " NULL, NULL, 1 ";
 	    } else if ($wage_rule == $RULE_DEFAULT ) {
 	    	$query .= " NULL, NULL, NULL ";
+	    } else if ($wage_rule == $MANUAL_BONUS ) {
+	    	$query .= " NULL, NULL, NULL ";
+	    } else if ($wage_rule == $AUTO_BONUS ) {
+	    	$query .= " NULL, NULL, NULL ";
 	    };
 
 		$query .= ")";
@@ -107,7 +117,7 @@
 		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
 		$result = mysql_query($query) or die(mysql_error());
 
-		if ($is_bonus == 1) {
+		if ($is_bonus == 1 && $is_manual_bonus_day == 0) {
 		    $query = "SELECT id FROM last_bonus_days ";
 		    $query .= " WHERE driver_id = $driver_id ";
 
@@ -314,6 +324,36 @@
 		$query .= "VALUES (";
 
 		$query .= "$driver_id, '$shift', $rbt_total, $rbt_comission ";
+
+		$query .= ")";
+
+		file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+		$result = mysql_query($query) or die(mysql_error());
+	}
+
+	// malyutka
+    $query = "SELECT id FROM malyutka ";
+    $query .= " WHERE driver_id = $driver_id AND shift_date = '$shift' ";
+
+	$result = mysql_query($query) or die(mysql_error());
+
+	if (mysql_num_rows($result) > 0) {
+	    $query = "UPDATE malyutka SET ";
+	    $query .= " driver_id = $driver_id,";
+	    $query .= " shift_date = '$shift',";
+	    $query .= " total_brutto = $malyutka_total";
+
+	    $query .= " WHERE driver_id = $driver_id AND shift_date = '$shift' ";
+
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+		$result = mysql_query($query) or die(mysql_error());
+
+	} else {
+		$query = "INSERT INTO malyutka ";
+		$query .= "(driver_id, shift_date, total_brutto) ";
+		$query .= "VALUES (";
+
+		$query .= "$driver_id, '$shift', $malyutka_total ";
 
 		$query .= ")";
 

@@ -1,7 +1,7 @@
 'use strict';
 
 import { map, filter, isDate, assign, groupBy, omit, find, isEmpty, sumBy } from 'lodash';
-import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../libs/date';
+import { datePlusDays, formattedToSave, formattedToSaveTime, daysBetween, treatAsUTC } from '../../libs/date';
 
 function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
 
@@ -14,6 +14,9 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
       o.cost_weekly = Number(o.cost_weekly);
       o.cost_daily = Number(o.cost_daily);
       o.year_created = Number(o.year_created);
+
+      o.license_deadline_input = new Date(o.license_deadline);
+      o.osago_deadline_input = new Date(o.osago_deadline);
 
       return o;
     });
@@ -54,6 +57,9 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
       year_created: 2010,
       sts : "",
       license: "",
+      license_deadline: new Date(),
+      osago: "",
+      osago_deadline: new Date(),
 
       editing: true,
       new: true,    
@@ -81,36 +87,48 @@ function ParkCtrl($scope, $state, autolist, AutoParkService, Flash) {
   }
 
   $scope.saveAuto = function(record){
-    record.editing = false;
+    if (validDates(record)){
+      record.editing = false;
 
-    var data = {
-      model : record.model,
-      state_number : record.state_number,
-      is_rented : Number(record.is_rented),
+      var data = {
+        model : record.model,
+        state_number : record.state_number,
+        is_rented : Number(record.is_rented),
 
-      color: record.color,
-      year_created: record.year_created,
-      sts : record.sts,
-      license: record.license,
-    }
+        color: record.color,
+        year_created: record.year_created,
+        sts : record.sts,
+        license: record.license,
+        license_deadline: formattedToSaveTime( record.license_deadline_input).substr(0,10),
+        osago: record.osago,
+        osago_deadline:  formattedToSaveTime( record.osago_deadline_input).substr(0,10),
+      }
 
-    if (record.new) {
+      if (record.new) {
 
-      AutoParkService.add(data)
-      .then(function(respond){
-        console.log('auto added');
-        refreshList();
-      })
+        AutoParkService.add(data)
+        .then(function(respond){
+          console.log('auto added');
+          refreshList();
+        })
+      } else {
+
+        data.id = record.id;
+
+        AutoParkService.update(data)
+        .then(function(respond){
+          console.log('auto updated');
+          refreshList();
+        })
+      }
     } else {
+        message = "Неверный формат даты";
+        flashWindow = Flash.create('danger', message, 0, {class: 'custom-class', id: 'custom-id'}, true);
+      }
+  }
 
-      data.id = record.id;
-
-      AutoParkService.update(data)
-      .then(function(respond){
-        console.log('auto updated');
-        refreshList();
-      })
-    }
+  function validDates(record){
+    return (isDate(record.license_deadline_input) && isDate(record.osago_deadline_input))
   }
 
   function refreshList(){

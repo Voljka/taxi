@@ -7,6 +7,20 @@
     $auto_id = $params['auto_id'];
     $dispatcher_id = $params['dispatcher_id'];
     $driver_id = $params['driver_id'];
+
+    if (! $params['uber_driver_id']) {
+        $uber_driver_id = 'NULL';
+    } else {
+        $uber_driver_id = $params['uber_driver_id'];
+
+    }
+    if (! $params['yandex_driver_id']) {
+        $yandex_driver_id = 'NULL';
+    } else {
+        $yandex_driver_id = $params['yandex_driver_id'];
+        
+    }
+
     if (! $params['finish_time']) {
         $finish_time = "NULL";
     } else {
@@ -19,7 +33,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "shifts";
 
-	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, dispatcher_id=$dispatcher_id, km=$km, start_time='$start_time', finish_time=$finish_time ";
+	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, uber_driver_id=$uber_driver_id, yandex_driver_id=$yandex_driver_id, dispatcher_id=$dispatcher_id, km=$km, start_time='$start_time', finish_time=$finish_time ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

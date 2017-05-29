@@ -49,6 +49,7 @@
             <td colspan="5">Gett</td>
             <td colspan="4">Yandex</td>
             <td colspan="4">РБТ</td>
+            <td colspan="2">Малютка</td>
             <td rowspan="2">От борта</td>
           </tr>
           <tr>
@@ -70,6 +71,9 @@
             <td class="td_80px">Комиссия</td>
             <td class="td_80px">Доход<br>без комиссии</td>
             <td class="td_80px">ЗП<br>диспетчера</td>
+
+            <td class="td_80px">Доход<br>с комиссией</td>
+            <td class="td_80px">Доход<br>без комиссии</td>
           </tr>
         </thead>
         <tbody>
@@ -87,15 +91,15 @@
 
                 <td class="digit">
                     <span ng-show="! driver.editingFuel">{{driver.fuel | asPrice}} 
-                        <span class="glyphicon glyphicon-pencil edit-btn" ng-click="editFuel(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses">
+                        <span class="glyphicon glyphicon-pencil edit-btn" ng-click="editFuel(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses ">
                         </span>
                     </span>
                     <input ng-keypress="checkEnter($event, driver)" ng-show="driver.editingFuel" class="numberInput" type="number" ng-model="driver.fuel">
                 </td>
                 <td class="digit">{{driver.rental | asPrice}}</td>
-                <td class="digit">{{driver.franchise | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFranchise(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1)"></span></td>
-                <td class="digit">{{driver.fine | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFine(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses"></span></td>
-                <td class="digit">{{driver.debt | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeDebt(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses"></span></td>
+                <td class="digit">{{driver.franchise | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFranchise(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.franchise == 0"></span></td>
+                <td class="digit">{{driver.fine | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFine(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.fine == 0"></span></td>
+                <td class="digit">{{driver.debt | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeDebt(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.debt == 0"></span></td>
 
                 <td class="">
                     <select ng-change="changeRule(driver)" ng-model="driver.rule_default_id" ng-init="driver.rule_default_id" ng-disabled="driver.fuel_expenses">   
@@ -103,6 +107,8 @@
                         <option value="2">60/40</option>
                         <option value="3">50/50</option>
                         <option value="4">40/60</option>
+                        <option value="5">7 день</option>
+                        <option value="6">как 7 день</option>
                     </select>                    
                 </td>
                 <td class="digit wage_column">{{driver.wage | asPrice}}</td>
@@ -141,6 +147,9 @@
                 <td class="digit"> <input class="numberInput" type="number" ng-model="driver.rbt_comission" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
                 <td class="digit">{{driver.rbt_total_netto | asPrice}}</td>
                 <td class="digit">{{driver.rbt_dispatcher_wage | asPrice}}</td>
+
+                <td class="digit"> <input class="numberInput" type="number" ng-model="driver.malyutka_total" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
+                <td class="digit">{{driver.malyutka_total_netto | asPrice}}</td>
 
                 <td class="digit"><input class="numberInput" type="number" ng-model="driver.from_hand_amount" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
 

@@ -6,6 +6,8 @@ import { datePlusDays, formattedToSave, formattedToSaveTime, daysBetween, treatA
 function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftService, Flash) {
 
   $scope.shifts = [];
+  $scope.yandexdrivers = [];
+  $scope.uberdrivers = [];
   Flash.clear();
 
   $scope.shiftDate = new Date();
@@ -48,6 +50,14 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
     var newRecord = {
       dispatcher_id: dispatcherlist[0].id,
       driver_id: driverlist[0].id,
+      uber_driver_id: "999999",
+      uber_surname: '',
+      uber_firstname: '',
+      uber_patronymic: '',
+      yandex_driver_id: "999999",
+      yandex_surname: '',
+      yandex_firstname: '',
+      yandex_patronymic: '',
       surname: driverlist[0].surname,
       firstname: driverlist[0].firstname,
       patronymic: driverlist[0].patronymic,
@@ -64,8 +74,68 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       new: true,
     }
 
+    setUberAndYandexDriver(newRecord);
+    makeUberAndYandexDriverLists(newRecord.driver_id);
+
     $scope.shifts.push(newRecord);
     $scope.currentShift = newRecord;
+  }
+
+  function makeUberAndYandexDriverLists(exceptDriverId){
+    $scope.yandexdrivers = filter(driverlist, function(o){
+      return !( o.id == exceptDriverId );
+    })
+
+    $scope.uberdrivers = filter(driverlist, function(o){
+      return !( o.id == exceptDriverId );
+    })
+
+  }
+
+  function setUberAndYandexDriver(shift){
+
+    console.log('setUberAndYandexDriver');
+
+    console.log('shift');
+    console.log(shift);
+
+    console.log(shift.uber_driver_id);
+
+    if (shift.uber_driver_id && shift.uber_driver_id != "999999") {
+      var uber_driver = find(driverlist, function(p){
+        return (Number(p.id) == Number(shift.uber_driver_id))
+      })
+      console.log('Found uber_driver');
+      console.log(uber_driver);
+
+      shift.uber_surname = uber_driver.surname;
+      shift.uber_firstname = uber_driver.firstname;
+      shift.uber_patronymic = uber_driver.patronymic;
+
+    } else {
+      shift.uber_driver_id = "999999";
+      shift.uber_surname = '';
+      shift.uber_firstname = '';
+      shift.uber_patronymic = '';
+    }
+
+    if (shift.yandex_driver_id && shift.yandex_driver_id != "999999") {
+      var yandex_driver = find(driverlist, function(p){
+        return (Number(p.id) == Number(shift.yandex_driver_id))
+      })
+      console.log('Found yandex_driver');
+      console.log(yandex_driver);
+
+      shift.yandex_surname = yandex_driver.surname;
+      shift.yandex_firstname = yandex_driver.firstname;
+      shift.yandex_patronymic = yandex_driver.patronymic;
+
+    } else {
+      shift.yandex_driver_id = "999999";
+      shift.yandex_surname = '';
+      shift.yandex_firstname = '';
+      shift.yandex_patronymic = '';
+    }
   }
 
   $scope.removeRecord = function(){
@@ -81,8 +151,9 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
   }
 
   $scope.updateRecord = function(){
-    $scope.currentShift.editing = true;
-    
+ 
+   makeUberAndYandexDriverLists($scope.currentShift);
+   $scope.currentShift.editing = true;
   }
 
   $scope.saveShift = function(record){
@@ -107,18 +178,22 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
               var data = {
                 auto_id: record.auto_id,
                 driver_id: record.driver_id,
+                uber_driver_id: (record.uber_driver_id == "999999") ? undefined : record.uber_driver_id,
+                yandex_driver_id: (record.yandex_driver_id == "999999") ? undefined : record.yandex_driver_id,
+                driver_id: record.driver_id,
                 dispatcher_id: record.dispatcher_id,
                 start_time: formattedToSaveTime(record.start_time),
                 finish_time: record.finish_time ? formattedToSaveTime(record.finish_time) : undefined,
                 km: record.km,
-                shift_date : formattedToSave( $scope.shiftDate ),
+                shift_date : formattedToSaveTime($scope.shiftDate).substr(0,10),
               }
 
               if (record.new) {
 
                 ShiftService.add(data)
                 .then(function(respond){
-                  flashWindow.clear();
+                  if (flashWindow)
+                    flashWindow.clear();
                   record.editing = false;
                   console.log('shift added');
                   refreshShift();
@@ -130,7 +205,8 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
                 ShiftService.update(data)
                 .then(function(respond){
                   record.editing = false;
-                  flashWindow.clear();
+                  if (flashWindow)
+                    flashWindow.clear();
                   console.log('shift updated');
                   refreshShift();
                 })
@@ -199,14 +275,19 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
   function refreshShift(){
     var data = {
-      shift_date: formattedToSave( $scope.shiftDate ),
+      shift_date: formattedToSaveTime($scope.shiftDate).substr(0,10),
     };
+
+    console.log(data);
 
     ShiftService.perDate(data)
     .then(function(list){
 
       $scope.shifts = list.map(function(o){
         o.start_time = new Date( o.start_time);
+
+        setUberAndYandexDriver(o);
+
         o.km = Number(o.km);
         o.finish_time = o.finish_time ? new Date(o.finish_time) : undefined ;
         return o;
@@ -222,8 +303,6 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
         record.state_number = o.state_number;
       }
     })
-
-    console.log(record);
   }
 
   $scope.changeDriver = function(record){
@@ -236,7 +315,32 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
         record.patronymic = o.patronymic;
       }
     })
-    console.log(record);
+
+    if (record.driver_id == record.yandex_driver_id || record.driver_id == record.uber_driver_id){
+      setUberAndYandexDriver($scope.currentShift);
+      makeUberAndYandexDriverLists(record.driver_id);
+    }
+
+  }
+
+  $scope.changeUberDriver = function(record){
+    $scope.cabdrivers.forEach(function(o){
+      if (o.id == record.uber_driver_id) {
+        record.uber_surname = o.surname;
+        record.uber_firstname = o.firstname;
+        record.uber_patronymic = o.patronymic;
+      }
+    })
+  }
+
+  $scope.changeYandexDriver = function(record){
+    $scope.cabdrivers.forEach(function(o){
+      if (o.id == record.yandex_driver_id) {
+        record.yandex_surname = o.surname;
+        record.yandex_firstname = o.firstname;
+        record.yandex_patronymic = o.patronymic;
+      }
+    })
   }
 
   function useFilter(){
