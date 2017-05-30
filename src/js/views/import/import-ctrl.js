@@ -35,6 +35,8 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
 
     $scope.upload = function (file) {
 
+        Flash.clear();
+        
 	 	var partner;
 	 	if ($state.current.name == 'uber_load') {
 			partner = "uber";

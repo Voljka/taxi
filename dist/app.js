@@ -67122,11 +67122,17 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          return (0, _lodash.map)(obj, function (o) {
 
             o.total_payouts = Number(o.total_amount);
+            o.uber_bonus = o.uber_bonus ? Number(o.uber_bonus) : 0;
+            o.uber_bonus_part = o.uber_bonus_part ? Number(o.uber_bonus_part) : 0;
+
+            o.referal_bonus = o.referal_bonus ? Number(o.referal_bonus) : 0;
+            o.prepay = o.prepay ? Number(o.prepay) : 0;
 
             o.uber_sum_comission = o.uber_sum_comission ? Number(o.uber_sum_comission) : 0;
             o.uber_sum_fare = Number(o.uber_sum_fare);
             o.uber_sum_result = Number(o.uber_sum_result);
             o.uber_sum_cash = Number(o.uber_sum_cash);
+            o.uber_sum_boost = Number(o.uber_sum_boost);
 
             o.uber_correction_comission = o.uber_correction_comission ? Number(o.uber_correction_comission) : 0;
             o.uber_correction_fare = o.uber_correction_fare ? Number(o.uber_correction_fare) : 0;
@@ -67139,6 +67145,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             o.gett_sum_fare = Number(o.gett_sum_fare);
             o.gett_sum_result = Number(o.gett_sum_result);
             o.gett_sum_cash = Number(o.gett_sum_cash);
+            o.gett_sum_boost = Number(o.gett_sum_boost);
 
             o.gett_correction_comission = o.gett_correction_comission ? Number(o.gett_correction_comission) : 0;
             o.gett_correction_fare = o.gett_correction_fare ? Number(o.gett_correction_fare) : 0;
@@ -67158,7 +67165,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             o.fine_planned_payment = o.fine_planned_payment ? Number(o.fine_planned_payment) : 0;
 
             o.uber_total = o.uber_sum_fare;
-            o.uber_total_netto = o.uber_sum_fare + o.uber_sum_comission;
+            o.uber_total_netto = o.uber_sum_fare + o.uber_sum_comission + o.uber_sum_boost;
 
             o.gett_total = o.gett_sum_fare + o.gett_sum_comission;
             o.gett_total_netto = o.gett_sum_fare + o.gett_sum_comission - o.gett_sum_cash;
@@ -67258,6 +67265,18 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       driver.editingFuel = true;
    };
 
+   $scope.editReferalBonus = function (for_date, driver) {
+      driver.editingReferalBonus = true;
+   };
+
+   $scope.editDebt = function (for_date, driver) {
+      driver.editingDebt = true;
+   };
+
+   $scope.editUberBonus = function (for_date, driver) {
+      driver.editingUberBonus = true;
+   };
+
    $scope.editCover = function (for_date, driver) {
       driver.editingCover = true;
       recalcWage(driver);
@@ -67266,6 +67285,10 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
    $scope.checkEnter = function (keyEvent, driver) {
       if (keyEvent.which == 13) {
          driver.editingFuel = false;
+         driver.editingDebt = false;
+         driver.editingUberBonus = false;
+         driver.editingReferalBonus = false;
+         driver.debt_manually_entered = true;
          driver.manually_entered = true;
          driver.editingCover = false;
          recalcWage(driver);
@@ -67283,7 +67306,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          if ((0, _date.daysBetween)($scope.lastReport, for_date).toFixed(0) < 2 && driver.uber_completeness && driver.gett_completeness && driver.finish_time) {
             $scope.rowAllowedForSaving = true;
          } else {
-            $scope.rowAllowedForSaving = false;
+            // $scope.rowAllowedForSaving = false;
+            $scope.rowAllowedForSaving = true;
          }
 
          if (driver.report_date) {
@@ -67348,8 +67372,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       var common_wage_rules = driver.rule_default_id == _common.CALC_WAGE_BY_COMMON_RULE;
 
       if (driver.fuel_expenses) {
-         if (driver.debt_manually_annulled) {
-            driver.debt = 0;
+         if (driver.debt_manually_entered) {
+            // driver.debt = 0;
          } else {
             driver.debt = Number(driver.debt_from_income) + Number(driver.debt_from_franchise);
          }
@@ -67375,16 +67399,21 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                   wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
                }
             } else {
-               wage_before_debt = Number(((driver.total_netto - driver.fuel) * driver.driver_part - driver.franchise - driver.fine).toFixed(2));
+               var kef;
+               if (driver.rule_default_id == "4") kef = 0.4;
+               if (driver.rule_default_id == "3") kef = 0.5;
+               if (driver.rule_default_id == "2") kef = 0.6;
+
+               wage_before_debt = Number(((driver.total_netto - driver.fuel) * kef - driver.franchise - driver.fine).toFixed(2));
             }
          }
 
-         if (!driver.debt_planned_payment) {
+         if (!driver.debt_planned_payment || driver.debt_planned_payment == 0) {
             driver.debt = 0;
          } else {
 
-            if (driver.debt_manually_annulled) {
-               driver.debt = 0;
+            if (driver.debt_manually_entered) {
+               // driver.debt = 0;
             } else {
 
                if (driver.debt_min_wage) {
@@ -67415,13 +67444,27 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          driver.wage = wage_before_debt - driver.debt;
       }
 
+      driver.debt = Number(driver.debt);
+
+      // console.log('wage before debt');
+      // console.log(wage_before_debt);
+      // console.log('wage before debt');
+      // console.log(driver.debt);
+
+      // console.log(driver.wage);
+
+      driver.wage = driver.wage + driver.gett_correction_fare + driver.uber_correction_fare + driver.uber_bonus - driver.total_cash;
+
       driver.income = Number((driver.total_netto - driver.fuel - driver.rental - (driver.wage < 0 ? 0 : driver.wage)).toFixed(2));
       driver.income_deficit = driver.income < 0 ? driver.income : 0;
       if (driver.is_bonus_day == 1 || driver.is_bonus == 1) {
-         driver.left_to_pay = driver.wage - driver.total_cash;
+         // driver.left_to_pay = (driver.wage - driver.total_cash);
+         driver.left_to_pay = driver.wage;
       } else {
-         driver.left_to_pay = driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt - driver.total_cash + driver.fuel + driver.uber_correction_fare + driver.uber_correction_result;
+         // driver.left_to_pay = (driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt - driver.total_cash + driver.fuel + driver.uber_correction_fare + driver.uber_correction_result);
+         driver.left_to_pay = driver.wage - driver.total_payouts + driver.covered + driver.income_deficit + driver.deferred_debt;
       }
+      // console.log(driver);
    }
 
    $scope.recalcWage = recalcWage;
@@ -67526,7 +67569,18 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
    function calcPayoutTotal() {
       $scope.totalPayouts = (0, _lodash.sumBy)($scope.payouts, 'amount');
-      $scope.residualToPay = $scope.currentDriver.wage - $scope.totalPayouts;
+      var d = $scope.currentDriver;
+
+      var wage = d.wage + d.covered;
+
+      if (d.income < 0) wage += d.income;
+      if (d.wage + d.covered + d.income < 0) {
+         $scope.totalCharged = 0;
+      } else {
+         $scope.totalCharged = wage;
+      }
+
+      $scope.residualToPay = $scope.currentDriver.left_to_pay - $scope.totalPayouts;
    }
 
    $scope.selectPayout = function (payout) {
@@ -67646,10 +67700,19 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
       var totalDeficit = 0;
 
-      if (d.income < 0) totalDeficit = d.income;
-      if (d.wage + d.covered < 0) totalDeficit += d.wage + d.covered;
+      // if (d.income < 0) 
+      //    totalDeficit = d.income;
+      // // if ( d.wage + d.covered < 0 )
+      totalDeficit = d.left_to_pay;
+
+      console.log('totalDeficit');
+      console.log(totalDeficit);
 
       var deficitAfterAdjustments = Number((totalDeficit + d.deferred_debt).toFixed(2));
+      // var deficitAfterAdjustments = totalDeficit;
+
+      console.log('deficitAfterAdjustments');
+      console.log(deficitAfterAdjustments);
 
       if (deficitAfterAdjustments < 0) {
          $scope.newDebt = {
@@ -67700,11 +67763,16 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             ya_cash: d.yandex_cash,
             ya_non_cash: d.yandex_non_cash,
             is_bonus: d.is_bonus == 1 || d.is_bonus_day == 1 ? 1 : 0,
+            uber_bonus: d.uber_bonus,
+            uber_bonus_part: d.uber_bonus_part,
+            referal_bonus: d.referal_bonus,
             is_manual_bonus_day: Number(d.rule_default_id) == 6 ? 1 : 0,
             hand: d.from_hand_amount,
             rbt_total: d.rbt_total,
             malyutka_total: d.malyutka_total,
             rbt_comission: d.rbt_comission,
+            uber_correction: d.uber_correction_fare,
+            gett_correction: d.gett_correction_fare,
             total: d.total,
             // wage_rule: d.rule_default_id,
             dated: $scope.shiftDate,
@@ -67716,6 +67784,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
          data.wage_rule = d.rule_default_id;
 
+         console.log('data 2 presave');
          console.log(data);
 
          saveDriverDay(data);
@@ -67865,7 +67934,13 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          rbt_comission: d.rbt_comission,
          total: d.total,
          is_bonus: d.is_bonus == 1 || d.is_bonus_day == 1 ? 1 : 0,
+         uber_bonus: d.uber_bonus,
+         uber_bonus_part: d.uber_bonus_part,
+         referal_bonus: d.referal_bonus,
          is_manual_bonus_day: Number(d.rule_default_id) == 6 ? 1 : 0,
+         uber_correction: d.uber_correction_fare,
+         gett_correction: d.gett_correction_fare,
+
          hand: d.from_hand_amount,
          dated: $scope.shiftDate,
          group: d.work_type_id,
@@ -67873,6 +67948,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          cover_note: '',
          deferred_debt: d.deferred_debt ? d.deferred_debt : 0, ////////// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          covered_company_deficit: d.covered_company_deficit ? d.covered_company_deficit : 0 };
+      console.log('data 1 presave');
       console.log(data);
 
       data.wage_rule = d.rule_default_id;
@@ -67905,7 +67981,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 module.exports = DailyCtrl;
 
 },{"../../constants/common":42,"../../libs/date":43,"lodash":38}],58:[function(require,module,exports){
-module.exports = "<div class=row><div class=col-md-12 ng-show=hasSelectedRow><button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=showPayouts()>Выплаты</button> <button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=saveDriverCalc()>Сохранить расчет по водителю</button> <button class=\"btn btn-primary\" ng-show=dayAllowedForSaving ng-click=saveDayCalc()>Закрыть день</button></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><table class=\"table table-bordered table-condensed table_2200px\"><thead><tr><td rowspan=2>#</td><td rowspan=2>Диспетчер</td><td rowspan=2>Фио</td><td rowspan=2>Авто</td><td class=td_80px rowspan=2>Всего,<br>нал</td><td class=td_80px rowspan=2>Всего,<br>без комис</td><td class=td_80px rowspan=2>Всего,<br>c комис</td><td class=td_80px rowspan=2>Топливо</td><td class=td_80px rowspan=2>Аренда<br>авто</td><td class=td_80px rowspan=2>Франш.</td><td class=td_80px rowspan=2>Штрафы</td><td class=td_80px rowspan=2>Долг</td><td class=td_80px rowspan=2>Доля з/п</td><td class=td_80px rowspan=2>З/П</td><td class=td_80px rowspan=2>Доход<br>компании</td><td class=td_80px rowspan=2>Убыток<br>покрытый<br>компанией</td><td class=td_80px rowspan=2>Убыток<br>компании,<br>покрытый<br>водителем</td><td class=td_80px rowspan=2>Олпачено</td><td class=td_80px rowspan=2>К оплате<br>(остаток)</td><td class=td_80px rowspan=2>Перенесено<br>в долг</td><td colspan=4>Uber</td><td colspan=5>Gett</td><td colspan=4>Yandex</td><td colspan=4>РБТ</td><td colspan=2>Малютка</td><td rowspan=2>От борта</td></tr><tr><td class=td_80px>Нал</td><td class=td_80px>Коррекции</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Нал</td><td class=td_80px>Коррекции</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Остаток<br>на счете</td><td class=td_80px>Нал</td><td class=td_80px>Безнал</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Комиссия</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>ЗП<br>диспетчера</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td></tr></thead><tbody><tr ng-repeat-start=\"(shift_date, data) in dailyList\"></tr><tr ng-repeat=\"driver in data\" ng-class=\"driver.selected ? 'item-selected' : ( driver.fuel_expenses ? 'row-already-saved' : '')\"><td ng-click=\"selectDriver(shift_date, driver)\">{{$index + 1}}</td><td>dispatcher</td><td>{{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic }}</td><td>{{driver.state_number}}</td><td class=\"digit cash_column\">{{driver.total_cash | asPrice}}</td><td class=\"digit total_netto_column\">{{driver.total_netto | asPrice}}</td><td class=digit>{{driver.total | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingFuel\">{{driver.fuel | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editFuel(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses \"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingFuel class=numberInput type=number ng-model=driver.fuel></td><td class=digit>{{driver.rental | asPrice}}</td><td class=digit>{{driver.franchise | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFranchise(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.franchise == 0\"></span></td><td class=digit>{{driver.fine | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFine(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.fine == 0\"></span></td><td class=digit>{{driver.debt | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeDebt(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.debt == 0\"></span></td><td class=\"\"><select ng-change=changeRule(driver) ng-model=driver.rule_default_id ng-init=driver.rule_default_id ng-disabled=driver.fuel_expenses><option value=1>расчет</option><option value=2>60/40</option><option value=3>50/50</option><option value=4>40/60</option><option value=5>7 день</option><option value=6>как 7 день</option></select></td><td class=\"digit wage_column\">{{driver.wage | asPrice}}</td><td class=\"digit income_column\">{{driver.income | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingCover\">{{driver.covered | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editCover(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingCover class=numberInput type=number ng-model=driver.covered></td><td class=digit>{{driver.covered_company_deficit | asPrice}}</td><td class=digit>{{driver.total_payouts | asPrice}}</td><td class=\"digit to-pay-column\">{{ (driver.left_to_pay )| asPrice}}</td><td class=digit>{{driver.deferred_debt | asPrice}}</td><td class=digit>{{driver.uber_sum_cash | asPrice}}</td><td class=digit>{{driver.uber_correction_fare | asPrice}}</td><td class=digit>{{driver.uber_total_netto | asPrice}}</td><td class=digit>{{driver.uber_total | asPrice}}</td><td class=digit>{{driver.gett_sum_cash | asPrice}}</td><td class=digit>{{driver.gett_correction_result | asPrice}}</td><td class=digit>{{driver.gett_sum_fare | asPrice}}</td><td class=digit>{{driver.gett_total | asPrice}}</td><td class=digit>{{driver.gett_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_non_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.yandex_total | asPrice}}</td><td class=digit>{{driver.yandex_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.rbt_total ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit><input class=numberInput type=number ng-model=driver.rbt_comission ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.rbt_total_netto | asPrice}}</td><td class=digit>{{driver.rbt_dispatcher_wage | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.malyutka_total ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.malyutka_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.from_hand_amount ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td></tr><tr ng-repeat-end class=\"success total\"><td colspan=4>Итого за день {{shift_date}}</td><td class=digit>{{sumBy(data,'total_cash') | asPrice }}</td><td class=digit>{{sumBy(data,'total_netto') | asPrice }}</td><td class=digit>{{sumBy(data,'total') | asPrice }}</td><td colspan=7></td><td class=digit>{{ total_income(data) | asPrice }}</td><td colspan=2></td><td class=digit>{{sumBy(data,'total_payouts') | asPrice }}</td><td class=digit>{{ total_topay(data) | asPrice }}</td><td colspan=19></td></tr></tbody></table></div><div class=cover ng-show=\"isShowingDetails || isShowingPayouts || isShowingDebtWindow\"></div><div class=cover-modal ng-if=isShowingPayouts><div id=modal-payouts><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name=='!!!! Наличными !!!'\">Cash !!!</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Card Number: {{currentDriver.card_number}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Bank: {{currentDriver.bank_name}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.beneficiar.length > 1\">Beneficiar: {{currentDriver.beneficiar}}</span></center></div></div><div class=row><table class=\"table table-bordered table-condensed\"><thead><tr><th>Payed at</th><th>Charged</th><th>Payed</th></tr></thead><tbody><tr><td></td><td class=digit>{{(currentDriver.wage) | asPrice}}</td><td></td></tr><tr ng-repeat=\"payout in payouts\" ng-click=selectPayout(payout) ng-class=\"payout.selected ? 'item-selected' : ''\"><td>{{payout.payed_at}}</td><td></td><td class=digit><span ng-show=\"! payout.editing\">{{payout.amount | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=updatePayout(payout)></span> <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=deletePayout(payout)></span></span> <input ng-keypress=\"checkPayoutEnter($event, payout)\" ng-show=payout.editing class=numberInput type=number ng-model=payout.amount></td></tr><tr class=payouts-total><td>TOTAL</td><td class=digit>{{(currentDriver.wage) | asPrice}}</td><td class=digit>{{totalPayouts | asPrice}}</td></tr></tbody></table></div><div class=row>Residual to Pay : <b>{{ residualToPay | asPrice }}</b></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-8><center><button class=\"btn btn-primary\" ng-click=addPayout() ng-show=\"residualToPay > 0 && ! isPayoutEditing && currentDriver.wage > 0\">Add</button></center></div><div class=col-md-4><center><button class=\"btn btn-primary\" ng-click=closePayouts() ng-show=\"! isPayoutEditing\">Close</button></center></div></div></div></div><div class=cover-modal ng-if=isShowingDebtWindow><div id=modal-debt><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span>Долг на сегодняшний день: {{ newDebt.debtLeftToPay }}</span></center></div></div><div class=row><div class=col-md-12><center><span>Убыток за текущий день: {{ newDebt.additionAmount }}</span></center></div></div><br><div class=row ng-show=\"currentDriver.last_debt && newDebt.debtLeftToPay > 0\"><div class=col-md-12><p><center>Условия текущего долга:</center></p><p ng-show=\"currentDriver.last_debt.min_daily_wage > 0\">Минимальная выплачиваемая зарплата : {{currentDriver.last_debt.min_daily_wage}}</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine == 1\">Вся з/п списывается</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine != 1 && currentDriver.last_debt.min_daily_wage == 0 \">Ежесменно изымаемая сумма из з/п: {{currentDriver.last_debt.iteration_sum}}</p></div></div><br><div class=row><div class=col-md-12><center><span>Новые услвоия поагешния долга:</span></center></div></div><div class=row><div class=col-md-6><p><b>Правила расчета суммы изымаемого долга</b></p><p><input ng-model=obj.debtRule type=radio ng-value=1> Списывание равными суммами</p><p><input ng-model=obj.debtRule type=radio ng-value=2> Списание с минимальной з/п</p><p><input ng-model=obj.debtRule type=radio ng-value=3> Вся з/п списывается</p><p><input ng-model=obj.debtRule type=radio ng-value=4 ng-disabled=\"! (currentDriver.wage > 0 && currentDriver.wage > -newDebt.additionAmount)\"> Погасить за счет текущей з/п</p></div><div class=col-md-6><p>Ежесменная сумма: <input ng-model=obj.newDebtIterationSum type=number ng-disabled=\"! (obj.debtRule==1)\"></p><p>Минимальная з/п: <input ng-model=obj.debtMinWage type=number ng-disabled=\"! (obj.debtRule==2)\"></p><p>Погасить максимум из текущей з/п <input ng-model=obj.debtDecreasingByWage type=checkbox ng-disabled=\"! (currentDriver.wage > 0 )\"></p></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-12><center><button class=\"btn btn-primary\" ng-click=saveNewDebtRule()>Сохранить правло списания долга</button> <button class=\"btn btn-primary\" ng-click=closeDebtWindow()>Закрыть</button></center></div></div></div></div>";
+module.exports = "<div class=row><div class=col-md-12 ng-show=hasSelectedRow><button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=showPayouts()>Выплаты</button> <button class=\"btn btn-primary\" ng-show=rowAllowedForSaving ng-click=saveDriverCalc()>Сохранить расчет по водителю</button> <button class=\"btn btn-primary\" ng-show=dayAllowedForSaving ng-click=saveDayCalc()>Закрыть день</button></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><table class=\"table table-bordered table-condensed table_2200px\"><thead><tr><td rowspan=2>#</td><td rowspan=2>Диспетчер</td><td rowspan=2>Фио</td><td rowspan=2>Авто</td><td class=td_80px rowspan=2>Всего,<br>нал</td><td class=td_80px rowspan=2>Всего,<br>без комис</td><td class=td_80px rowspan=2>Всего,<br>c комис</td><td class=td_80px rowspan=2>Топливо</td><td class=td_80px rowspan=2>Аренда<br>авто</td><td class=td_80px rowspan=2>Франш.</td><td class=td_80px rowspan=2>Штрафы</td><td class=td_80px rowspan=2>Долг</td><td class=td_80px rowspan=2>Аванс</td><td class=td_80px rowspan=2>Доля з/п</td><td class=td_80px rowspan=2>З/П</td><td class=td_80px rowspan=2>Доход<br>компании</td><td class=td_80px rowspan=2>Убыток<br>покрытый<br>компанией</td><td class=td_80px rowspan=2>Убыток<br>компании,<br>покрытый<br>водителем</td><td class=td_80px rowspan=2>Олпачено</td><td class=td_80px rowspan=2>К оплате<br>(остаток)</td><td class=td_80px rowspan=2>Перенесено<br>в долг</td><td colspan=7>Uber</td><td colspan=5>Gett</td><td colspan=4>Yandex</td><td colspan=4>РБТ</td><td colspan=2>Малютка</td><td rowspan=2>От борта</td></tr><tr><td class=td_80px>Нал</td><td class=td_80px>Коррекции</td><td class=td_80px>Бонус<br>UBER</td><td class=td_80px>Доля<br>в бонусе</td><td class=td_80px>Бонус за<br>привлеч.</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Нал</td><td class=td_80px>Коррекции</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Остаток<br>на счете</td><td class=td_80px>Нал</td><td class=td_80px>Безнал</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Комиссия</td><td class=td_80px>Доход<br>без комиссии</td><td class=td_80px>ЗП<br>диспетчера</td><td class=td_80px>Доход<br>с комиссией</td><td class=td_80px>Доход<br>без комиссии</td></tr></thead><tbody><tr ng-repeat-start=\"(shift_date, data) in dailyList\"></tr><tr ng-repeat=\"driver in data\" ng-class=\"driver.selected ? 'item-selected' : ( driver.fuel_expenses ? 'row-already-saved' : '')\"><td ng-click=\"selectDriver(shift_date, driver)\">{{$index + 1}}</td><td>dispatcher</td><td>{{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic }}</td><td>{{driver.state_number}}</td><td class=\"digit cash_column\">{{driver.total_cash | asPrice}}</td><td class=\"digit total_netto_column\">{{driver.total_netto | asPrice}}</td><td class=digit>{{driver.total | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingFuel\">{{driver.fuel | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editFuel(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses \"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingFuel class=numberInput type=number ng-model=driver.fuel></td><td class=digit>{{driver.rental | asPrice}}</td><td class=digit>{{driver.franchise | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFranchise(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.franchise == 0\"></span></td><td class=digit>{{driver.fine | asPrice}} <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=\"removeFine(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.fine == 0\"></span></td><td class=digit><span ng-show=\"! driver.editingDebt\">{{driver.debt | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editDebt(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses \"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingDebt class=numberInput type=number ng-model=driver.debt></td><td class=digit>{{driver.prepay | asPrice}}</td><td class=\"\"><select ng-change=changeRule(driver) ng-model=driver.rule_default_id ng-init=driver.rule_default_id ng-disabled=driver.fuel_expenses><option value=1>расчет</option><option value=2>60/40</option><option value=3>50/50</option><option value=4>40/60</option><option value=5>7 день</option><option value=6>как 7 день</option></select></td><td class=\"digit wage_column\">{{driver.wage | asPrice}}</td><td class=\"digit income_column\">{{driver.income | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingCover\">{{driver.covered | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editCover(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses\"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingCover class=numberInput type=number ng-model=driver.covered></td><td class=digit>{{driver.covered_company_deficit | asPrice}}</td><td class=digit>{{driver.total_payouts | asPrice}}</td><td class=\"digit to-pay-column\">{{ (driver.left_to_pay )| asPrice}}</td><td class=digit>{{driver.deferred_debt | asPrice}}</td><td class=digit>{{driver.uber_sum_cash | asPrice}}</td><td class=digit>{{driver.uber_correction_fare | asPrice}}</td><td class=digit><span ng-show=\"! driver.editingUberBonus\">{{driver.uber_bonus | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editUberBonus(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses \"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingUberBonus class=numberInput type=number ng-model=driver.uber_bonus></td><td></td><td class=digit><span ng-show=\"! driver.editingReferalBonus\">{{driver.referal_bonus | asPrice}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=\"editReferalBonus(shift_date, driver)\" ng-show=\"! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses \"></span></span> <input ng-keypress=\"checkEnter($event, driver)\" ng-show=driver.editingReferalBonus class=numberInput type=number ng-model=driver.referal_bonus></td><td class=digit>{{driver.uber_total_netto | asPrice}}</td><td class=digit>{{driver.uber_total | asPrice}}</td><td class=digit>{{driver.gett_sum_cash | asPrice}}</td><td class=digit>{{driver.gett_correction_fare | asPrice}}</td><td class=digit>{{driver.gett_sum_fare | asPrice}}</td><td class=digit>{{driver.gett_total | asPrice}}</td><td class=digit>{{driver.gett_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit><input class=numberInput type=number ng-model=driver.yandex_non_cash ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.yandex_total | asPrice}}</td><td class=digit>{{driver.yandex_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.rbt_total ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit><input class=numberInput type=number ng-model=driver.rbt_comission ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.rbt_total_netto | asPrice}}</td><td class=digit>{{driver.rbt_dispatcher_wage | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.malyutka_total ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td><td class=digit>{{driver.malyutka_total_netto | asPrice}}</td><td class=digit><input class=numberInput type=number ng-model=driver.from_hand_amount ng-disabled=\"daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses\" ng-blur=recalcWage(driver)></td></tr><tr ng-repeat-end class=\"success total\"><td colspan=4>Итого за день {{shift_date}}</td><td class=digit>{{sumBy(data,'total_cash') | asPrice }}</td><td class=digit>{{sumBy(data,'total_netto') | asPrice }}</td><td class=digit>{{sumBy(data,'total') | asPrice }}</td><td colspan=7></td><td class=digit>{{ total_income(data) | asPrice }}</td><td colspan=2></td><td class=digit>{{sumBy(data,'total_payouts') | asPrice }}</td><td class=digit>{{ total_topay(data) | asPrice }}</td><td colspan=19></td></tr></tbody></table></div><div class=cover ng-show=\"isShowingDetails || isShowingPayouts || isShowingDebtWindow\"></div><div class=cover-modal ng-if=isShowingPayouts><div id=modal-payouts><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name=='!!!! Наличными !!!'\">Cash !!!</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Card Number: {{currentDriver.card_number}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Bank: {{currentDriver.bank_name}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.beneficiar.length > 1\">Beneficiar: {{currentDriver.beneficiar}}</span></center></div></div><div class=row><table class=\"table table-bordered table-condensed\"><thead><tr><th>Payed at</th><th>Charged</th><th>Payed</th></tr></thead><tbody><tr><td></td><td class=digit>{{(totalCharged) | asPriceOrNull}}</td><td></td></tr><tr ng-repeat=\"payout in payouts\" ng-click=selectPayout(payout) ng-class=\"payout.selected ? 'item-selected' : ''\"><td>{{payout.payed_at}}</td><td></td><td class=digit><span ng-show=\"! payout.editing\">{{payout.amount | asPriceOrNull}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=updatePayout(payout)></span> <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=deletePayout(payout)></span></span> <input ng-keypress=\"checkPayoutEnter($event, payout)\" ng-show=payout.editing class=numberInput type=number ng-model=payout.amount></td></tr><tr class=payouts-total><td>TOTAL</td><td class=digit>{{(totalCharged) | asPriceOrNull}}</td><td class=digit>{{totalPayouts | asPriceOrNull}}</td></tr></tbody></table></div><div class=row>Residual to Pay : <b>{{ residualToPay | asPriceOrNull }}</b></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-8><center><button class=\"btn btn-primary\" ng-click=addPayout() ng-show=\"residualToPay > 0 && ! isPayoutEditing && currentDriver.wage > 0\">Add</button></center></div><div class=col-md-4><center><button class=\"btn btn-primary\" ng-click=closePayouts() ng-show=\"! isPayoutEditing\">Close</button></center></div></div></div></div><div class=cover-modal ng-if=isShowingDebtWindow><div id=modal-debt><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center>{{shiftDate}}</center></div></div><div class=row><div class=col-md-12><center><span>Долг на сегодняшний день: {{ newDebt.debtLeftToPay }}</span></center></div></div><div class=row><div class=col-md-12><center><span>Убыток за текущий день: {{ newDebt.additionAmount }}</span></center></div></div><br><div class=row ng-show=\"currentDriver.last_debt && newDebt.debtLeftToPay > 0\"><div class=col-md-12><p><center>Условия текущего долга:</center></p><p ng-show=\"currentDriver.last_debt.min_daily_wage > 0\">Минимальная выплачиваемая зарплата : {{currentDriver.last_debt.min_daily_wage}}</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine == 1\">Вся з/п списывается</p><p ng-show=\"currentDriver.last_debt.is_total_income_as_fine != 1 && currentDriver.last_debt.min_daily_wage == 0 \">Ежесменно изымаемая сумма из з/п: {{currentDriver.last_debt.iteration_sum}}</p></div></div><br><div class=row><div class=col-md-12><center><span>Новые условия погашения долга:</span></center></div></div><div class=row><div class=col-md-6><p><b>Правила расчета суммы изымаемого долга</b></p><p><input ng-model=obj.debtRule type=radio ng-value=1> Списывание равными суммами</p><p><input ng-model=obj.debtRule type=radio ng-value=2> Списание с минимальной з/п</p><p><input ng-model=obj.debtRule type=radio ng-value=3> Вся з/п списывается</p><p><input ng-model=obj.debtRule type=radio ng-value=4 ng-disabled=\"! (currentDriver.wage > 0 && currentDriver.wage > -newDebt.additionAmount)\"> Погасить за счет текущей з/п</p></div><div class=col-md-6><p>Ежесменная сумма: <input ng-model=obj.newDebtIterationSum type=number ng-disabled=\"! (obj.debtRule==1)\"></p><p>Минимальная з/п: <input ng-model=obj.debtMinWage type=number ng-disabled=\"! (obj.debtRule==2)\"></p><p>Погасить максимум из текущей з/п <input ng-model=obj.debtDecreasingByWage type=checkbox ng-disabled=\"! (currentDriver.wage > 0 )\"></p></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-12><center><button class=\"btn btn-primary\" ng-click=saveNewDebtRule()>Сохранить правло списания долга</button> <button class=\"btn btn-primary\" ng-click=closeDebtWindow()>Закрыть</button></center></div></div></div></div>";
 
 },{}],59:[function(require,module,exports){
 'use strict';
@@ -67932,6 +68008,10 @@ angular.module('dailyModule', ['ngFlash']).config(['$httpProvider', function ($h
     return (0, _date.formattedToRu)(new Date(datetime.substr(0, 10)));
   };
 }).filter('asPrice', function () {
+  return function (price) {
+    return (0, _number.numberSplitted)(Number(price));
+  };
+}).filter('asPriceOrNull', function () {
   return function (price) {
     return (0, _number.numberSplitted)(Number(price));
   };
@@ -68314,6 +68394,8 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
     };
 
     $scope.upload = function (file) {
+
+        Flash.clear();
 
         var partner;
         if ($state.current.name == 'uber_load') {
@@ -69029,6 +69111,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       uber_patronymic: '',
       yandex_driver_id: "999999",
       yandex_surname: '',
+      prepay: 0,
       yandex_firstname: '',
       yandex_patronymic: '',
       surname: driverlist[0].surname,
@@ -69066,19 +69149,10 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
   function setUberAndYandexDriver(shift) {
 
-    console.log('setUberAndYandexDriver');
-
-    console.log('shift');
-    console.log(shift);
-
-    console.log(shift.uber_driver_id);
-
     if (shift.uber_driver_id && shift.uber_driver_id != "999999") {
       var uber_driver = (0, _lodash.find)(driverlist, function (p) {
         return Number(p.id) == Number(shift.uber_driver_id);
       });
-      console.log('Found uber_driver');
-      console.log(uber_driver);
 
       shift.uber_surname = uber_driver.surname;
       shift.uber_firstname = uber_driver.firstname;
@@ -69094,8 +69168,6 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       var yandex_driver = (0, _lodash.find)(driverlist, function (p) {
         return Number(p.id) == Number(shift.yandex_driver_id);
       });
-      console.log('Found yandex_driver');
-      console.log(yandex_driver);
 
       shift.yandex_surname = yandex_driver.surname;
       shift.yandex_firstname = yandex_driver.firstname;
@@ -69149,7 +69221,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
               driver_id: record.driver_id,
               uber_driver_id: record.uber_driver_id == "999999" ? undefined : record.uber_driver_id,
               yandex_driver_id: record.yandex_driver_id == "999999" ? undefined : record.yandex_driver_id
-            }, _defineProperty(_data, 'driver_id', record.driver_id), _defineProperty(_data, 'dispatcher_id', record.dispatcher_id), _defineProperty(_data, 'start_time', (0, _date.formattedToSaveTime)(record.start_time)), _defineProperty(_data, 'finish_time', record.finish_time ? (0, _date.formattedToSaveTime)(record.finish_time) : undefined), _defineProperty(_data, 'km', record.km), _defineProperty(_data, 'shift_date', (0, _date.formattedToSaveTime)($scope.shiftDate).substr(0, 10)), _data);
+            }, _defineProperty(_data, 'driver_id', record.driver_id), _defineProperty(_data, 'dispatcher_id', record.dispatcher_id), _defineProperty(_data, 'prepay', record.prepay), _defineProperty(_data, 'start_time', (0, _date.formattedToSaveTime)(record.start_time)), _defineProperty(_data, 'finish_time', record.finish_time ? (0, _date.formattedToSaveTime)(record.finish_time) : undefined), _defineProperty(_data, 'km', record.km), _defineProperty(_data, 'shift_date', (0, _date.formattedToSaveTime)($scope.shiftDate).substr(0, 10)), _data);
 
             if (record.new) {
 
@@ -69218,11 +69290,11 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       if (record.new && record.new == o.new || o.id == record.id) {} else {
 
         if (o.auto_id == record.auto_id) {
-          result += 'Auto ' + record.state_number + ' already presents in the shift! <br>';
+          result += 'Автомобиль ' + record.state_number + ' уже был выбран в эту смену! <br>';
         }
 
         if (o.driver_id == record.driver_id) {
-          result += 'Driver ' + record.surname + ' ' + record.firstname + ' ' + record.patronymic + ' ' + ' already presents in the shift! <br>';
+          result += 'Водитель ' + record.surname + ' ' + record.firstname + ' ' + record.patronymic + ' ' + ' уже был назначен на другое авто в эту смену! <br>';
         }
       }
     });
@@ -69241,6 +69313,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
       $scope.shifts = list.map(function (o) {
         o.start_time = new Date(o.start_time);
+        o.prepay = Number(o.prepay);
 
         setUberAndYandexDriver(o);
 
@@ -69312,7 +69385,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 module.exports = ShiftCtrl;
 
 },{"../../libs/date":43,"lodash":38}],77:[function(require,module,exports){
-module.exports = "<div class=row><div class=col-md-6><input type=date ng-model=shiftDate></div><div class=col-md-6><button class=\"btn btn-primary\" ng-click=showShift()>Показать данные смены</button></div></div><div class=row><div class=col-md-12><button class=\"btn btn-primary\" ng-disabled=currentShift.editing ng-click=addRecord()>Добавить</button> <button class=\"btn btn-primary\" ng-disabled=\"currentShift.editing || !currentShift\" ng-click=updateRecord()>Изменить</button> <button class=\"btn btn-warning\" ng-disabled=\"currentShift.editing || !currentShift\" ng-click=removeRecord()>Удалить</button></div></div><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Фильтр по фамилии</span> <input class=form-control maxlength=30 type=text ng-model=surnameFilter ng-change=useFilter()></div></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-12><table class=\"table table-condensed table-bordered\"><thead><tr><td>Водитель</td><td>Модель авто</td><td>Гос номер авто</td><td>Авто получено</td><td>Uber<br>учетная запись</td><td>Yandex<br>учетная запись</td><td>Авто сдано</td><td>Километраж<br>при сдаче</td><td>Группа</td><td></td></tr></thead><tbody><tr ng-repeat=\"driver in shifts\" ng-class=\"driver.selected ? 'item-selected' : ''\" ng-click=select(driver)><td><span ng-show=\"! driver.editing\">{{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic}}</span> <span ng-show=driver.editing><select ng-change=changeDriver(driver) ng-model=driver.driver_id><option ng-repeat=\"sh in cabdrivers\" ng-value=sh.id>{{sh.surname + ' ' + sh.firstname + ' ' + sh.patronymic}}</option></select></span></td><td>{{driver.model}}</td><td><span ng-show=\"! driver.editing\">{{driver.state_number}}</span> <span ng-show=driver.editing><select ng-change=changeAuto(driver) ng-model=driver.auto_id><option ng-repeat=\"auto in autolist\" ng-value=auto.id>{{ auto.state_number }}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.start_time | localTime}}</span> <span ng-show=driver.editing><input type=date ng-model=driver.start_time> <input type=time ng-model=driver.start_time></span></td><td><span ng-show=\"! driver.editing\">{{driver.uber_surname + ' ' + driver.uber_firstname + ' ' + driver.uber_patronymic}}</span> <span ng-if=driver.editing><select ng-change=changeUberDriver(driver) ng-model=driver.uber_driver_id><option value=999999>Под собой</option><option ng-repeat=\"ub in uberdrivers\" ng-value=ub.id>{{ub.surname + ' ' + ub.firstname + ' ' + ub.patronymic}}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.yandex_surname + ' ' + driver.yandex_firstname + ' ' + driver.yandex_patronymic}}</span> <span ng-if=driver.editing><select ng-change=changeYandexDriver(driver) ng-model=driver.yandex_driver_id><option value=999999>Под собой</option><option ng-repeat=\"ya in yandexdrivers\" ng-value=ya.id>{{ya.surname + ' ' + ya.firstname + ' ' + ya.patronymic}}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.finish_time | localTime}}</span> <span ng-show=driver.editing><input type=date ng-model=driver.finish_time> <input type=time ng-model=driver.finish_time></span></td><td><span ng-show=\"! driver.editing\">{{driver.km}}</span> <span ng-show=driver.editing><input type=number ng-model=driver.km></span></td><td>{{driver.group_name}}</td><td><button class=\"btn btn-primary\" ng-show=driver.editing ng-click=saveShift(driver)>Сохранить</button></td></tr></tbody></table></div></div>";
+module.exports = "<div class=row><div class=col-md-6><input type=date ng-model=shiftDate></div><div class=col-md-6><button class=\"btn btn-primary\" ng-click=showShift()>Показать данные смены</button></div></div><div class=row><div class=col-md-12><button class=\"btn btn-primary\" ng-disabled=currentShift.editing ng-click=addRecord()>Добавить</button> <button class=\"btn btn-primary\" ng-disabled=\"currentShift.editing || !currentShift\" ng-click=updateRecord()>Изменить</button> <button class=\"btn btn-warning\" ng-disabled=\"currentShift.editing || !currentShift\" ng-click=removeRecord()>Удалить</button></div></div><div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Фильтр по фамилии</span> <input class=form-control maxlength=30 type=text ng-model=surnameFilter ng-change=useFilter()></div></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-12><table class=\"table table-condensed table-bordered\"><thead><tr><td>#</td><td>Водитель</td><td>Модель авто</td><td>Гос номер авто</td><td>Авто получено</td><td>Аванс</td><td>Uber<br>учетная запись</td><td>Yandex<br>учетная запись</td><td>Авто сдано</td><td>Километраж<br>при сдаче</td><td>Группа</td><td></td></tr></thead><tbody><tr ng-repeat=\"driver in shifts\" ng-class=\"driver.selected ? 'item-selected' : ''\" ng-click=select(driver)><td>{{$index + 1}}</td><td><span ng-show=\"! driver.editing\">{{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic}}</span> <span ng-show=driver.editing><select ng-change=changeDriver(driver) ng-model=driver.driver_id><option ng-repeat=\"sh in cabdrivers\" ng-value=sh.id>{{sh.surname + ' ' + sh.firstname + ' ' + sh.patronymic}}</option></select></span></td><td>{{driver.model}}</td><td><span ng-show=\"! driver.editing\">{{driver.state_number}}</span> <span ng-show=driver.editing><select ng-change=changeAuto(driver) ng-model=driver.auto_id><option ng-repeat=\"auto in autolist\" ng-value=auto.id>{{ auto.state_number }}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.start_time | localTime}}</span> <span ng-show=driver.editing><input type=date ng-model=driver.start_time> <input type=time ng-model=driver.start_time></span></td><td><span ng-show=\"! driver.editing\">{{driver.prepay | asPrice}}</span> <span ng-show=driver.editing><input type=number ng-model=driver.prepay></span></td><td><span ng-show=\"! driver.editing\">{{driver.uber_surname + ' ' + driver.uber_firstname + ' ' + driver.uber_patronymic}}</span> <span ng-if=driver.editing><select ng-change=changeUberDriver(driver) ng-model=driver.uber_driver_id><option value=999999>Под собой</option><option ng-repeat=\"ub in uberdrivers\" ng-value=ub.id>{{ub.surname + ' ' + ub.firstname + ' ' + ub.patronymic}}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.yandex_surname + ' ' + driver.yandex_firstname + ' ' + driver.yandex_patronymic}}</span> <span ng-if=driver.editing><select ng-change=changeYandexDriver(driver) ng-model=driver.yandex_driver_id><option value=999999>Под собой</option><option ng-repeat=\"ya in yandexdrivers\" ng-value=ya.id>{{ya.surname + ' ' + ya.firstname + ' ' + ya.patronymic}}</option></select></span></td><td><span ng-show=\"! driver.editing\">{{driver.finish_time | localTime}}</span> <span ng-show=driver.editing><input type=date ng-model=driver.finish_time> <input type=time ng-model=driver.finish_time></span></td><td><span ng-show=\"! driver.editing\">{{driver.km}}</span> <span ng-show=driver.editing><input type=number ng-model=driver.km></span></td><td>{{driver.group_name}}</td><td><button class=\"btn btn-primary\" ng-show=driver.editing ng-click=saveShift(driver)>Сохранить</button></td></tr></tbody></table></div></div>";
 
 },{}],78:[function(require,module,exports){
 'use strict';

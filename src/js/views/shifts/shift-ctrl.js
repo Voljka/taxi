@@ -56,6 +56,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       uber_patronymic: '',
       yandex_driver_id: "999999",
       yandex_surname: '',
+      prepay: 0,
       yandex_firstname: '',
       yandex_patronymic: '',
       surname: driverlist[0].surname,
@@ -94,19 +95,11 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
   function setUberAndYandexDriver(shift){
 
-    console.log('setUberAndYandexDriver');
-
-    console.log('shift');
-    console.log(shift);
-
-    console.log(shift.uber_driver_id);
 
     if (shift.uber_driver_id && shift.uber_driver_id != "999999") {
       var uber_driver = find(driverlist, function(p){
         return (Number(p.id) == Number(shift.uber_driver_id))
       })
-      console.log('Found uber_driver');
-      console.log(uber_driver);
 
       shift.uber_surname = uber_driver.surname;
       shift.uber_firstname = uber_driver.firstname;
@@ -123,8 +116,6 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       var yandex_driver = find(driverlist, function(p){
         return (Number(p.id) == Number(shift.yandex_driver_id))
       })
-      console.log('Found yandex_driver');
-      console.log(yandex_driver);
 
       shift.yandex_surname = yandex_driver.surname;
       shift.yandex_firstname = yandex_driver.firstname;
@@ -182,6 +173,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
                 yandex_driver_id: (record.yandex_driver_id == "999999") ? undefined : record.yandex_driver_id,
                 driver_id: record.driver_id,
                 dispatcher_id: record.dispatcher_id,
+                prepay: record.prepay,
                 start_time: formattedToSaveTime(record.start_time),
                 finish_time: record.finish_time ? formattedToSaveTime(record.finish_time) : undefined,
                 km: record.km,
@@ -261,11 +253,11 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       } else {
 
         if (o.auto_id == record.auto_id) {
-          result += 'Auto ' + record.state_number + ' already presents in the shift! <br>';
+          result += 'Автомобиль ' + record.state_number + ' уже был выбран в эту смену! <br>';
         }
 
         if (o.driver_id == record.driver_id) {
-          result += 'Driver ' + record.surname + ' ' + record.firstname + ' '+ record.patronymic + ' ' + ' already presents in the shift! <br>';
+          result += 'Водитель ' + record.surname + ' ' + record.firstname + ' '+ record.patronymic + ' ' + ' уже был назначен на другое авто в эту смену! <br>';
         }
       }
     }) 
@@ -285,6 +277,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
       $scope.shifts = list.map(function(o){
         o.start_time = new Date( o.start_time);
+        o.prepay = Number(o.prepay);
 
         setUberAndYandexDriver(o);
 

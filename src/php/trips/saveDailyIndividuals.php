@@ -10,10 +10,14 @@
     $MANUAL_BONUS = 6;
     $AUTO_BONUS = 5;
 
+    $UBER = 1;
+    $GETT = 2;
+
     $FINE_FROM_INCOME = 4;
     $DEBT_FROM_INCOME = 2;
     $RENT_FROM_INCOME = 3;
     $FRANCHISE_FROM_INCOME = 1;
+    $CORRECTION_FROM_INCOME = 11;
 
     $COVERED_DEFICIT_BY_COMPANY = 1;
 
@@ -26,10 +30,18 @@
     $ya_cash = $params['ya_cash'];
     $ya_non_cash = $params['ya_non_cash'];
     $rbt_total = $params['rbt_total'];
+    $referal_bonus = $params['referal_bonus'];
     $malyutka_total = $params['malyutka_total'];
     $rbt_comission = $params['rbt_comission'];
     $hand = $params['hand'];
     $is_bonus = $params['is_bonus'];
+
+    $uber_bonus = $params['uber_bonus'];
+    $uber_bonus_part = $params['uber_bonus_part'];
+
+    $uber_correction = $params['uber_correction'];
+    $gett_correction = $params['gett_correction'];
+
     $is_manual_bonus_day = $params['is_manual_bonus_day'];
     $total = $params['total'];
     $wage_rule = $params['wage_rule'];
@@ -54,6 +66,9 @@
 	    $query .= " group_id = $group_id, ";
 	    $query .= " total = $total, ";
 	    $query .= " is_bonus = $is_bonus, ";
+	    $query .= " referal_bonus = $referal_bonus, ";
+	    $query .= " uber_bonus = $uber_bonus, ";
+	    $query .= " uber_bonus_part = $uber_bonus_part, ";
 	    $query .= " is_manual_bonus_day = $is_manual_bonus_day, ";
 	    $query .= " deferred_debt = $deferred_debt, ";
 	    $query .= " covered_company_deficit = $covered_company_deficit, ";
@@ -75,6 +90,14 @@
 	    	$query .= "is_60_40 = NULL, ";
 	    	$query .= "is_50_50 = NULL, ";
 	    	$query .= "is_40_60 = NULL ";
+	    } else if ($wage_rule == $MANUAL_BONUS ) {
+	    	$query .= "is_60_40 = NULL, ";
+	    	$query .= "is_50_50 = NULL, ";
+	    	$query .= "is_40_60 = NULL ";
+	    } else if ($wage_rule == $AUTO_BONUS ) {
+	    	$query .= "is_60_40 = NULL, ";
+	    	$query .= "is_50_50 = NULL, ";
+	    	$query .= "is_40_60 = NULL ";
 	    };
 
 	    $query .= " WHERE driver_id = $driver_id AND report_date = '$shift' ";
@@ -85,7 +108,7 @@
 
 	} else {
 		$query = "INSERT INTO daily_individual_cases ";
-		$query .= "(driver_id, total, group_id, report_date, is_bonus, is_manual_bonus_day, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
+		$query .= "(driver_id, total, group_id, report_date, is_bonus, referal_bonus, uber_bonus, uber_bonus_part, is_manual_bonus_day, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
 		$query .= "VALUES (";
 
 		$query .= "$driver_id,";
@@ -93,6 +116,9 @@
 		$query .= "$group_id,";
 		$query .= "'$shift',";
 		$query .= "$is_bonus,";
+		$query .= "$referal_bonus,";
+		$query .= "$uber_bonus,";
+		$query .= "$uber_bonus_part,";
 		$query .= "$is_manual_bonus_day,";
 		$query .= "$fuel,";
 		$query .= "$deferred_debt,";
@@ -169,6 +195,80 @@
 		}
 	}
 
+	// Uber correction
+	if ($uber_correction < 0){
+	    $query = "SELECT id FROM driver_withdrawals ";
+	    $query .= " WHERE driver_id = $driver_id AND mediator_id = $UBER AND payed_at = '$shift' AND withdrawal_type_id = $CORRECTION_FROM_INCOME";
+
+		$result = mysql_query($query) or die(mysql_error());
+
+		if (mysql_num_rows($result) > 0) {
+		    $query = "UPDATE driver_withdrawals SET ";
+
+		    $query .= " withdrawal_type_id = $CORRECTION_FROM_INCOME,";
+		    $query .= " driver_id = $driver_id,";
+		    $query .= " mediator_id = $UBER,";
+		    $query .= " payed_at = '$shift',";
+		    $query .= " amount = $uber_correction";
+
+		    $query .= " WHERE driver_id = $driver_id AND payed_at = '$shift' AND mediator_id = $UBER ";
+
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+			
+		} else {
+			if ($rent > 0) {
+				$query = "INSERT INTO driver_withdrawals ";
+				$query .= "(withdrawal_type_id, driver_id, payed_at, mediator_id, amount) ";
+				$query .= "VALUES (";
+
+				$query .= "$CORRECTION_FROM_INCOME, $driver_id, '$shift', $UBER , $uber_correction ";
+
+				$query .= ")";
+
+				file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+				$result = mysql_query($query) or die(mysql_error());
+			}
+		}
+	}
+
+	// Gett correction
+	if ($gett_correction < 0){
+
+	    $query = "SELECT id FROM driver_withdrawals ";
+	    $query .= " WHERE driver_id = $driver_id AND mediator_id = $GETT AND payed_at = '$shift' AND withdrawal_type_id = $CORRECTION_FROM_INCOME";
+
+		$result = mysql_query($query) or die(mysql_error());
+
+		if (mysql_num_rows($result) > 0) {
+		    $query = "UPDATE driver_withdrawals SET ";
+
+		    $query .= " withdrawal_type_id = $CORRECTION_FROM_INCOME,";
+		    $query .= " driver_id = $driver_id,";
+		    $query .= " mediator_id = $GETT,";
+		    $query .= " payed_at = '$shift',";
+		    $query .= " amount = $gett_correction";
+
+		    $query .= " WHERE driver_id = $driver_id AND payed_at = '$shift' AND mediator_id = $GETT ";
+
+			file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+			$result = mysql_query($query) or die(mysql_error());
+			
+		} else {
+			if ($rent > 0) {
+				$query = "INSERT INTO driver_withdrawals ";
+				$query .= "(withdrawal_type_id, driver_id, payed_at, mediator_id, amount) ";
+				$query .= "VALUES (";
+
+				$query .= "$CORRECTION_FROM_INCOME, $driver_id, '$shift', $GETT , $gett_correction ";
+
+				$query .= ")";
+
+				file_put_contents('save_daily_inds.sql', $query . "\n", FILE_APPEND);
+				$result = mysql_query($query) or die(mysql_error());
+			}
+		}
+	}
 
 	// Fine
     $query = "SELECT id FROM driver_withdrawals ";

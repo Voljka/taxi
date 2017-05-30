@@ -27,11 +27,12 @@
     	
     }
     $shift_date = $params['shift_date'];
+    $prepay = $params['prepay'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "shifts";
 
-	$query = "INSERT INTO $table (auto_id, dispatcher_id, driver_id, uber_driver_id, yandex_driver_id, start_time, finish_time, km, shift_date) VALUES (";
+	$query = "INSERT INTO $table (auto_id, dispatcher_id, driver_id, uber_driver_id, yandex_driver_id, start_time, finish_time, km, prepay, shift_date) VALUES (";
     $query .="$auto_id,";
 	$query .="$dispatcher_id,";
 	$query .="$driver_id,";
@@ -39,7 +40,8 @@
 	$query .="$yandex_driver_id,";
 	$query .="'$start_time',";
 	$query .="$finish_time,";
-	$query .="$km,";
+    $query .="$km,";
+    $query .="$prepay,";
     $query .="'$shift_date')";
 
 	file_put_contents('../logs/shifts.log', date("Y-m-d H:i:s") . ' ' .$query . PHP_EOL , FILE_APPEND);

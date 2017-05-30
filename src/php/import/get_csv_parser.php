@@ -15,10 +15,19 @@ function is_shift_present($datetime, $driver_id){
 	$res = false;
 	global $shifts;
 
+	file_put_contents('shift_recognising.sql', 'Looking: ' . $datetime . " " . "$driver_id" . "\n", FILE_APPEND);
+
+
 	for ($i=0; $i < count($shifts); $i++) { 
-		if ($shifts[$i]['driver_id'] == $driver_id && $date_time >= $shifts[$i]['start_time'] && (! $shifts[$i]['finish_time'] || $datetime <= $shifts[$i]['finish_time']) ) {
+		file_put_contents('shift_recognising.sql', 'Iteration: '.  $shifts[$i]['driver_id'] . " " . $shifts[$i]['start_time'] . " " . $shifts[$i]['finish_time'], FILE_APPEND);
+
+		if ($shifts[$i]['driver_id'] == $driver_id && $datetime >= $shifts[$i]['start_time'] && (($datetime <= $shifts[$i]['finish_time']) || ! ($shifts[$i]['finish_time']) )) {
 			$res = true;
+			file_put_contents('shift_recognising.sql', 'Found! ' . "\n", FILE_APPEND);
+
 			break;
+		} else {
+			file_put_contents('shift_recognising.sql', 'NOT Found! ' . "\n", FILE_APPEND);
 		}
 
 	}
@@ -88,7 +97,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 		  $shifts[] = $row3;
 	 };
 
-	 $insert_query = "INSERT INTO trips (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, cash, comission, notes, driver_fullname, driver_phone, driver_id, result) VALUES ";
+	 $insert_query = "INSERT INTO trips (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, boost_non_commissionable, cash, comission, notes, driver_fullname, driver_phone, driver_id, result) VALUES ";
 
 	 $insert_corrections_query = "INSERT INTO corrections (mediator_id, trip_id,  driver_id, amount, notes, recognized_at) VALUES ";
 
@@ -155,7 +164,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 
 								 } else {
 							 		// driver recognised and shifted
-									// file_put_contents('shift_recognising.sql', $driver_index. " ". $group_ids[$driver_index] . " " . $names[$driver_index] . " " . (in_array($group_ids[$driver_index], $OUR) ? 'Our' : 'Freelancer') . "\n", FILE_APPEND);
+									// file_put_contents('shift_recognising.sql', $driver_index. " ". $group_ids[$driver_index] . " " . $names[$driver_index] . " " . (in_array($group_ids[$driver_index], $OUR) ? 'Our' : 'Freelancer') . " " . (is_shift_present($data[4], $ids[$driver_index]) ? "In" : "Out")  . "\n", FILE_APPEND);
 
 								 	if (! (in_array($group_ids[$driver_index], $OUR)) || in_array($group_ids[$driver_index], $OUR) && is_shift_present($data[4], $ids[$driver_index]) ){
 
@@ -165,13 +174,17 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 										  $query .= '"' . $data[4] . '",';
 										  $query .= '"' . $data[2] . '",';
 
+										  $boost = 0;
+
 										  if ($data[7] > 0) {
 												$query .= $TRIP_CASH . ',';
 												$query .= correct_number($data[8]) . ',';
+												$query .= $boost . ",";
 												$query .= correct_number($data[7]) . ',';
 										  } else {
 												$query .= $TRIP_CARD . ',';
 												$query .= correct_number($data[8]) . ',';
+												$query .= $boost . ",";
 												$query .= correct_number($data[7]) . ',';
 										  }
 

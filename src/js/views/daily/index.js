@@ -29,6 +29,11 @@ angular.module('dailyModule', ['ngFlash'])
       return numberSplitted(Number(price));
     }
   })
+  .filter('asPriceOrNull', function(){
+    return function(price){
+      return numberSplitted(Number(price));
+    }
+  })
   .filter('getObjName', function(){
     return function(obj){
       // console.log(obj);

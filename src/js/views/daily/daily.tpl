@@ -37,6 +37,7 @@
             <td class="td_80px" rowspan="2">Франш.</td>
             <td class="td_80px" rowspan="2">Штрафы</td>
             <td class="td_80px" rowspan="2">Долг</td>
+            <td class="td_80px" rowspan="2">Аванс</td>
             <td class="td_80px" rowspan="2">Доля з/п</td>
             <td class="td_80px" rowspan="2">З/П</td>
             <td class="td_80px" rowspan="2">Доход<br>компании</td>
@@ -45,7 +46,7 @@
             <td class="td_80px" rowspan="2">Олпачено</td>
             <td class="td_80px" rowspan="2">К оплате<br>(остаток)</td>
             <td class="td_80px" rowspan="2">Перенесено<br>в долг</td>
-            <td colspan="4">Uber</td>
+            <td colspan="7">Uber</td>
             <td colspan="5">Gett</td>
             <td colspan="4">Yandex</td>
             <td colspan="4">РБТ</td>
@@ -55,6 +56,9 @@
           <tr>
             <td class="td_80px">Нал</td>
             <td class="td_80px">Коррекции</td>
+            <td class="td_80px">Бонус<br>UBER</td>
+            <td class="td_80px">Доля<br>в бонусе</td>
+            <td class="td_80px">Бонус за<br>привлеч.</td>
             <td class="td_80px">Доход<br>без комиссии</td>
             <td class="td_80px">Доход<br>с комиссией</td>
             <td class="td_80px">Нал</td>
@@ -99,7 +103,15 @@
                 <td class="digit">{{driver.rental | asPrice}}</td>
                 <td class="digit">{{driver.franchise | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFranchise(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.franchise == 0"></span></td>
                 <td class="digit">{{driver.fine | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeFine(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.fine == 0"></span></td>
-                <td class="digit">{{driver.debt | asPrice}} <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="removeDebt(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses && ! driver.debt == 0"></span></td>
+
+                <td class="digit">
+                    <span ng-show="! driver.editingDebt">{{driver.debt | asPrice}} 
+                        <span class="glyphicon glyphicon-pencil edit-btn" ng-click="editDebt(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses ">
+                        </span>
+                    </span>
+                    <input ng-keypress="checkEnter($event, driver)" ng-show="driver.editingDebt" class="numberInput" type="number" ng-model="driver.debt">
+                </td>
+                <td class="digit">{{driver.prepay | asPrice}}</td>
 
                 <td class="">
                     <select ng-change="changeRule(driver)" ng-model="driver.rule_default_id" ng-init="driver.rule_default_id" ng-disabled="driver.fuel_expenses">   
@@ -129,11 +141,27 @@
 
                 <td class="digit">{{driver.uber_sum_cash | asPrice}}</td>
                 <td class="digit">{{driver.uber_correction_fare | asPrice}}</td>
+                
+                <td class="digit">
+                    <span ng-show="! driver.editingUberBonus">{{driver.uber_bonus | asPrice}} 
+                        <span class="glyphicon glyphicon-pencil edit-btn" ng-click="editUberBonus(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses ">
+                        </span>
+                    </span>
+                    <input ng-keypress="checkEnter($event, driver)" ng-show="driver.editingUberBonus" class="numberInput" type="number" ng-model="driver.uber_bonus">
+                </td>
+                <td></td>
+                <td class="digit">
+                    <span ng-show="! driver.editingReferalBonus">{{driver.referal_bonus | asPrice}} 
+                        <span class="glyphicon glyphicon-pencil edit-btn" ng-click="editReferalBonus(shift_date, driver)" ng-show="! (daysBetween(lastReport, shift_date).toFixed(0) > 1) && ! driver.fuel_expenses ">
+                        </span>
+                    </span>
+                    <input ng-keypress="checkEnter($event, driver)" ng-show="driver.editingReferalBonus" class="numberInput" type="number" ng-model="driver.referal_bonus">
+                </td>
                 <td class="digit">{{driver.uber_total_netto | asPrice}}</td>
                 <td class="digit">{{driver.uber_total | asPrice}}</td>
 
                 <td class="digit">{{driver.gett_sum_cash | asPrice}}</td>
-                <td class="digit">{{driver.gett_correction_result | asPrice}}</td>
+                <td class="digit">{{driver.gett_correction_fare | asPrice}}</td>
                 <td class="digit">{{driver.gett_sum_fare | asPrice}}</td>
                 <td class="digit">{{driver.gett_total | asPrice}}</td>
                 <td class="digit">{{driver.gett_total_netto | asPrice}}</td>
@@ -245,7 +273,7 @@
                         <tr>
                             <td></td>
                             <td class="digit">
-                                {{(currentDriver.wage) | asPrice}}
+                                {{(totalCharged) | asPriceOrNull}}
                             </td>
                             <td></td>
                         </tr>
@@ -254,7 +282,7 @@
                             <td></td>
                             <td class="digit">
                                 <span ng-show="! payout.editing">
-                                    {{payout.amount | asPrice}}
+                                    {{payout.amount | asPriceOrNull}}
                                     <span class="glyphicon glyphicon-pencil edit-btn" ng-click="updatePayout(payout)">
                                     </span>
                                     <span class="glyphicon glyphicon-remove-circle cancel-btn" ng-click="deletePayout(payout)">
@@ -268,16 +296,16 @@
                         <tr class="payouts-total">
                             <td>TOTAL</td>
                             <td class="digit">
-                                {{(currentDriver.wage) | asPrice}}
+                                {{(totalCharged) | asPriceOrNull}}
                             </td>
-                            <td class="digit">{{totalPayouts | asPrice}}</td>
+                            <td class="digit">{{totalPayouts | asPriceOrNull}}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="row">
-                Residual to Pay : <b>{{ residualToPay | asPrice }}</b>
+                Residual to Pay : <b>{{ residualToPay | asPriceOrNull }}</b>
             </div>
 
             <div class="row">
@@ -358,7 +386,7 @@
                 <div class="col-md-12">
                     <center>
                         <span>
-                            Новые услвоия поагешния долга: 
+                            Новые условия погашения долга: 
                         </span>
                     </center>    
                 </div>

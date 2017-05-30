@@ -29,11 +29,12 @@
     $start_time = $params['start_time'];
     $km = $params['km'];
     $shift_date = $params['shift_date'];
+    $prepay = $params['prepay'];
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "shifts";
 
-	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, uber_driver_id=$uber_driver_id, yandex_driver_id=$yandex_driver_id, dispatcher_id=$dispatcher_id, km=$km, start_time='$start_time', finish_time=$finish_time ";
+	$query = "UPDATE $table SET shift_date='$shift_date', auto_id = $auto_id, driver_id=$driver_id, uber_driver_id=$uber_driver_id, yandex_driver_id=$yandex_driver_id, dispatcher_id=$dispatcher_id, km=$km, start_time='$start_time', finish_time=$finish_time, prepay = $prepay ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

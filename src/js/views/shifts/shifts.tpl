@@ -36,10 +36,12 @@
         <table class="table table-condensed table-bordered">
             <thead>
                 <tr>
+                    <td>#</td>
                     <td>Водитель</td>
                     <td>Модель авто</td>
                     <td>Гос номер авто</td>
                     <td>Авто получено</td>
+                    <td>Аванс</td>
                     <td>Uber<br>учетная запись</td>
                     <td>Yandex<br>учетная запись</td>
                     <td>Авто сдано</td>
@@ -51,6 +53,7 @@
 
             <tbody>
                 <tr ng-repeat="driver in shifts" ng-class="driver.selected ? 'item-selected' : ''" ng-click="select(driver)">
+                    <td> {{$index + 1}} </td>
                     <td>
                         <span ng-show="! driver.editing">
                             {{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic}}
@@ -77,6 +80,13 @@
                         <span ng-show="driver.editing">
                             <input type="date" ng-model="driver.start_time">
                             <input type="time" ng-model="driver.start_time">
+                        </span>
+                    </td>
+
+                    <td>
+                        <span ng-show="! driver.editing">{{driver.prepay | asPrice}}</span>
+                        <span ng-show="driver.editing">
+                            <input type="number" ng-model="driver.prepay">
                         </span>
                     </td>
 

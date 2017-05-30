@@ -23,7 +23,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "drivers";
 
-	$query = "UPDATE $table SET active=$active, firstname='$firstname', patronymic='$patronymic', surname='$surname', phone=$phone, phone2=$phone2, email='$email', card_number=$card_number, beneficiar='$beneficiar', bank_id=$bank_id, notes='$notes', rent=$rent, registration_date=$registration_date ";
+	$query = "UPDATE $table SET active=$active, firstname='$firstname', patronymic='$patronymic', surname='$surname', phone=$phone, phone2=$phone2, email='$email', card_number=$card_number, beneficiar='$beneficiar', bank_id=$bank_id, notes='$notes', rent=$rent, work_type_id=$work_type_id, registration_date=$registration_date ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;
