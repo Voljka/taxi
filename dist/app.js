@@ -67008,8 +67008,8 @@ function TripService($http) {
   function our1_1() {
 
     var range = {
-      start: "2017-05-22",
-      end: "2017-05-28"
+      start: "2017-05-29",
+      end: "2017-06-04"
     };
 
     return $http.post(API_SERVER + '/our1_1.php', range).then(function (data) {

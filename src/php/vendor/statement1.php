@@ -15,7 +15,7 @@ GetURL(URL_STATEMENTS, $aRes);
 
 $aRes[URL_STATEMENTS]["HTML"]=preg_replace("|([^\{]+)(.*)|is", "\${2}", $aRes[URL_STATEMENTS]["HTML"]);
 
-print_r($aRes[URL_STATEMENTS]["HTML"]);
+// print_r($aRes[URL_STATEMENTS]["HTML"]);
 
 $aRes = json_decode($aRes[URL_STATEMENTS]["HTML"], true);
 
@@ -93,10 +93,10 @@ $rangeEndAt = $_POST['periodEnd'];
 // $rangeStartAt = "2017-05-04T00:00:00";
 // $rangeEndAt = "2017-05-10T23:59:59";
 
-$rangeStartAt = "2017-05-08 00:00:00";
-$rangeEndAt = "2017-05-15 11:59:59";
+$rangeStartAt = "2017-05-28 00:00:00";
+$rangeEndAt = "2017-06-05 11:59:59";
 // $adjustmentsAt = date('Y:m:d') . ' 08:00:00';
-$adjustmentsAt = '2017-05-14' . ' 16:00:00';
+$adjustmentsAt = '2017-05-30' . ' 16:00:00';
 
 
 /// setup variables
@@ -117,7 +117,7 @@ $already_exists_trips_count = 0;
 // get driver list from DB and existing trips 
 require('../config/db.config.php');
 
-$query_drivers = "SELECT id, CONCAT(TRIM(firstname),' ',TRIM(surname)) fullname, phone, phone2 FROM drivers";
+$query_drivers = "SELECT id, CONCAT(TRIM(firstname),' ',TRIM(surname)) fullname, phone, phone2, work_type_id FROM drivers";
 
 $query_result = mysql_query($query_drivers) or die(mysql_error());        
 
@@ -126,6 +126,7 @@ while ($row1 = mysql_fetch_assoc($query_result))
     $ids[] = $row1['id'];
     $phones[] = $row1['phone'];
     $phones2[] = $row1['phone2'];
+    $group_ids[] = $row1['work_type_id'];
 };
 
 $query_uber_trips = "SELECT mediator_trip_id, payment_type_id, notes FROM trips WHERE mediator_id = 1 ";
