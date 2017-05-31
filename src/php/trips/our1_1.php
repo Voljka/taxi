@@ -439,11 +439,19 @@
 
 		$query = "SELECT shifts.driver_id, shifts.prepay, shifts.start_time, shifts.finish_time, shifts.km, shifts.uber_driver_id, shifts.yandex_driver_id, drivers.id, drivers.work_type_id, drivers.surname, drivers.card_number, banks.name bank_name, drivers.beneficiar, drivers.firstname, drivers.patronymic, work_types.name group_name, own_auto_park.state_number, own_auto_park.is_rented, auto_rental_costs.cost_daily rental_daily_cost, daily_reports.report_date, daily_individual_cases.is_60_40 uniq_is60_40, daily_individual_cases.is_50_50 uniq_is50_50, daily_individual_cases.is_40_60 uniq_is40_60, daily_individual_cases.fuel_expenses, daily_individual_cases.covered_company_deficit, daily_individual_cases.uber_bonus, daily_individual_cases.uber_bonus_part, daily_individual_cases.deferred_debt,daily_individual_cases.is_bonus, daily_individual_cases.is_manual_bonus_day, daily_individual_cases.referal_bonus, daily_individual_cases.paid_by_cash, daily_individual_cases.admin_outcomes, daily_individual_cases.gett_month, daily_individual_cases.company_fines, fine_fran.fine_from_franchise, fine_inc.fine_from_income, debt_fran.debt_from_franchise, debt_inc.debt_from_income, fran_inc.fran_from_income, rent_fran.rent_from_franchise, rent_inc.rent_from_income, from_hand_trips_total.amount from_hand_amount, uber_completed_imports.import_for_date uber_completeness, gett_completed_imports.import_for_date gett_completeness, drivers.rule_default_id, rule_defaults.name rule_default_name, rule_defaults.driver_part, company_expenses.amount payed_by_company, payouts1.total_amount ,";
 		$query .= " rbt_data.total_brutto rbt_total, rbt_data.comission rbt_comission, ";
+
+		$query .= " uber_drivers.surname uber_surname, uber_drivers.firstname uber_firstnane, uber_drivers.patronymic uber_patronymic, ";
+		$query .= " yandex_drivers.surname yandex_surname, yandex_drivers.firstname yandex_firstname, yandex_drivers.patronymic yandex_patronymic, ";
 		$query .= " malyutka.total_brutto malyutka_total ";
 
 		$query .= " FROM shifts ";
 
+		$query .= "LEFT JOIN (SELECT * FROM drivers) uber_drivers ON shifts.uber_driver_id = uber_drivers.id ";
+
+		$query .= "LEFT JOIN (SELECT * FROM drivers) yandex_drivers ON shifts.yandex_driver_id = yandex_drivers.id ";
+
 		$query .= "LEFT JOIN drivers ON shifts.driver_id = drivers.id ";
+
 		$query .= "LEFT JOIN rule_defaults ON drivers.rule_default_id = rule_defaults.id ";
 		
 		// Auto 

@@ -171,7 +171,12 @@
                     <input ng-keypress="checkEnter($event, driver)" ng-show="driver.editingReferalBonus" class="numberInput" type="number" ng-model="driver.referal_bonus">
                 </td>
 
-                <td class="digit">{{driver.uber_sum_cash | asPrice}}</td>
+                <td class="digit">
+                    {{driver.uber_sum_cash | asPrice}}
+                    <span ng-show="driver.uber_driver_id">
+                        <img src="./attention.png" ng-attr-title="{{driver.uber_surname + ' ' + driver.uber_firstname + ' ' + driver.uber_patronymic}}">
+                    </span>
+                </td>
                 <td class="digit">{{driver.uber_correction_fare | asPrice}}</td>
                 
                 <td class="digit">
@@ -207,7 +212,12 @@
 
                 <td class="digit"> <input class="numberInput" type="number" ng-model="driver.yandex_cash" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
                 <td class="digit"> <input class="numberInput" type="number" ng-model="driver.yandex_non_cash" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
-                <td class="digit">{{driver.yandex_total | asPrice}}</td>
+                <td class="digit">
+                    {{driver.yandex_total | asPrice}}
+                    <span ng-show="driver.yandex_driver_id">
+                        <img src="./attention.png" ng-attr-title="{{driver.yandex_surname + ' ' + driver.yandex_firstname + ' ' + driver.yandex_patronymic}}">
+                    </span>
+                </td>
                 <td class="digit">{{driver.yandex_total_netto | asPrice}}</td>
 
                 <td class="digit"> <input class="numberInput" type="number" ng-model="driver.rbt_total" ng-disabled="daysBetween(lastReport, shift_date).toFixed(0) > 1 || driver.fuel_expenses" ng-blur="recalcWage(driver)"></td>
