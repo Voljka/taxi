@@ -365,48 +365,48 @@ file_put_contents('uber_strict_parser.sql', '<br> Пропущено сущес�
 
 
 // if ($bad_contacts_count == 0 && $unshifted_trips_count == 0 && $successfull_loads_count > 0) {
-// 		file_put_contents('uber_completeness.sql', date("Y-m-d H:i:s"). "\n");
+		file_put_contents('uber_completeness.sql', date("Y-m-d H:i:s"). "\n");
 
-// 		if (strval(substr($last_date, 11,2))> 12) {
-// 			$end_date = substr($last_date, 0, 10);
-// 		} else {
-// 			$end_date = date("Y-m-d", strtotime($last_date) - 24*60*60);	 
-// 		}
+		if (strval(substr($last_date, 11,2))> 12) {
+			$end_date = substr($last_date, 0, 10);
+		} else {
+			$end_date = date("Y-m-d", strtotime($last_date) - 24*60*60);	 
+		}
 
-// 		if (strval(substr($first_date, 11,2))> 12) {
-// 			$start_date = substr($first_date, 0, 10);
-// 		} else {
-// 			$start_date = date("Y-m-d", strtotime($first_date) - 24*60*60);	 
-// 		}
+		if (strval(substr($first_date, 11,2))> 12) {
+			$start_date = substr($first_date, 0, 10);
+		} else {
+			$start_date = date("Y-m-d", strtotime($first_date) - 24*60*60);	 
+		}
 
-// 		file_put_contents('uber_completeness.sql', 'firstdate = '. $first_date. "\n", FILE_APPEND);
-// 		file_put_contents('uber_completeness.sql', 'lastdate = '. $last_date. "\n", FILE_APPEND);
+		file_put_contents('uber_completeness.sql', 'firstdate = '. $first_date. "\n", FILE_APPEND);
+		file_put_contents('uber_completeness.sql', 'lastdate = '. $last_date. "\n", FILE_APPEND);
 
-// 		file_put_contents('uber_completeness.sql', 'startdate = '. $start_date. "\n", FILE_APPEND);
-// 		file_put_contents('uber_completeness.sql', 'enddate = '. $end_date. "\n", FILE_APPEND);
+		file_put_contents('uber_completeness.sql', 'startdate = '. $start_date. "\n", FILE_APPEND);
+		file_put_contents('uber_completeness.sql', 'enddate = '. $end_date. "\n", FILE_APPEND);
 
-// 		while ($start_date <= $end_date) {
+		while ($start_date <= $end_date) {
 
-// 		    $query = "SELECT import_for_date FROM gett_completed_imports ";
-// 		    $query .= " WHERE import_for_date = '$start_date' ";
+		    $query = "SELECT import_for_date FROM gett_completed_imports ";
+		    $query .= " WHERE import_for_date = '$start_date' ";
 
-// 			$result = mysql_query($query) or die(mysql_error());
+			$result = mysql_query($query) or die(mysql_error());
 
-// 			if (mysql_num_rows($result) > 0) {
+			if (mysql_num_rows($result) > 0) {
 
-// 			} else {
-// 				$query = "INSERT INTO gett_completed_imports ";
-// 				$query .= "(import_for_date) ";
-// 				$query .= "VALUES (";
-// 				$query .= "'$start_date' ";
-// 				$query .= ")";
+			} else {
+				$query = "INSERT INTO gett_completed_imports ";
+				$query .= "(import_for_date) ";
+				$query .= "VALUES (";
+				$query .= "'$start_date' ";
+				$query .= ")";
 
-// 				file_put_contents('uber_completeness.sql', $query . "\n", FILE_APPEND);
-// 				$result = mysql_query($query) or die(mysql_error());
-// 			}
+				file_put_contents('uber_completeness.sql', $query . "\n", FILE_APPEND);
+				$result = mysql_query($query) or die(mysql_error());
+			}
 
-// 			$start_date = date("Y-m-d", strtotime($start_date) + 24*60*60);	 
-// 		}
+			$start_date = date("Y-m-d", strtotime($start_date) + 24*60*60);	 
+		}
 // }
 
 ?>

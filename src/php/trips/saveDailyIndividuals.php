@@ -36,6 +36,11 @@
     $hand = $params['hand'];
     $is_bonus = $params['is_bonus'];
 
+    $paid_by_cash = $params['paid_by_cash'];
+    $company_fines = $params['company_fines'];
+    $gett_month = $params['gett_month'];
+    $admin_outcomes = $params['admin_outcomes'];
+
     $uber_bonus = $params['uber_bonus'];
     $uber_bonus_part = $params['uber_bonus_part'];
 
@@ -68,6 +73,10 @@
 	    $query .= " is_bonus = $is_bonus, ";
 	    $query .= " referal_bonus = $referal_bonus, ";
 	    $query .= " uber_bonus = $uber_bonus, ";
+	    $query .= " paid_by_cash = $paid_by_cash, ";
+	    $query .= " admin_outcomes = $admin_outcomes, ";
+	    $query .= " company_fines = $company_fines, ";
+	    $query .= " gett_month = $gett_month, ";
 	    $query .= " uber_bonus_part = $uber_bonus_part, ";
 	    $query .= " is_manual_bonus_day = $is_manual_bonus_day, ";
 	    $query .= " deferred_debt = $deferred_debt, ";
@@ -108,7 +117,7 @@
 
 	} else {
 		$query = "INSERT INTO daily_individual_cases ";
-		$query .= "(driver_id, total, group_id, report_date, is_bonus, referal_bonus, uber_bonus, uber_bonus_part, is_manual_bonus_day, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
+		$query .= "(driver_id, total, group_id, report_date, is_bonus, referal_bonus, uber_bonus, gett_month, admin_outcomes, company_fines, paid_by_cash, uber_bonus_part, is_manual_bonus_day, fuel_expenses, deferred_debt, covered_company_deficit, is_60_40, is_50_50, is_40_60) ";
 		$query .= "VALUES (";
 
 		$query .= "$driver_id,";
@@ -118,6 +127,10 @@
 		$query .= "$is_bonus,";
 		$query .= "$referal_bonus,";
 		$query .= "$uber_bonus,";
+		$query .= "$gett_month,";
+		$query .= "$admin_outcomes,";
+		$query .= "$company_fines,";
+		$query .= "$paid_by_cash,";
 		$query .= "$uber_bonus_part,";
 		$query .= "$is_manual_bonus_day,";
 		$query .= "$fuel,";

@@ -51,6 +51,7 @@ function transform_date($str){
 }
 
 file_put_contents('gett_import.sql', date("Y-m-d") . "\n");
+file_put_contents('gett_completeness.sql', date("Y-m-d") . "\n");
 
 $GET = 2;
 $row = 1;
@@ -241,7 +242,7 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 		}
 	 }
 
-	 if ($unshifted_trips_count == 0 && $bad_contacts_count == 0){
+	 // if ($unshifted_trips_count == 0 && $bad_contacts_count == 0){
 		
 		if (strval(substr($last_date, 11,2))> 12) {
 			$end_date = substr($last_date, 0, 10);
@@ -254,6 +255,12 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 		} else {
 			$start_date = date("Y-m-d", strtotime($first_date) - 24*60*60);	 
 		}
+
+		file_put_contents('gett_completeness.sql', 'firstdate = '. $first_date. "\n", FILE_APPEND);
+		file_put_contents('gett_completeness.sql', 'lastdate = '. $last_date. "\n", FILE_APPEND);
+
+		file_put_contents('gett_completeness.sql', 'startdate = '. $start_date. "\n", FILE_APPEND);
+		file_put_contents('gett_completeness.sql', 'enddate = '. $end_date. "\n", FILE_APPEND);
 
 		while ($start_date <= $end_date) {
 
@@ -271,14 +278,14 @@ if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
 				$query .= "'$start_date' ";
 				$query .= ")";
 
-				file_put_contents('gett_import.sql', $query . "\n", FILE_APPEND);
+				file_put_contents('gett_completeness.sql', $query . "\n", FILE_APPEND);
 				$result = mysql_query($query) or die(mysql_error());
 			}
 
 			$start_date = date("Y-m-d", strtotime($start_date) + 24*60*60);	 
 		}
 
-	 }
+	 // }
 
 	 // echo '<br>'. $first_date .' <br>';
 	 // echo '<br>'. $last_date .' <br>';

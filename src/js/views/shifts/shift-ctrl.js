@@ -15,7 +15,34 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
   $scope.autolist = autolist;
   $scope.dispatcherlist = dispatcherlist;
 
-  useFilter();
+  $scope.useSurnameFilter = function(){
+    
+    if (! $scope.cabdrivers) {
+      $scope.cabdrivers = driverlist;
+    } else {
+      $scope.cabdrivers = filter( driverlist, function(o) {
+        var driver = o.surname.toLowerCase();
+        return driver.indexOf($scope.filters.surname.toLowerCase()) > -1
+      }) 
+
+      // set first driver as default
+      if ($scope.cabdrivers.length > 0){
+
+        $scope.currentShift.driver_id = $scope.cabdrivers[0].id;
+        $scope.currentShift.surname = $scope.cabdrivers[0].surname;
+        $scope.currentShift.firstname = $scope.cabdrivers[0].firstname;
+        $scope.currentShift.patronymic = $scope.cabdrivers[0].patronymic;
+
+        makeUberAndYandexDriverLists($scope.currentShift.driver_id);
+      }
+    }
+  }
+
+  $scope.filters = {
+    surname: "",
+  }
+
+  $scope.useSurnameFilter();
 
   var message, flashWindow;
 
@@ -164,8 +191,11 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
 
         checkLastShiftCloseness(record)
           .then(function(respond){
-            
-            if (respond.length ==0 || respond.finish_time){
+
+            console.log('respond');
+            console.log(respond);
+
+            if ( (respond == 0) || (respond[0].finish_time)){
               var data = {
                 auto_id: record.auto_id,
                 driver_id: record.driver_id,
@@ -270,7 +300,7 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
       shift_date: formattedToSaveTime($scope.shiftDate).substr(0,10),
     };
 
-    console.log(data);
+    // console.log(data);
 
     ShiftService.perDate(data)
     .then(function(list){
@@ -336,17 +366,6 @@ function ShiftCtrl($scope, $state, autolist, dispatcherlist, driverlist, ShiftSe
     })
   }
 
-  function useFilter(){
-    
-    if (! $scope.cabdrivers) {
-      $scope.cabdrivers = driverlist;
-    } else {
-      $scope.cabdrivers = _.filter( driverlist, function(o) {
-        var driver = o.surname.toLowerCase();
-        return driver.indexOf($scope.surnameFilter.toLowerCase()) > -1
-      }) 
-    }
-  }
 
 }
 module.exports = ShiftCtrl; 

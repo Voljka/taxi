@@ -33,9 +33,9 @@
         <td> 
           {{ el.surname }}  {{el.firstname}} {{el.patronymic}}
         </td>
-        <td class="digit"> {{ el.sum_result | asPrice }}</td>
-        <td class="digit"> {{ ((el.sum_result - el.sum_cash) * 0.05) | asPrice }}</td>
-        <td class="digit"> {{ ((el.sum_result - el.sum_cash) * 0.95) | asPrice }}</td>
+        <td class="digit"> {{ el.total_netto | asPrice }}</td>
+        <td class="digit"> {{ el.total_interest | asPrice }}</td>
+        <td class="digit"> {{ el.total_to_pay | asPrice }}</td>
       </tr>
       
     </tbody>
@@ -43,7 +43,7 @@
 </div>
 
 <div class="row">
-  <h3>Фрилансер 7/0 GET </h3>
+  <h3>Фрилансер 7/0 GETT </h3>
   <table class="table table-bordered">
     <thead>
       <tr>
@@ -60,11 +60,11 @@
         <td> 
           {{ el.surname }}  {{el.firstname}} {{el.patronymic}}
         </td>
-        <td class="digit"> {{ el.sum_fare | asPrice }}</td>
-        <td class="digit"> {{ ((el.sum_fare) * 0.177) | asPrice }}</td>
-        <td class="digit"> {{ ((el.sum_fare) * 0.033) | asPrice }}</td>
-        <td class="digit"> {{ el.sum_cash | asPrice }}</td>
-        <td class="digit"> {{ ((el.sum_fare) * 0.79 - el.sum_cash) | asPrice }}</td>
+          <td class="digit"> {{ el.total | asPrice }}</td>
+          <td class="digit"> {{ el.total_commission | asPrice }}</td>
+          <td class="digit"> {{ el.total_interest | asPrice }}</td>
+          <td class="digit"> {{ el.total_cash | asPrice }}</td>
+          <td class="digit"> {{ el.total_to_pay | asPrice }}</td>
       </tr>
       
     </tbody>
@@ -80,16 +80,17 @@
         <tr>
           <td rowspan="2"><b>{{park[0].group_name}}</b></td>
           <td colspan="3">Uber</td>
-          <td colspan="5">Get</td>
+          <td colspan="5">Gett</td>
           <td width="90px" rowspan="2">Всего,<br>к выдаче</td>
         </tr>
         <tr>
           <td width="80px">Доход</td>
-          <td width="80px">Нам, 10%</td>
+          <!-- <td width="80px">Нам, 10%</td> -->
+          <td width="110px">Нам</td>
           <td width="80px">К выдаче</td>
           <td width="80px">Доход</td>
           <td width="80px">Комиссия</td>
-          <td width="80px">Нам,4.3%</td>
+          <td width="80px">Нам,3.3%</td>
           <td width="80px">Нал</td>
           <td width="80px">К выдаче</td>
         </tr>
@@ -100,19 +101,31 @@
             {{ driv.surname }}  {{driv.firstname}} {{driv.patronymic}}
           </td>
           <!-- Uber -->
-          <td class="digit"> {{ driv.uber_sum_result ? (driv.uber_sum_result | asPrice) : "0.00" }}</td>
+<!--           <td class="digit"> {{ driv.uber_sum_result ? (driv.uber_sum_result | asPrice) : "0.00" }}</td>
           <td class="digit"> {{ ((driv.uber_sum_result - driv.uber_sum_cash) * 0.1) | asPrice }}</td>
           <td class="digit"> {{ ((driv.uber_sum_result - driv.uber_sum_cash) * 0.9) | asPrice }}</td>
+ -->
+
+          <td class="digit"> {{ driv.uber_total_netto | asPrice }}</td>
+
+          <td class="digit"> {{ driv.uber_total_interest | asPrice }} ({{ driv.uber_park_comission * 100 }} %)</td>
+          <td class="digit"> {{ driv.uber_total_to_pay | asPrice }}</td>
 
           <!-- Get -->
-          <td class="digit"> {{ driv.get_sum_fare | asPrice }}</td>
+<!--           <td class="digit"> {{ driv.get_sum_fare | asPrice }}</td>
           <td class="digit"> {{ ((driv.get_sum_fare) * 0.177) | asPrice }}</td>
           <td class="digit"> {{ ((driv.get_sum_fare) * 0.033) | asPrice }}</td>
           <td class="digit"> {{ driv.get_sum_cash | asPrice }}</td>
           <td class="digit"> {{ ((driv.get_sum_fare) * 0.79 - driv.get_sum_cash) | asPrice }}</td>
+ -->
+          <td class="digit"> {{ driv.get_total | asPrice }}</td>
+          <td class="digit"> {{ driv.get_total_commission | asPrice }}</td>
+          <td class="digit"> {{ driv.get_total_interest | asPrice }}</td>
+          <td class="digit"> {{ driv.get_total_cash | asPrice }}</td>
+          <td class="digit"> {{ driv.get_total_to_pay | asPrice }}</td>
 
           <!-- Total -->
-          <td class="digit"><b> {{ ((driv.get_sum_fare) * 0.79 - driv.get_sum_cash + (driv.uber_sum_result - driv.uber_sum_cash) * 0.9) | asPrice }}</b></td>
+          <td class="digit"><b> {{ (driv.uber_total_to_pay + driv.get_total_to_pay) | asPrice }}</b></td>
           
         </tr>
 

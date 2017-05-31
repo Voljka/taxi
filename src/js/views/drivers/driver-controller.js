@@ -30,6 +30,36 @@ function DriverCtrl($scope, $state, driverList, Flash, DriverService) {
 		$scope.currentDriver = DriverService.current();
 	}
 
+	$scope.calcRetirement = function(){
+		var data = { 
+			driver_id: $scope.currentDriver.id,
+		};
+
+		DriverService.calcRetirement(data)
+		.then(function(respond){
+			respond.franchise_paid = Number(respond.franchise_paid);
+			respond.debt_paid = Number(respond.debt_paid);
+			respond.fine_paid = Number(respond.fine_paid);
+			respond.fine_charged = Number(respond.road_fines_charged);
+			respond.debt_charged = Number(respond.debts_charged) - respond.debt_paid;
+
+			respond.franchise_balance = respond.franchise_paid;
+			respond.fine_balance = respond.fine_paid - respond.fine_charged;
+			respond.debt_balance = respond.debt_paid - respond.debt_charged;
+
+			respond.total_charged = respond.fine_charged + respond.debt_charged;
+			respond.total_paid = respond.fine_paid + respond.debt_paid + respond.franchise_paid;
+			respond.total_balance = respond.total_paid - respond.total_charged;
+
+			$scope.rd = respond;
+
+			$scope.isShowingRetirement = true;
+		})
+	}
+
+	$scope.closeRetirement = function(){
+		$scope.isShowingRetirement = false;
+	}
 
 	$scope.useFilter = function(){
 		filterObjects();

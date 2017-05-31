@@ -8,6 +8,7 @@
 		<br>
 		<button class="btn btn-info" ng-click="add()">Добавить водителя</button>
 		<button class="btn btn-info" ng-if="currentDriver" ng-click="edit()">Изменить водителя</button>
+		<button class="btn btn-info" ng-if="currentDriver" ng-click="calcRetirement()">Расчет при увольнении</button>
 	</div>
 </div>
 
@@ -48,4 +49,84 @@
 			
 		</tbody>
 	</table>
+</div>
+
+<div class="cover" ng-show="isShowingRetirement">
+</div>
+
+<div class="cover-modal" ng-if="isShowingRetirement" >
+    <div id="modal-retirement">
+
+        <div class="row">
+            <div class="col-md-12">
+                <center>
+                    Расчет при увольнении
+                </center>    
+            </div>
+        </div>
+        <div class="row">
+            <div class="col md-12">
+                <center>
+                    {{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}
+                </center>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col md-12">
+                <center>
+                	<table class="table table-bordered">
+                		<thead>
+                			<tr>
+                				<th>Статьи</th>
+                				<th class="digit">Начислено</th>
+                				<th class="digit">Оплачено</th>
+                				<th class="digit">Остаток</th>
+                			</tr>
+                		</thead>
+                		<tfoot>
+                			<tr>
+                				<th>ИТОГО</th>
+                				<th class="digit">{{rd.total_charged | asPrice}}</th>
+                				<th class="digit">{{rd.total_paid | asPrice}}</th>
+                				<th class="digit">{{rd.total_balance | asPrice}}</th>
+                			</tr>
+                		</tfoot>
+                		<tbody>
+                			<tr>
+                				<td>Франшиза</td>
+                				<td class="digit">{{}}</td>
+                				<td class="digit">{{rd.franchise_paid | asPrice}}</td>
+                				<td class="digit">{{rd.franchise_balance | asPrice}}</td>
+                			</tr>
+
+                			<tr>
+                				<td>Долги</td>
+                				<td class="digit">{{rd.debt_charged | asPrice}}</td>
+                				<td class="digit">{{rd.debt_paid | asPrice}}</td>
+                				<td class="digit">{{rd.debt_balance | asPrice}}</td>
+                			</tr>
+
+                			<tr>
+                				<td>Штрафы</td>
+                				<td class="digit">{{rd.fine_charged | asPrice}}</td>
+                				<td class="digit">{{rd.fine_paid | asPrice}}</td>
+                				<td class="digit">{{rd.fine_balance | asPrice}}</td>
+                			</tr>
+                		</tbody>
+                	</table>
+                </center>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <center>
+                    <button class="btn btn-primary" ng-click="closeRetirement()">
+                        Закрыть
+                    </button>
+                </center>
+            </div>
+        </div>
+    </div>
 </div>

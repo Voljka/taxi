@@ -17,15 +17,6 @@
 </div>
 
 <div class="row">
-    <div class="col-md-4">
-        <div class="input-group">
-            <span class="input-group-addon">Фильтр по фамилии</span>
-            <input class="form-control" maxlength="30" type="text" ng-model="surnameFilter" ng-change="useFilter()">
-        </div>
-    </div>
-</div>
-
-<div class="row">
     <flash-message>
         <div class="flash-div">{{ flash.text}}</div>
     </flash-message>
@@ -59,6 +50,8 @@
                             {{driver.surname + ' ' + driver.firstname + ' ' + driver.patronymic}}
                         </span>
                         <span ng-show="driver.editing">
+                            <input class="form-control" maxlength="30" type="text" ng-model="filters.surname" ng-change="useSurnameFilter()" placeholder="Фильтр по фамилии">
+
                             <select ng-change="changeDriver(driver)" ng-model="driver.driver_id">   
                                 <option ng-repeat="sh in cabdrivers" ng-value="sh.id">{{sh.surname + ' ' + sh.firstname + ' ' + sh.patronymic}}</option>   
                             </select>                       
@@ -132,7 +125,7 @@
 
                     <td>{{driver.group_name}}</td>
                     <td> 
-                        <button class="btn btn-primary" ng-show="driver.editing" ng-click="saveShift(driver)">
+                        <button class="btn btn-primary" ng-show="driver.editing && cabdrivers.length > 0" ng-click="saveShift(driver)">
                             Сохранить
                         </button> 
                     </td>

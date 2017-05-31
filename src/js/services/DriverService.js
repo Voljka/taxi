@@ -60,6 +60,18 @@ function DriverService($http) {
       });
   }
 
+  function calcRetirement(data) {
+      // .post(API_SERVER + '/calc_retire.php', data)
+    return $http
+      .get(API_SERVER + '/calc_retire.php?driver_id=' + data.driver_id)
+      .then(function (data) {
+        return data.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+  }
+
   function getCurrent(){
     return current;
   }
@@ -75,6 +87,7 @@ function DriverService($http) {
     add        : add,
     update     : update,
     own_only : own_only,
+    calcRetirement: calcRetirement,
 
   };
 }
