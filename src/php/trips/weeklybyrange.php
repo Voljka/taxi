@@ -2,10 +2,42 @@
 
 	require ('../config/db.config.php');
 
+
+	function get_correction_data($mediator_id, $start, $end, $driver_id){
+		$query1 = "SELECT 
+						driver_id, 
+						SUM(amount) sum_fare, 
+						0 sum_comission, 
+						0 sum_cash, 
+						0 sum_result ";
+		$query1 .= "FROM corrections	";
+		$query1 .= "WHERE corrections.mediator_id=$mediator_id AND corrections.driver_id= $driver_id AND recognized_at >= '$start' AND recognized_at <= '$end'  ";
+		$query1 .= "	GROUP BY corrections.driver_id ";
+
+		file_put_contents('weekly_get_correction_data.sql', $query1 . "\n", FILE_APPEND);
+
+		$result = mysql_query($query1) or die(mysql_error());
+		$result_set = array();
+		
+		while ($row = mysql_fetch_assoc($result)) 
+		{
+			$result_set['sum_fare'] = $row['sum_fare'];
+			$result_set['sum_result'] = $row['sum_result'];
+			$result_set['sum_comission'] = $row['sum_comission'];
+			$result_set['sum_cash'] = $row['sum_cash'];
+		};
+
+		return $result_set;
+	}
+
+	$UBER = 1;
+
     $params = json_decode(file_get_contents('php://input'),true);
 
     $start_date = $params['start'];
     $end_date = $params['end'];
+
+	file_put_contents('weekly_get_correction_data.sql', date("Y-m-d H;i:s"). "\n");
 
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "trips";
@@ -27,6 +59,11 @@
 	$respond = array();
 	while ($row = mysql_fetch_assoc($result)) 
 	{
+		if ($row['mediator_id'] == "1") {
+			$ubc = get_correction_data($UBER, $start_date, $end_date, $row['driver_id']);
+			$row['sum_correction'] = $ubc['sum_fare'] ? $ubc['sum_fare'] : 0;
+		};
+
 		$respond[] = $row;
 	};
 

@@ -69598,12 +69598,6 @@ function WeeklyCtrl($scope, $state, TripService) {
 
         uberList.forEach(function (o) {
             curObj = (0, _lodash.omit)(o, []);
-            // curObj = omit(o, ['sum_fare', 'sum_result', 'sum_comission', 'sum_cash']);
-            // curObj.uber_sum_fare = o.sum_fare;            
-            // curObj.uber_sum_comission = o.sum_comission;            
-            // curObj.uber_sum_boost = o.sum_boost;            
-            // curObj.uber_sum_result = o.sum_result;            
-            // curObj.uber_sum_cash = o.sum_cash;            
 
             var total = Number(o.sum_fare) + Number(o.sum_comission) + Number(o.sum_boost);
             var park_comis = Number(o.uber_park_comission);
@@ -69612,11 +69606,9 @@ function WeeklyCtrl($scope, $state, TripService) {
 
             curObj.uber_total_interest = Number(((total - Number(o.sum_cash)) * park_comis).toFixed(2));
             curObj.uber_total_to_pay = Number(((total - Number(o.sum_cash)) * (1 - park_comis)).toFixed(2));
-            // curObj.uber_total_interest = Number((curObj.uber_total_netto - Number(o.sum_cash) * Number(o.uber_comission)).toFixed(2));
-            // curObj.uber_total_to_pay = Number((curObj.uber_total_netto - Number(o.sum_cash) * (1 - Number(o.uber_comission))).toFixed(2));
 
-            console.log('curObj.uber_total_interest');
-            console.log(curObj.uber_total_interest);
+            // console.log('curObj.uber_total_interest');
+            // console.log(curObj.uber_total_interest);
 
             result.push(curObj);
         });
