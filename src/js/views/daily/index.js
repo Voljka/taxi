@@ -5,7 +5,7 @@ var tripService = require('../../services/TripService');
 var payoutService = require('../../services/PayoutService');
 var debtService = require('../../services/DebtService');
 
-import { formattedToRu } from '../../libs/date';
+import { calcWeekStartAndEnd, formattedToRu } from '../../libs/date';
 import { numberSplitted } from '../../libs/number';
 
 require('angular-flash-alert');
@@ -54,7 +54,13 @@ module.exports = {
   template: require('./daily.tpl'), 
   resolve: {
     tripList: ['TripService', function (TripService) {
-     return TripService.our1_1()
+      var period = calcWeekStartAndEnd();
+      var range = {
+        start: period.start,
+        end: period.end,
+      }
+
+      return TripService.our1_1(range)
        .then(function(data) {
          return data;
        })

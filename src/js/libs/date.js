@@ -52,3 +52,19 @@ export function daysBetween(startDate, endDate) {
     var millisecondsPerDay = 24 * 60 * 60 * 1000;
     return (treatAsUTC(endDate) - treatAsUTC(startDate)) / millisecondsPerDay;
 }
+
+export function calcWeekStartAndEnd(){
+    var curDate = new Date();
+    var curDayOfTheWeek = curDate.getDay();
+
+    var startDate = new Date(datePlusDays(-curDayOfTheWeek + 1, curDate));
+
+    curDate = new Date();
+    curDayOfTheWeek = curDate.getDay();
+    var endDate = new Date(datePlusDays(7-curDayOfTheWeek, curDate));
+
+    return {
+    	start: startDate,
+	    end: endDate,
+    }
+}

@@ -1,4 +1,22 @@
     <div class="row">
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-addon">Дата начала периода </span>
+          <input class="form-control" ng-model="start" type="date" />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-addon">Дата окончания периода </span>
+          <input class="form-control" ng-model="end" type="date" />
+        </div>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary" ng-click="makeSummary()">Сформировать</button>
+      </div> 
+    </div>
+
+    <div class="row">
         <div class="col-md-12" ng-show="hasSelectedRow">
 <!--             <button class="btn btn-primary" ng-click="showDetails()">
                 Детали

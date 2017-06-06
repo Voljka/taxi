@@ -33,10 +33,10 @@ function ImportService($http){
       });
   }
 
-  function uberCurrent() {
+  function uberCurrent(data) {
 
     return $http
-      .get('php/vendor/statement1.php')
+      .post('php/vendor/statement2.php', data)
       .then(function (data) {
         return data.data;
       })

@@ -2,7 +2,7 @@
 	Импорт данных {{ partner }} 
 </h3>
 
-<div ng-show="partner == 'Gett'" class="row">
+<div class="row">
 
   <form name="form">
     <div 
@@ -14,9 +14,16 @@
       ngf-max-size="2MB" 
       ngf-min-height="100"
       ngf-resize="{width: 100, height: 100}"
+      ng-show="partner == 'Gett'" 
     >
       Выберите файл
     </div>  
+
+    <div class="col-md-4" ng-show="partner == 'Uber'">
+      <p><input ng-model="currentUberReport" type="radio" ng-value="1"> Загрузить текущую ведомость </p>
+      <p><input ng-model="currentUberReport" type="radio" ng-value="0" > Предыдущую ведомсть</p>
+    </div>
+
     <div class="col-md-4">
       <button class="btn btn-primary" ng-click="sendFile(this)">Загрузить</button>
     </div>

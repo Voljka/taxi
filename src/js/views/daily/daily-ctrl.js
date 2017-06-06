@@ -1,12 +1,26 @@
 'use strict';
 
 import { map, filter, isDate, assign, groupBy, omit, find, isEmpty, sumBy } from 'lodash';
-import { datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../libs/date';
+import { calcWeekStartAndEnd, datePlusDays, formattedToSave, daysBetween, treatAsUTC } from '../../libs/date';
 import { CALC_WAGE_BY_COMMON_RULE } from '../../constants/common';
 
 function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService, Flash) {
 
     Flash.clear();
+
+    calcDefaultReportDates();
+
+    function calcDefaultReportDates(){
+        var period = calcWeekStartAndEnd();
+
+        $scope.start = period.start;
+        $scope.end = period.end;
+    }
+
+    $scope.makeSummary = function(){
+      console.log("Show New summary");
+      refreshReport();
+    }
 
     $scope.payouts = [];
     $scope.totalPayouts = [];
@@ -546,7 +560,12 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
             .then( function(){
                console.log('saved');
                
-               TripService.our1_1()
+                var range = {
+                  start: $scope.start,
+                  end: $scope.end,
+                }
+               
+               TripService.our1_1(range)
                 .then(function(data) {
                       tripList = data.data;
                       
@@ -701,8 +720,22 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
    }
 
    function refreshReport(){
-      TripService.our1_1()
+      
+      console.log('refreshing Report');
+      
+      var range = {
+        start: $scope.start,
+        end: $scope.end,
+      }
+
+      console.log(range);
+
+      TripService.our1_1(range)
        .then(function(data) {
+
+          console.log('REsult of our 1/1');
+          console.log(data)
+          
           $scope.hasSelectedRow = false;
           
           tripList = data.data;
@@ -815,7 +848,12 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
          .then( function(){
             console.log('saved');
             
-            TripService.our1_1()
+            var range = {
+              start: $scope.start,
+              end: $scope.end,
+            }
+
+            TripService.our1_1(range)
                .then(function(data) {
                   tripList = data.data;
                   

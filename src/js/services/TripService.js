@@ -26,12 +26,12 @@ function TripService($http) {
       });
   }
 
-  function our1_1(){
+  function our1_1(range){
 
-    var range = {
-      start: "2017-05-29",
-      end: "2017-06-04" 
-    }
+    // var range = {
+    //   start: "2017-05-29",
+    //   end: "2017-06-04" 
+    // }
 
     return $http
       .post(API_SERVER + '/our1_1.php', range)

@@ -7,7 +7,7 @@
   </div>
   <div class="col-md-4">
     <div class="input-group">
-      <span class="input-group-addon">Дата окочания преиода </span>
+      <span class="input-group-addon">Дата окончания периода </span>
       <input class="form-control" ng-model="end" type="date" />
     </div>
   </div>

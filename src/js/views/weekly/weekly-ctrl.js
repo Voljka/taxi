@@ -1,12 +1,20 @@
 'use strict';
 
 import { filter, isDate, assign, groupBy, omit, find, isEmpty, map } from 'lodash';
+import { calcWeekStartAndEnd, datePlusDays, formattedToSave, daysBetween, treatAsUTC, daysFromToday } from '../../libs/date';
 
 function WeeklyCtrl($scope, $state, TripService) {
 
     //console.log(tripList);
-    $scope.start = new Date("2017-05-28");
-    $scope.end = new Date("2017-06-04");
+
+    calcDefaultReportDates();
+
+    function calcDefaultReportDates(){
+        var period = calcWeekStartAndEnd();
+
+        $scope.start = period.start;
+        $scope.end = period.end;
+    }
 
     $scope.makeSummary = function(){
         if (isDate($scope.start) && isDate($scope.end)) {
