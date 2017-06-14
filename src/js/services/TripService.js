@@ -5,8 +5,11 @@ var API_SERVER = 'php/trips';
 function TripService($http) {
 
   function weekly(range) {
+
+    // return $http
+    //   .post(API_SERVER + '/weeklybyrange.php', range)
     return $http
-      .post(API_SERVER + '/weeklybyrange.php', range)
+      .post(API_SERVER + '/weeklybyrange_new.php', range)
       .then(function (data) {
         return data.data;
       })
@@ -27,11 +30,6 @@ function TripService($http) {
   }
 
   function our1_1(range){
-
-    // var range = {
-    //   start: "2017-05-29",
-    //   end: "2017-06-04" 
-    // }
 
     return $http
       .post(API_SERVER + '/our1_1.php', range)

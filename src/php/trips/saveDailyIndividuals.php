@@ -44,8 +44,8 @@
     $uber_bonus = $params['uber_bonus'];
     $uber_bonus_part = $params['uber_bonus_part'];
 
-    $uber_correction = $params['uber_correction'];
-    $gett_correction = $params['gett_correction'];
+    $uber_correction = - $params['uber_correction'];
+    $gett_correction = - $params['gett_correction'];
 
     $is_manual_bonus_day = $params['is_manual_bonus_day'];
     $total = $params['total'];

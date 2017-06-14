@@ -136,7 +136,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
                o.gett_total = o.gett_sum_fare + o.gett_sum_comission;
                o.gett_total_netto = o.gett_total * 0.8;
-               o.gett_left_on_account = o.gett_sum_fare + o.gett_sum_comission - o.gett_sum_cash;
+               o.gett_left_on_account = o.gett_sum_fare + o.gett_sum_comission - o.gett_sum_cash + o.gett_correction_fare;
 
                o.yandex_total = o.yandex_non_cash + o.yandex_cash;
                o.yandex_total_netto = Number(((o.yandex_non_cash + o.yandex_cash) *0.8).toFixed(2));
@@ -234,6 +234,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
     $scope.editFuel = function(for_date, driver){
       driver.editingFuel = true;
+      driver.fuel_manually_entered = true;
 
     }
 
@@ -374,7 +375,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
       // driver.total_netto = Number((driver.total * 0.8 + driver.from_hand_amount * 0.2 + driver.rbt_total_netto * 0.2).toFixed(2));
       driver.total_netto = driver.uber_total_netto + driver.gett_total_netto + driver.yandex_total_netto + driver.rbt_total_netto + driver.malyutka_total_netto + driver.from_hand_amount;
 
-      if (driver.manually_entered) {
+      if (driver.fuel_manually_entered) {
         // driver
       } else {
         driver.fuel = driver.fuel_expenses ? Number(driver.fuel_expenses) : fuelByTotal(driver.total);
@@ -466,6 +467,8 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
 
       }
 
+      // console.log(driver.driver_id, wage_before_debt, driver);
+
       driver.debt = Number(driver.debt);
 
       driver.rental_for_show = (driver.rule_default_id=="5" || driver.rule_default_id=="6") ? 1700 : driver.rental;
@@ -476,7 +479,7 @@ function DailyCtrl($scope, $state, data, TripService, PayoutService, DebtService
                     driver.gett_correction_fare + driver.uber_correction_fare -
                     driver.company_fines;
 
-      driver.income = Number((driver.total_netto - driver.fuel - driver.rental + driver.uber_bonus - driver.uber_bonus_part - (driver.wage < 0 ? 0 : driver.wage) - driver.rbt_dispatcher_wage - driver.malyutka_dispatcher_wage - driver.gett_month - driver.admin_outcomes).toFixed(2));
+      driver.income = Number((driver.total_netto - driver.fuel - driver.rental + driver.uber_bonus - driver.uber_bonus_part - (driver.wage < 0 ? 0 : driver.wage) - driver.rbt_dispatcher_wage - driver.malyutka_dispatcher_wage - driver.gett_month - driver.admin_outcomes - driver.referal_bonus).toFixed(2));
       // driver.income_deficit = driver.income < 0 ? driver.income : 0;
       driver.income_deficit = 0;
       // if (driver.is_bonus_day == 1 || driver.is_bonus == 1) {

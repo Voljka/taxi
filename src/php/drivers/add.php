@@ -13,6 +13,12 @@
     $phone2 = $params['phone2'];
     $email = $params['email'];
     $card_number = $params['card_number'];
+    if ($params['rule_default_id'] == 1){
+        $rule_default_id = "NULL";
+    } else {
+        $rule_default_id = $params['rule_default_id'];
+    }
+    
     $beneficiar = $params['beneficiar'];
     $bank_id = $params['bank_id'];
     $notes = $params['notes'];
@@ -22,7 +28,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "drivers";
 
-	$query = "INSERT INTO $table (active, work_type_id, firstname, patronymic, surname, phone, phone2, email, card_number, beneficiar, bank_id, notes, rent, registration_date) VALUES (";
+	$query = "INSERT INTO $table (active, work_type_id, firstname, patronymic, surname, phone, phone2, email, card_number, beneficiar, bank_id, notes, rent, rule_default_id, registration_date) VALUES (";
     $query .="$active,";
     $query .="$work_type_id,";
     $query .="'$firstname',";
@@ -36,6 +42,7 @@
 	$query .="bank_id,";
 	$query .="'notes',";
     $query .="$rent,";
+    $query .="$rule_default_id,";
     $query .="registration_date)";
 
 	file_put_contents('../logs/drivers.log', date("Y-m-d H:i:s") . ' ' .$query . PHP_EOL , FILE_APPEND);

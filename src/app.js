@@ -10,6 +10,7 @@ var dailyTemplate = require('./js/views/daily');
 var shiftTemplate = require('./js/views/shifts');
 var roadfineTemplate = require('./js/views/roadfines');
 var autoparkTemplate = require('./js/views/park');
+var gettCorrectionsTemplate = require('./js/views/gettcorrections');
 
 var app = angular
 	.module('taxiApp', [
@@ -23,6 +24,7 @@ var app = angular
 		'shiftModule',
 		'roadFinesModule',
 		'parkModule',
+		'gettCorrectionsModule',
 	])
 
 	.controller('MainCtrl', function($scope) {
@@ -98,6 +100,12 @@ var app = angular
 	            url: '/autopark',
 	            views: {
 	            	'content': autoparkTemplate
+	            }
+	        })
+	        .state('gett_corrections', {
+	            url: '/gett_corrections',
+	            views: {
+	            	'content': gettCorrectionsTemplate
 	            }
 	        })
 

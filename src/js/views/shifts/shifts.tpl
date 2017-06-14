@@ -79,7 +79,7 @@
                     <td>
                         <span ng-show="! driver.editing">{{driver.prepay | asPrice}}</span>
                         <span ng-show="driver.editing">
-                            <input type="number" ng-model="driver.prepay">
+                            <input type="number" ng-model="driver.prepay" class="td_70px">
                         </span>
                     </td>
 
@@ -119,7 +119,7 @@
                     <td>
                         <span ng-show="! driver.editing">{{driver.km}}</span>
                         <span ng-show="driver.editing">
-                            <input type="number" ng-model="driver.km">
+                            <input  type="number" ng-model="driver.km" class="td_70px">
                         </span>
                     </td>
 

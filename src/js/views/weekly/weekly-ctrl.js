@@ -16,12 +16,16 @@ function WeeklyCtrl($scope, $state, TripService) {
         $scope.end = period.end;
     }
 
+
+
     $scope.makeSummary = function(){
         if (isDate($scope.start) && isDate($scope.end)) {
             var period = {
-                start: $scope.start,
-                end: $scope.end
+                start: formattedToSave( $scope.start ),
+                end: formattedToSave( $scope.end ),
             };
+
+            console.log(period);
 
             TripService.weekly(period)
                 .then( function(result){
@@ -33,9 +37,10 @@ function WeeklyCtrl($scope, $state, TripService) {
                     })
 
                     $scope.uber_free7_0 = map($scope.uber_free7_0, function(o){
+                        o.total = Number(o.sum_fare) + Number(o.sum_boost);
                         o.total_netto = Number(o.sum_fare) + Number(o.sum_comission) + Number(o.sum_boost);
-                        o.total_interest = Number(((o.total_netto - Number(o.sum_cash)) * 0.05).toFixed(2));
-                        o.total_to_pay = Number(((o.total_netto - Number(o.sum_cash)) * 0.95).toFixed(2));
+                        o.total_interest = Number(((o.total_netto) * 0.05).toFixed(2));
+                        o.total_to_pay = Number(((o.total_netto - o.total_interest - Number(o.sum_cash)) ).toFixed(2));
                         return o;
                     })
 
@@ -48,7 +53,7 @@ function WeeklyCtrl($scope, $state, TripService) {
                         o.total_commission = Number((o.total * 0.177).toFixed(2));
                         o.total_interest = Number((o.total * 0.033).toFixed(2));
                         o.total_cash = Number(o.sum_cash);
-                        o.total_to_pay = o.total - o.total_interest - o.total_cash;
+                        o.total_to_pay = o.total - o.total_commission - o.total_interest - o.total_cash;
                         return o;
                     })
                     

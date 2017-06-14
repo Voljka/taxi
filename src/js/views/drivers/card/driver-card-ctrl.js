@@ -17,6 +17,8 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.firstname = "";
 		$scope.patronymic = "";
 
+		$scope.rule_default_id = 1;
+
 		$scope.mail = "";
 		$scope.phone = "";
 		$scope.phone2 = "";
@@ -39,6 +41,7 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.patronymic = current.patronymic;
 
 		$scope.mail = current.email;
+		$scope.rule_default_id = current.rule_default_id ? current.rule_default_id : "1";
 		$scope.phone = current.phone == 0 ? "" : current.phone;
 		$scope.phone2 = current.phone2 == 0 ? "" : current.phone2;
 
@@ -84,6 +87,7 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 			data.email = $scope.mail;
 			data.phone = $scope.phone == "" ? 0 : Number($scope.phone);
 			data.phone2 = $scope.phone2 == "" ? 0 : Number($scope.phone2);
+			data.rule_default_id = $scope.rule_default_id;
 
 			data.card_number = ($scope.driverBank == BANK_CASH || $scope.cardNumber == "") ? 0 : $scope.cardNumber;
 			data.bank_id = Number($scope.driverBank);

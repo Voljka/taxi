@@ -101,11 +101,22 @@
 		</div>
 		<br>
 		<div class="row">
-			<div class="col-md-12">
+			<div class="col-md-8">
 				<div class="input-group">
 					<span class="input-group-addon">Примечания </span>
 					<input class="form-control" type="text" ng-model="notes">
 				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="input-group">
+					<span class="input-group-addon">Правило расчета з/п</span>
+                    <select class="form-control" ng-model="rule_default_id">   
+                        <option value="1">расчет</option>
+                        <option value="2">60/40</option>
+                        <option value="3">50/50</option>
+                        <option value="4">40/60</option>
+                    </select>        				
+                </div>
 			</div>
 		</div>
 	</div>
