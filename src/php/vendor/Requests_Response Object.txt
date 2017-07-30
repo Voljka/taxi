@@ -1,0 +1,138 @@
+Requests_Response Object
+(
+    [body] => {"stage":{"question":{"type":"VERIFY_PASSWORD","tripChallenges":[],"signinToken":"","thirdPartyInfo":{"identityType":"","firstName":"","lastName":"","email":"","mobile":{"countryCode":"","phoneNumber":""}},"identifiedUserInfo":{"firstName":"","lastName":""}},"alternatives":["PUSH_LOGIN"]}}
+    [raw] => HTTP/1.1 200 OK
+Server: nginx
+Date: Mon, 03 Jul 2017 14:09:43 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+x-csrf-token: 1499090983-01-SYmgZnIWQ8i5HhhSFc01RF-cSUDeCDIqucct5hQX304
+Set-Cookie: arch-frontend:sess=A6anersnEZw0T_VERLdHQw.hC0bwn6n1Z50Xlkum4AbXn5vuKATB0FuE5s4cTKljTFFXLULB95O2BVWVjZVsqgyNWEwYZnW4i6YVsXZ_gbD0EzTFa2__yNx_MjKiQvLYRT_daQwCWP3aEpE8cadwr52mZhqtG4vCvJgZz4SpXFfgOiiUY-GWjUjEZNAfljb6Z9QqNmMtF9ZeVTfB52drRhnqVUJz-Mev6lnsyGhFkcKeqxvKODQWOEJtjDJug56rr2nq2n50IPVGksdhnssBzvDjh06dwtXlI_tHr-i4Am0zkH0N5iCrzUt0X60yIWqyYYogrRE-qj4MoP4lyRlIDSC1jmLENMGQEIWEFjpsPTQpjsD2Q4_t5Co6RCVjIkBhPqBRItkaOAz5-jf9GfLz8gYL-rOu5mvFIU-Ixoti2HLAFG-zetE2Z4CTuZjEuPdA33Sn3OjgKBXYJ4n0XD-ta_ucFyFYrVNe1XpzGZIc9GlZlAMrd0_R8IfPnxK0zp9bkz0QRvxtYiLyDAylChYGUV5xM0k2KXtm4m23-PtjdyI1u5LyeipMo8Dep9NGESZckoDEVn3cIcfYSOT9VY-KC1QMMAndbhU62liRKVHJy7mNg.1499074676721.1209600000.mNslCSfrdYKPFqECR-FNGegJtzL44g2cBOD1bZu72dg; path=/; expires=Mon, 17 Jul 2017 09:37:57 GMT; secure; httponly
+X-Uber-App: arch-frontend
+Strict-Transport-Security: max-age=604800
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=2592000
+X-Frame-Options: SAMEORIGIN
+Cache-Control: max-age=0
+Content-Encoding: gzip
+
+{"stage":{"question":{"type":"VERIFY_PASSWORD","tripChallenges":[],"signinToken":"","thirdPartyInfo":{"identityType":"","firstName":"","lastName":"","email":"","mobile":{"countryCode":"","phoneNumber":""}},"identifiedUserInfo":{"firstName":"","lastName":""}},"alternatives":["PUSH_LOGIN"]}}
+    [headers] => Requests_Response_Headers Object
+        (
+            [data:protected] => Array
+                (
+                    [server] => Array
+                        (
+                            [0] => nginx
+                        )
+
+                    [date] => Array
+                        (
+                            [0] => Mon, 03 Jul 2017 14:09:43 GMT
+                        )
+
+                    [content-type] => Array
+                        (
+                            [0] => application/json; charset=utf-8
+                        )
+
+                    [x-frame-options] => Array
+                        (
+                            [0] => SAMEORIGIN
+                            [1] => SAMEORIGIN
+                        )
+
+                    [x-xss-protection] => Array
+                        (
+                            [0] => 1; mode=block
+                        )
+
+                    [x-csrf-token] => Array
+                        (
+                            [0] => 1499090983-01-SYmgZnIWQ8i5HhhSFc01RF-cSUDeCDIqucct5hQX304
+                        )
+
+                    [set-cookie] => Array
+                        (
+                            [0] => arch-frontend:sess=A6anersnEZw0T_VERLdHQw.hC0bwn6n1Z50Xlkum4AbXn5vuKATB0FuE5s4cTKljTFFXLULB95O2BVWVjZVsqgyNWEwYZnW4i6YVsXZ_gbD0EzTFa2__yNx_MjKiQvLYRT_daQwCWP3aEpE8cadwr52mZhqtG4vCvJgZz4SpXFfgOiiUY-GWjUjEZNAfljb6Z9QqNmMtF9ZeVTfB52drRhnqVUJz-Mev6lnsyGhFkcKeqxvKODQWOEJtjDJug56rr2nq2n50IPVGksdhnssBzvDjh06dwtXlI_tHr-i4Am0zkH0N5iCrzUt0X60yIWqyYYogrRE-qj4MoP4lyRlIDSC1jmLENMGQEIWEFjpsPTQpjsD2Q4_t5Co6RCVjIkBhPqBRItkaOAz5-jf9GfLz8gYL-rOu5mvFIU-Ixoti2HLAFG-zetE2Z4CTuZjEuPdA33Sn3OjgKBXYJ4n0XD-ta_ucFyFYrVNe1XpzGZIc9GlZlAMrd0_R8IfPnxK0zp9bkz0QRvxtYiLyDAylChYGUV5xM0k2KXtm4m23-PtjdyI1u5LyeipMo8Dep9NGESZckoDEVn3cIcfYSOT9VY-KC1QMMAndbhU62liRKVHJy7mNg.1499074676721.1209600000.mNslCSfrdYKPFqECR-FNGegJtzL44g2cBOD1bZu72dg; path=/; expires=Mon, 17 Jul 2017 09:37:57 GMT; secure; httponly
+                        )
+
+                    [x-uber-app] => Array
+                        (
+                            [0] => arch-frontend
+                        )
+
+                    [strict-transport-security] => Array
+                        (
+                            [0] => max-age=604800
+                            [1] => max-age=2592000
+                        )
+
+                    [x-content-type-options] => Array
+                        (
+                            [0] => nosniff
+                        )
+
+                    [cache-control] => Array
+                        (
+                            [0] => max-age=0
+                        )
+
+                    [content-encoding] => Array
+                        (
+                            [0] => gzip
+                        )
+
+                )
+
+        )
+
+    [status_code] => 200
+    [protocol_version] => 1.1
+    [success] => 1
+    [redirects] => 0
+    [url] => https://auth.uber.com/login/handleanswer
+    [history] => Array
+        (
+        )
+
+    [cookies] => Requests_Cookie_Jar Object
+        (
+            [cookies:protected] => Array
+                (
+                    [arch-frontend:sess] => Requests_Cookie Object
+                        (
+                            [name] => arch-frontend:sess
+                            [value] => A6anersnEZw0T_VERLdHQw.hC0bwn6n1Z50Xlkum4AbXn5vuKATB0FuE5s4cTKljTFFXLULB95O2BVWVjZVsqgyNWEwYZnW4i6YVsXZ_gbD0EzTFa2__yNx_MjKiQvLYRT_daQwCWP3aEpE8cadwr52mZhqtG4vCvJgZz4SpXFfgOiiUY-GWjUjEZNAfljb6Z9QqNmMtF9ZeVTfB52drRhnqVUJz-Mev6lnsyGhFkcKeqxvKODQWOEJtjDJug56rr2nq2n50IPVGksdhnssBzvDjh06dwtXlI_tHr-i4Am0zkH0N5iCrzUt0X60yIWqyYYogrRE-qj4MoP4lyRlIDSC1jmLENMGQEIWEFjpsPTQpjsD2Q4_t5Co6RCVjIkBhPqBRItkaOAz5-jf9GfLz8gYL-rOu5mvFIU-Ixoti2HLAFG-zetE2Z4CTuZjEuPdA33Sn3OjgKBXYJ4n0XD-ta_ucFyFYrVNe1XpzGZIc9GlZlAMrd0_R8IfPnxK0zp9bkz0QRvxtYiLyDAylChYGUV5xM0k2KXtm4m23-PtjdyI1u5LyeipMo8Dep9NGESZckoDEVn3cIcfYSOT9VY-KC1QMMAndbhU62liRKVHJy7mNg.1499074676721.1209600000.mNslCSfrdYKPFqECR-FNGegJtzL44g2cBOD1bZu72dg
+                            [attributes] => Requests_Utility_CaseInsensitiveDictionary Object
+                                (
+                                    [data:protected] => Array
+                                        (
+                                            [path] => /
+                                            [expires] => 1500284277
+                                            [secure] => 1
+                                            [httponly] => 1
+                                            [domain] => auth.uber.com
+                                        )
+
+                                )
+
+                            [flags] => Array
+                                (
+                                    [creation] => 1499090704
+                                    [last-access] => 1499090704
+                                    [persistent] => 
+                                    [host-only] => 1
+                                )
+
+                            [reference_time] => 1499090704
+                        )
+
+                )
+
+        )
+
+)

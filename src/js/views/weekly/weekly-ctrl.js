@@ -29,7 +29,8 @@ function WeeklyCtrl($scope, $state, TripService) {
 
             TripService.weekly(period)
                 .then( function(result){
-                    // console.log(result);
+                    console.log("Initial set from DB");
+                    console.log(result);
                     
                     // Freelancer 7/0
                     $scope.uber_free7_0 = filter(result, function(o){
@@ -90,7 +91,7 @@ function WeeklyCtrl($scope, $state, TripService) {
 
     }
 
-    function makeParkSet(uberList, getList){
+    function makeParkSet(getList, uberList){
         var result_get = [],
             result_uber = [],
             result = [];

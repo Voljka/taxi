@@ -32,6 +32,21 @@ function getPreviousUberReportId($aRes){
 	return $report_id;
 }
 
+function getWeekDates($is_last){
+	$cur_day_of_the_week = date("w");
+	$curdate = date("Y-m-d");
+
+	if (! $is_last){
+		$curdate =	date("Y-m-d", strtotime($curdate) - 7*24*60*60);
+	}
+
+	$range = array();
+	$range["start"] = date("Y-m-d", strtotime($curdate) - ($cur_day_of_the_week - 1)*24*60*60);
+	$range["finish"] = date("Y-m-d", strtotime($range["start"]) + 6.5*24*60*60);
+
+	return $range;
+}
+
 $params = json_decode(file_get_contents('php://input'),true);
 $is_current = $params["is_current"];
 
@@ -142,9 +157,32 @@ function is_shift_present($datetime, $driver_id){
 }
 
 //////////////// get Parameters from request 
-$rangeStartAt = $_POST['periodStart'];
-$rangeEndAt = $_POST['periodEnd'];
+// $rangeStartAt = $_POST['periodStart'];
+// $rangeEndAt = $_POST['periodEnd'];
 
+$current_week = getWeekDates();
+$week_start = $current_week["start"];
+$week_finish = $current_week["finish"];
+$query_week = "SELECT * FROM weeks WHERE start_date ='$week_start' AND end_date = '$week_finish'";
+file_put_contents('weeks.log', date("Y-m-s H:i:s") . "\n" . $query_week);
+$query_result = mysql_query($query_week);
+
+if (mysql_affected_rows() < 1){
+	$query_week = "INSERT INTO weeks (start_date, end_date) VALUES('$week_start','$week_finish') ";
+	file_put_contents('weeks.log', "\nNEW Week: \n" . $query_week . "\n", FILE_APPEND);
+	$query_result = mysql_query($query_week);
+	$week_id = mysql_insert_id();
+} else {
+	while ($row = mysql_fetch_assoc($query_result)) 
+	{
+	  $week_id = $row['id'];
+	};
+}
+
+file_put_contents('weeks.log', "\n Week id: \n" . $week_id . "\n", FILE_APPEND);
+
+file_put_contents('weeks_params.log', date("Y-m-s H:i:s") . "\n");
+$bonuses = array();
 
 /// setup variables
 $row = 1;
@@ -262,6 +300,16 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 
             }
         } else {
+        	// save uber bonuses
+          if (array_key_exists('misc', $aD) && array_key_exists('total', $aD['misc']) && floatval($aD['misc']['total']) > 0) {
+          	$bonus_sum = floatval($aD['misc']['total']);
+          	//file_put_contents("weeks_params.log", $aD['last_name'] . " : " . $bonus_sum . "\n", FILE_APPEND);
+          	$bonus = array();
+          	$bonus["driver_id"] = $ids[$driver_index];
+          	$bonus["bonus"] = $bonus_sum;
+          	$bonuses[] = $bonus;
+          }
+
         	////////// Loop By trips of the driver
 			foreach($aD["trip_earnings"]['trips'] as $trip_id=>$aTrip){
 
@@ -294,13 +342,28 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 
 			            $successfull_loads_count++;
 
+			            if (array_key_exists('surge', $aTrip)){
+				            $surge = $aTrip['surge'];
+			            } else {
+				            $surge = 0;
+			            }
+
+			            if (array_key_exists('cancellation', $aTrip)){
+				            $cancellation = $aTrip['cancellation'];
+			            } else {
+				            $cancellation = 0;
+			            }
+
 			            if (array_key_exists('line_items', $aTrip) && $is_trip_a_recalc) {
 			            	if (! is_correction_presents($ids[$driver_index], $aTrip['line_items'][0]['data']['message'], $aTrip['fare_adjustment_delta'])){
 					            $query2 .= "(";
 					            $query2 .= $UBER . ',';
 					            $query2 .= "'$trip_id',";
 					            $query2 .= $ids[$driver_index] . ',';
-					            $query2 .= $aTrip['fare_adjustment_delta'] . ',';
+					            // $query2 .= $aTrip['fare_adjustment_delta'] . ',';
+
+					            $full_fare = floatval($aTrip['fare_adjustment_delta']) + floatval($surge) + floatval($cancellation);
+					            $query2 .= $full_fare . ',';
 					            $query2 .= '"' . $aTrip['line_items'][0]['data']['message'] . '",';
 					            $query2 .= "'".date("Y-m-d")."'";
 					            $query2 .= "),";
@@ -321,7 +384,10 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 				            $query .= '"' . date('Y-m-d H:i:s', strtotime($aTrip['date'])) . '",';
 				            $query .= '"' . $trip_id . '",';
 				            $query .= $TRIP_CASH . ',';
-				            $query .= $aTrip['fare'] . ',';
+
+				            // $query .= $aTrip['fare'] . ',';
+				            $full_fare = floatval($aTrip['fare']) + floatval($surge) + floatval($cancellation);
+				            $query .= $full_fare . ',';
 
 				            if (array_key_exists('earnings_boost_non_commissionable', $aTrip)){
 				            	$boost = $aTrip['earnings_boost_non_commissionable'];
@@ -354,6 +420,40 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 	    }
 	}
 }
+
+file_put_contents("weeks_params.log", json_encode($bonuses), FILE_APPEND);
+foreach($bonuses as $cur){
+	$query_week = "SELECT * FROM weekly_freelancers WHERE week_id = $week_id AND driver_id = ". $cur['driver_id'] ;
+	file_put_contents('weeks_params.log', "\n" . $query_week, FILE_APPEND);
+
+	$query_result = mysql_query($query_week);
+
+	$affected = mysql_affected_rows();
+	file_put_contents('weeks_params.log', "\n Affected by select : " . $affected . "\n", FILE_APPEND);
+
+	if ($affected < 1){
+		$query_week = "INSERT INTO weekly_freelancers (week_id, driver_id, uber_bonus, yandex_cash, yandex_non_cash) VALUES($week_id," . $cur['driver_id'] . ", " . $cur['bonus'].", 0, 0) ";
+		file_put_contents('weeks_params.log', "\nNEW Week params: \n" . $query_week . "\n", FILE_APPEND);
+
+		$query_result = mysql_query($query_week);
+	} else {
+		while ($row = mysql_fetch_assoc($query_result)) 
+		{
+		  $id = $row['id'];
+		  $existing_bonus = $row["uber_bonus"];
+		};
+
+		if (floatval($existing_bonus) != floatval($cur['bonus'])) {
+			$query_week = "UPDATE weekly_freelancers SET uber_bonus = " . $cur['bonus'] . " WHERE id=$id ";
+			file_put_contents('weeks_params.log', "\nExisting Week params changing: \n" . $query_week . "\n", FILE_APPEND);
+
+			$query_result = mysql_query($query_week);
+		} else {
+			file_put_contents('weeks_params.log', "\nExisting Week params and hasn't changed ! \n", FILE_APPEND);
+		}
+	}	
+}
+
 
 file_put_contents('uber_strict_parser.sql', "Length of the base query =". strlen($query) ." \n", FILE_APPEND);
 

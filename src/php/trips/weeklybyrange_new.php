@@ -51,7 +51,7 @@
 	$start_date = substr($start_date, 0, 10) . ' 00:00:00';
 	$end_date = substr($end_date, 0, 10) . ' 23:59:59';
 
-	$query = "SELECT * FROM ( SELECT SUM(fare) sum_fare, SUM(comission) sum_comission, SUM(cash) sum_cash, SUM(result) sum_result, SUM(boost_non_commissionable) sum_boost, driver_id, mediator_id, drivers.surname, drivers.firstname, drivers.patronymic, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.uber_park_comission, date_time FROM $table ";
+	$query = "SELECT * FROM ( SELECT SUM(fare) sum_fare, SUM(comission) sum_comission, SUM(cash) sum_cash, SUM(result) sum_result, SUM(boost_non_commissionable) sum_boost, driver_id, mediator_id, drivers.surname, drivers.firstname, drivers.patronymic, drivers.bank_rate, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.uber_park_comission, date_time FROM $table ";
 	$query .= "LEFT JOIN drivers ON drivers.id = $table.driver_id ";
 	$query .= "LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
     $query .="WHERE mediator_id=$UBER AND work_types.is_daily = 0 AND date_time BETWEEN '$uber_start_date' AND '$uber_end_date' ";
@@ -59,7 +59,7 @@
   // $query .= "ORDER BY mediator_id, drivers.surname, drivers.firstname, drivers.patronymic, date_time ";
 
   $query .= " UNION ";
-	$query .= "SELECT SUM(fare) sum_fare, SUM(comission) sum_comission, SUM(cash) sum_cash, SUM(result) sum_result, SUM(boost_non_commissionable) sum_boost, driver_id, mediator_id, drivers.surname, drivers.firstname, drivers.patronymic, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.uber_park_comission, date_time FROM $table ";
+	$query .= "SELECT SUM(fare) sum_fare, SUM(comission) sum_comission, SUM(cash) sum_cash, SUM(result) sum_result, SUM(boost_non_commissionable) sum_boost, driver_id, mediator_id, drivers.surname, drivers.firstname, drivers.patronymic, drivers.bank_rate, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.uber_park_comission, date_time FROM $table ";
 	$query .= "LEFT JOIN drivers ON drivers.id = $table.driver_id ";
 	$query .= "LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
     $query .="WHERE mediator_id=$GETT AND  work_types.is_daily = 0 AND date_time BETWEEN '$start_date' AND '$end_date' ";

@@ -58,6 +58,7 @@ export function calcWeekStartAndEnd(){
     var curDayOfTheWeek = curDate.getDay();
 
     var startDate = new Date(datePlusDays(-curDayOfTheWeek + 1, curDate));
+    // var startDate = new Date(datePlusDays(-curDayOfTheWeek, curDate));
 
     curDate = new Date();
     curDayOfTheWeek = curDate.getDay();

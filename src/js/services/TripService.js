@@ -18,6 +18,18 @@ function TripService($http) {
       });
   }
 
+  function weekly_int(range) {
+
+    return $http
+      .post(API_SERVER + '/weekly_integrated_aggregators.php', range)
+      .then(function (data) {
+        return data.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+  }
+
   function daily(range) {
     return $http
       .post(API_SERVER + '/dailybyrange.php', range)
@@ -65,12 +77,30 @@ function TripService($http) {
 
   }
 
+  function saveWeeklyData(data){
+
+    console.log('Data in Service');
+    console.log(data);
+    
+    return $http
+      .post(API_SERVER + '/saveWeeklyData.php', data)
+      .then(function (result) {
+        return result.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+
+  }
+
   return {
     weekly     : weekly,
+    weekly_int     : weekly_int,
     daily     : daily,
     our1_1 : our1_1,
     closeDailyDay : closeDailyDay,
     saveDayDriverWithdrawals: saveDayDriverWithdrawals,
+    saveWeeklyData: saveWeeklyData,
 
   };
 }

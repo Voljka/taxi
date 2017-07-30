@@ -5,7 +5,8 @@ require('angular-ui-router');
 var driversTemplate = require('./js/views/drivers');
 var driverCardTemplate = require('./js/views/drivers/card');
 var importTemplate = require('./js/views/import');
-var weeklyTemplate = require('./js/views/weekly');
+// var weeklyTemplate = require('./js/views/weekly');
+var weeklyTemplate = require('./js/views/weekly_int');
 var dailyTemplate = require('./js/views/daily');
 var shiftTemplate = require('./js/views/shifts');
 var roadfineTemplate = require('./js/views/roadfines');
@@ -19,7 +20,8 @@ var app = angular
 		'driverModule',
 		'driverCardModule',
 		'importModule',
-		'weeklyModule',
+		'weeklyIntModule',
+		// 'weeklyModule',
 		'dailyModule',
 		'shiftModule',
 		'roadFinesModule',

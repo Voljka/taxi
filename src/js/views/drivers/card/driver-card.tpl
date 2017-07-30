@@ -55,12 +55,17 @@
 				</div>
 			</div>
 			<div class="col-md-4">
-				<div class="input-group">
+<!-- 				<div class="input-group">
 					<span class="input-group-addon">Банк </span>
 					<select ng-change="changeBank()" class="form-control" ng-model="driverBank" ng-init="driverBank=currentBank">   
 						<option ng-repeat="bank in banks" ng-value="bank.id">{{ bank.name }}</option>	
 					</select>
+				</div> -->
+				<div class="input-group">
+					<span class="input-group-addon">Комиссия Банка </span>
+					<input class="form-control" type="number" ng-model="bankRate">
 				</div>
+
 			</div>
 			<div class="col-md-4">
 				<div class="input-group">

@@ -147,3 +147,25 @@ table {
 
 .table-header-middled {
   vertical-align: middle; }
+
+.uber_column {
+  background: moccasin; }
+
+.gett_column {
+  background: palegreen; }
+
+.yandex_column {
+  background: skyblue; }
+
+.table-autoparks {
+  width: 2000px !important; }
+
+.freelance-table {
+  width: 2000px !important; }
+
+.total-row {
+  font-weight: bold;
+  background: silver; }
+
+.wheely_column {
+  background: thistle; }

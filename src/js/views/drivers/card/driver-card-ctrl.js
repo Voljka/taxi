@@ -26,6 +26,7 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.cardNumber = "";
 		$scope.currentBank = BANK_SBERBANK;
 		$scope.beneficiar = "";
+		$scope.bankRate = 0;
 
 		$scope.isCash = false;
 
@@ -44,6 +45,7 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.rule_default_id = current.rule_default_id ? current.rule_default_id : "1";
 		$scope.phone = current.phone == 0 ? "" : current.phone;
 		$scope.phone2 = current.phone2 == 0 ? "" : current.phone2;
+		$scope.bankRate = Number(current.bank_rate);
 
 		$scope.cardNumber = current.card_number == 0 ? "" : current.card_number;
 		$scope.currentBank = current.bank_id;
@@ -85,12 +87,14 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 			data.patronymic = $scope.patronymic;
 
 			data.email = $scope.mail;
+			data.bank_rate = $scope.bankRate;
 			data.phone = $scope.phone == "" ? 0 : Number($scope.phone);
 			data.phone2 = $scope.phone2 == "" ? 0 : Number($scope.phone2);
 			data.rule_default_id = $scope.rule_default_id;
 
 			data.card_number = ($scope.driverBank == BANK_CASH || $scope.cardNumber == "") ? 0 : $scope.cardNumber;
-			data.bank_id = Number($scope.driverBank);
+			//data.bank_id = Number($scope.driverBank);
+			data.bank_id = 99;
 			data.beneficiar = ($scope.driverBank == BANK_CASH) ? "" : $scope.beneficiar;
 
 			data.work_type_id = Number($scope.driverGroup);
