@@ -29,11 +29,6 @@
     <thead>
       <tr>
         <td rowspan="2">ФИО</td>
-        <td colspan="5" class="uber_column" >Uber</td>
-        <td colspan="6" class="gett_column">Gett</td>
-        <td colspan="3" class="yandex_column">Yandex</td>
-        <td colspan="6" class="wheely_column">Wheely</td>
-
         <td width="80px" rowspan="2">Всего,<br>начислено</td>
         <td width="80px" rowspan="2">Комиссия<br>банка</td>
         <td width="80px" rowspan="2">Всего,<br>к выдаче</td>
@@ -41,8 +36,18 @@
         <td width="80px" rowspan="2">Долг</td>
         <td width="80px" rowspan="2">Остаток<br>к оплате</td>
         <td width="150px" rowspan="2">Карта</td>
+
+        <td colspan="3" class="yandex_column">Yandex</td>
+        <td colspan="5" class="uber_column" >Uber</td>
+        <td colspan="6" class="gett_column">Gett</td>
+        <td colspan="6" class="wheely_column">Wheely</td>
+
       </tr>
       <tr>
+        <td width="80px" class="yandex_column">Запросы</td>
+        <td width="80px" class="yandex_column">Оплачено</td>
+        <td width="80px" class="yandex_column">К оплате</td>
+
         <td width="80px" class="uber_column">Доход</td>
         <td width="80px" class="uber_column">в т.ч.<br>Корр-вки</td>
         <td width="80px" class="uber_column">Cash</td>
@@ -56,10 +61,6 @@
         <td width="80px" class="gett_column">Корр-вки</td>
         <td width="80px" class="gett_column">К выдаче</td>
 
-        <td width="80px" class="yandex_column">Запросы</td>
-        <td width="80px" class="yandex_column">Оплачено</td>
-        <td width="80px" class="yandex_column">К оплате</td>
-
         <td width="80px" class="wheely_column">Тариф</td>
         <td width="80px" class="wheely_column">Комиссия</td>
         <td width="80px" class="wheely_column">Чаевые и<br>пароковка</td>
@@ -69,13 +70,8 @@
       </tr>    
     </thead>
     <tfoot>
-      <tr>
+      <tr class="tfoot-centered">
         <td rowspan="2">ФИО</td>
-        <td colspan="5" class="uber_column" >Uber</td>
-        <td colspan="6" class="gett_column">Gett</td>
-        <td colspan="3" class="yandex_column">Yandex</td>
-        <td colspan="6" class="wheely_column">Wheely</td>
-
         <td width="80px" rowspan="2">Всего,<br>начислено</td>
         <td width="80px" rowspan="2">Комиссия<br>банка</td>
         <td width="80px" rowspan="2">Всего,<br>к выдаче</td>
@@ -83,34 +79,40 @@
         <td width="80px" rowspan="2">Долг</td>
         <td width="80px" rowspan="2">Остаток<br>к оплате</td>
         <td width="150px" rowspan="2">Карта</td>
+
+        <td colspan="3" class="yandex_column">Yandex</td>
+        <td colspan="5" class="uber_column" >Uber</td>
+        <td colspan="6" class="gett_column">Gett</td>
+        <td colspan="6" class="wheely_column">Wheely</td>
+
       </tr>
-      <tr>
-        <td width="110px" class="uber_column">Доход</td>
-        <td width="80px" class="uber_column">в т.ч.<br>Корр-вки</td>
-        <td width="100px" class="uber_column">Cash</td>
-        <td width="80px" class="uber_column">Нам</td>
-        <td width="110px" class="uber_column">К выдаче</td>
-
-        <td width="110px" class="gett_column">Доход</td>
-        <td width="80px" class="gett_column">Интерес Get<br>(17.7%)</td>
-        <td width="80px" class="gett_column">Наш Интерес <br>(3.3%)</td>
-        <td width="100px" class="gett_column">Нал</td>
-        <td width="80px" class="gett_column">Корр-вки</td>
-        <td width="110px" class="gett_column">К выдаче</td>
-
+      <tr class="tfoot-centered">
         <td width="80px" class="yandex_column">Запросы</td>
         <td width="80px" class="yandex_column">Оплачено</td>
         <td width="80px" class="yandex_column">К оплате</td>
+
+        <td width="80px" class="uber_column">Доход</td>
+        <td width="80px" class="uber_column">в т.ч.<br>Корр-вки</td>
+        <td width="80px" class="uber_column">Cash</td>
+        <td width="80px" class="uber_column">Нам</td>
+        <td width="80px" class="uber_column">К выдаче</td>
+
+        <td width="80px" class="gett_column">Доход</td>
+        <td width="80px" class="gett_column">Интерес Get<br>(17.7%)</td>
+        <td width="80px" class="gett_column">Наш Интерес <br>(3.3%)</td>
+        <td width="80px" class="gett_column">Нал</td>
+        <td width="80px" class="gett_column">Корр-вки</td>
+        <td width="80px" class="gett_column">К выдаче</td>
 
         <td width="80px" class="wheely_column">Тариф</td>
         <td width="80px" class="wheely_column">Комиссия</td>
         <td width="80px" class="wheely_column">Чаевые и<br>пароковка</td>
         <td width="80px" class="wheely_column">Штрафы</td>
         <td width="80px" class="wheely_column">Нам</td>
-        <td width="80px" class="wheely_column">К выдаче</td>        
-      </tr>          
+        <td width="80px" class="wheely_column">К выдаче</td>
+      </tr>    
       <tr class="total-row">
-        <td colspan="23"></td>
+        <td colspan="3">ИТОГО :</td>
         <td class="digit">{{sumBy(free7_0,'total_to_pay') | asPrice2 }}</td>
         <td></td>
         <td></td>
@@ -123,6 +125,24 @@
         <td ng-click="selectFreeDriver(el)"> 
           {{ el.surname }}  {{el.firstname}} {{el.patronymic}}
         </td>
+
+        <td class="digit"><b>{{ el.total_payable | asPrice2 }}</b></td>
+        <td class="digit"><b>{{ el.bank_comission | asPrice2 }}</b></td>
+        <td class="digit"><b>{{ el.total_to_pay | asPrice2 }} </b></td>
+        <td class="digit"><b>{{ el.payed_to_driver | asPrice2 }} </b></td>
+        <td class="digit"> 
+            <input type="number" ng-model="el.debt" class="numberInput" ng-change="recalcDriverTotals(el)">
+        </td>
+        <td class="digit"><b>{{ el.residual_to_pay | asPrice2 }} </b></td>
+        <td class="digit"><b>{{ (el.card_number == "0" ? "" : el.card_number) }}<br>{{ el.beneficiar }}</b></td>
+
+        <!-- <td class="digit yandex_column">{{ el.yandex_asks | asPrice2 }}</td> -->
+        <td class="digit yandex_column"> 
+            <input type="number" ng-model="el.yandex_asks" class="numberInput" ng-change="recalcDriverTotals(el)">
+        </td>
+        <td class="digit yandex_column">{{ el.yandex_paid | asPrice2 }}</td>
+        <td class="digit yandex_column">{{ el.yandex_residual | asPrice2 }}</td>
+
         <td class="digit uber_column">{{ el.uber_total_netto | asPrice2 }}</td>
         <td class="digit uber_column">{{ el.uber_correction | asPrice2 }}</td>
         <td class="digit uber_column">{{ el.uber_sum_cash | asPrice2 }}</td>
@@ -146,30 +166,12 @@
           </span>
         </td> -->
 
-
-        <!-- <td class="digit yandex_column">{{ el.yandex_asks | asPrice2 }}</td> -->
-        <td class="digit yandex_column"> 
-            <input type="number" ng-model="el.yandex_asks" class="numberInput" ng-change="recalcDriverTotals(el)">
-        </td>
-        <td class="digit yandex_column">{{ el.yandex_paid | asPrice2 }}</td>
-        <td class="digit yandex_column">{{ el.yandex_residual | asPrice2 }}</td>
-
         <td class="digit wheely_column">{{ el.wheely_sum_fare | asPrice2 }}</td>
         <td class="digit wheely_column">{{ el.wheely_sum_comission | asPrice2 }}</td>
         <td class="digit wheely_column">{{ el.wheely_sum_boost | asPrice2 }}</td>
         <td class="digit wheely_column">{{ el.wheely_sum_fines | asPrice2 }}</td>
         <td class="digit wheely_column">{{ el.wheely_interest | asPrice2 }}</td>
         <td class="digit wheely_column">{{ el.wheely_to_pay | asPrice2 }}</td>
-
-        <td class="digit"><b>{{ el.total_payable | asPrice2 }}</b></td>
-        <td class="digit"><b>{{ el.bank_comission | asPrice2 }}</b></td>
-        <td class="digit"><b>{{ el.total_to_pay | asPrice2 }} </b></td>
-        <td class="digit"><b>{{ el.payed_to_driver | asPrice2 }} </b></td>
-        <td class="digit"> 
-            <input type="number" ng-model="el.debt" class="numberInput" ng-change="recalcDriverTotals(el)">
-        </td>
-        <td class="digit"><b>{{ el.residual_to_pay | asPrice2 }} </b></td>
-        <td class="digit"><b>{{ (el.card_number == "0" ? "" : el.card_number) }}<br>{{ el.beneficiar }}</b></td>
 
       </tr>
     </tbody>
@@ -195,11 +197,6 @@
             <br>
             <button class=" btn btn-primary" ng-click="parkToXLS('table'+park[0].group_id)">Сохранить в XLS</button>            
           </td>
-          <td colspan="5" class="uber_column">Uber</td>
-          <td colspan="6" class="gett_column">Gett</td>
-          <td colspan="3" class="yandex_column">Yandex</td>
-          <td colspan="6" class="wheely_column">Wheely</td>
-
           <td width="80px" rowspan="2">Заработок<br>водителя</td>
           <td width="90px" rowspan="2">Откат,<br>2%</td>
           <td width="80px" rowspan="2">Всего,<br>начислено</td>
@@ -210,8 +207,18 @@
           <td width="80px" rowspan="2">Остаток<br>к оплате</td>
 
           <td width="150px" rowspan="2">Карта</td>
+
+          <td colspan="3" class="yandex_column">Yandex</td>
+          <td colspan="5" class="uber_column">Uber</td>
+          <td colspan="6" class="gett_column">Gett</td>
+          <td colspan="6" class="wheely_column">Wheely</td>
+
         </tr>
         <tr>
+          <td width="80px" class="yandex_column">Запросы</td>
+          <td width="80px" class="yandex_column">Оплачено</td>
+          <td width="80px" class="yandex_column">К оплате</td>
+
           <td width="110px" class="uber_column">Доход</td>
           <td width="80px" class="uber_column">в т.ч.<br>Корр-вки</td>
           <td width="100px" class="uber_column">Cash</td>
@@ -224,10 +231,6 @@
           <td width="100px" class="gett_column">Нал</td>
           <td width="80px" class="gett_column">Корр-вки</td>
           <td width="110px" class="gett_column">К выдаче</td>
-
-          <td width="80px" class="yandex_column">Запросы</td>
-          <td width="80px" class="yandex_column">Оплачено</td>
-          <td width="80px" class="yandex_column">К оплате</td>
 
           <td width="80px" class="wheely_column">Тариф</td>
           <td width="80px" class="wheely_column">Комиссия</td>
@@ -241,13 +244,11 @@
 
       <tfoot>
 
-        <tr>
-          <td rowspan="2"><b>{{park[0].group_name}}</b></td>
-          <td colspan="5" class="uber_column">Uber</td>
-          <td colspan="6" class="gett_column">Gett</td>
-          <td colspan="3" class="yandex_column">Yandex</td>
-          <td colspan="6" class="wheely_column">Wheely</td>
-
+        <tr class="tfoot-centered">
+          <td rowspan="2"><b>{{park[0].group_name}}</b>
+            <br>
+            <button class=" btn btn-primary" ng-click="parkToXLS('table'+park[0].group_id)">Сохранить в XLS</button>            
+          </td>
           <td width="80px" rowspan="2">Заработок<br>водителя</td>
           <td width="90px" rowspan="2">Откат,<br>2%</td>
           <td width="80px" rowspan="2">Всего,<br>начислено</td>
@@ -258,8 +259,18 @@
           <td width="80px" rowspan="2">Остаток<br>к оплате</td>
 
           <td width="150px" rowspan="2">Карта</td>
+
+          <td colspan="3" class="yandex_column">Yandex</td>
+          <td colspan="5" class="uber_column">Uber</td>
+          <td colspan="6" class="gett_column">Gett</td>
+          <td colspan="6" class="wheely_column">Wheely</td>
+
         </tr>
-        <tr>
+        <tr class="tfoot-centered">
+          <td width="80px" class="yandex_column">Запросы</td>
+          <td width="80px" class="yandex_column">Оплачено</td>
+          <td width="80px" class="yandex_column">К оплате</td>
+
           <td width="110px" class="uber_column">Доход</td>
           <td width="80px" class="uber_column">в т.ч.<br>Корр-вки</td>
           <td width="100px" class="uber_column">Cash</td>
@@ -273,20 +284,15 @@
           <td width="80px" class="gett_column">Корр-вки</td>
           <td width="110px" class="gett_column">К выдаче</td>
 
-          <td width="80px" class="yandex_column">Запросы</td>
-          <td width="80px" class="yandex_column">Оплачено</td>
-          <td width="80px" class="yandex_column">К оплате</td>
-
           <td width="80px" class="wheely_column">Тариф</td>
           <td width="80px" class="wheely_column">Комиссия</td>
           <td width="80px" class="wheely_column">Чаевые и<br>пароковка</td>
           <td width="80px" class="wheely_column">Штрафы</td>
           <td width="80px" class="wheely_column">Нам</td>
           <td width="80px" class="wheely_column">К выдаче</td>        
-
         </tr>  
         <tr class="total-row" ng-click="selectParkRow(park)">
-          <td colspan="21"></td>
+          <td>ИТОГО :</td>
           <td class="digit">{{sumBy(park,'total_without_payback') | asPrice2 }}</td>
           
           <td class="digit" ng-if="park[0].group_id == '9'">{{(sumBy(park,'payback') + rafael_payback) | asPrice2 }}</td>
@@ -321,6 +327,33 @@
             {{ driv.surname }} {{driv.firstname}} {{driv.patronymic}}
           </td>
 
+          <td class="digit"><b>{{ driv.total_without_payback | asPrice2 }}</b></td>
+          <td class="digit"><b>{{ driv.payback | asPrice2 }}</b></td>
+
+          <td class="digit"><b>{{ driv.total_payable | asPrice2 }} </b></td>
+          <td class="digit"><b>{{ driv.bank_comission | asPrice2 }} </b></td>
+          <td class="digit"><b>{{ driv.total_to_pay | asPrice2 }} </b></td>
+
+          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'"><b>{{ driv.payed_to_driver | asPrice2 }} </b></td>
+          <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
+
+          <td class="digit"> 
+              <input type="number" ng-model="driv.debt" class="numberInput" ng-change="recalcDriverTotals(driv)">
+          </td>
+
+          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'"><b>{{ driv.residual_to_pay | asPrice2 }} </b></td>
+          <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
+
+          <td class="digit"><b>{{ (driv.card_number == "0" ? "" : driv.card_number) }}<br>{{ driv.beneficiar }}</b></td>
+
+          <td class="digit yandex_column"> 
+              <input type="number" class="numberInput" ng-model="driv.yandex_asks" ng-change="recalcDriverTotals(driv)">
+          </td>
+
+          <!-- <td class="digit yandex_column">{{ driv.yandex_asks | asPrice2 }}</td> -->
+          <td class="digit yandex_column">{{ driv.yandex_paid | asPrice2 }}</td>
+          <td class="digit yandex_column">{{ driv.yandex_residual | asPrice2 }}</td>
+
           <td class="digit uber_column">{{ driv.uber_total_netto | asPrice2 }}</td>
           <td class="digit uber_column">{{ driv.uber_correction | asPrice2 }}</td>
           <td class="digit uber_column">{{ driv.uber_sum_cash | asPrice2 }}</td>
@@ -344,14 +377,6 @@
             </span>
           </td> -->
 
-          <td class="digit yandex_column"> 
-              <input type="number" class="numberInput" ng-model="driv.yandex_asks" ng-change="recalcDriverTotals(driv)">
-          </td>
-
-          <!-- <td class="digit yandex_column">{{ driv.yandex_asks | asPrice2 }}</td> -->
-          <td class="digit yandex_column">{{ driv.yandex_paid | asPrice2 }}</td>
-          <td class="digit yandex_column">{{ driv.yandex_residual | asPrice2 }}</td>
-
           <td class="digit wheely_column">{{ driv.wheely_sum_fare | asPrice2 }}</td>
           <td class="digit wheely_column">{{ driv.wheely_sum_comission | asPrice2 }}</td>
           <td class="digit wheely_column">{{ driv.wheely_sum_boost | asPrice2 }}</td>
@@ -359,28 +384,10 @@
           <td class="digit wheely_column">{{ driv.wheely_interest | asPrice2 }}</td>
           <td class="digit wheely_column">{{ driv.wheely_to_pay | asPrice2 }}</td>
 
-          <td class="digit"><b>{{ driv.total_without_payback | asPrice2 }}</b></td>
-          <td class="digit"><b>{{ driv.payback | asPrice2 }}</b></td>
-
-          <td class="digit"><b>{{ driv.total_payable | asPrice2 }} </b></td>
-          <td class="digit"><b>{{ driv.bank_comission | asPrice2 }} </b></td>
-          <td class="digit"><b>{{ driv.total_to_pay | asPrice2 }} </b></td>
-
-          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'"><b>{{ driv.payed_to_driver | asPrice2 }} </b></td>
-          <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
-
-          <td class="digit"> 
-              <input type="number" ng-model="driv.debt" class="numberInput" ng-change="recalcDriverTotals(driv)">
-          </td>
-
-          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'"><b>{{ driv.residual_to_pay | asPrice2 }} </b></td>
-          <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
-
-          <td class="digit"><b>{{ (driv.card_number == "0" ? "" : driv.card_number) }}<br>{{ driv.beneficiar }}</b></td>
         </tr>
         <tr ng-if="park[0].group_id=='9'">
           <td>Откаты по водителям Рафаэля</td>
-          <td colspan="21"></td>
+          <td></td>
           <td class="digit">{{rafael_payback | asPrice2}}</td>
           <td colspan="6"></td>
         </tr>

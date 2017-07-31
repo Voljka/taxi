@@ -103,7 +103,7 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
         }
         obj.wheely_to_pay = obj.wheely_total - obj.wheely_interest;
 
-        obj.total_payable = obj.uber_total_to_pay + obj.gett_total_to_pay + obj.yandex_residual + obj.wheely_to_pay;
+        obj.total_payable = Number((obj.uber_total_to_pay + obj.gett_total_to_pay + obj.yandex_residual + obj.wheely_to_pay).toFixed(2));
         obj.total_without_payback = obj.total_payable;
 
         if (obj.is_park == 1){

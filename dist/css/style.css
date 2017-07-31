@@ -172,3 +172,6 @@ table {
 
 .input-70px {
   width: 70px !important; }
+
+.tfoot-centered {
+  text-align: center; }

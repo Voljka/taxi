@@ -130,7 +130,7 @@ function is_correction_presents($driver_id, $note, $amount){
 	global $corrections;
 
 	for ($i=0; $i < count($corrections) ; $i++) { 
-		if ($corrections[$i]['driver_id'] == $driver_id && $note == $corrections[$i]['notes'] && ($amount == $corrections[$i]['amount']) ) {
+		if ($corrections[$i]['driver_id'] == $driver_id && $note == $corrections[$i]['notes'] && (floatval($amount) == floatval($corrections[$i]['amount'])) ) {
 			$res = true;
 			break;
 		}
