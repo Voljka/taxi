@@ -12,12 +12,20 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
 	if ($state.current.name == 'uber_load') {
 		$scope.partner = "Uber";
 	} else {
-		$scope.partner = "Gett";
+        if ($state.current.name == 'wheely_load') {
+            $scope.partner = "Wheely";
+            $scope.ext = ".xlsx";
+        } else {
+            $scope.partner = "Gett";
+            $scope.ext = ".csv";
+        }
 	}
     
     $scope.sendFile = function() {
 
-      if ($scope.partner == "Uber" || ($scope.partner == "Gett" && $scope.form.file.$valid && $scope.file)){
+      if ($scope.partner == "Uber" || ($scope.partner == "Gett" && 
+            $scope.form.file.$valid && $scope.file) || 
+            ($scope.partner == "Wheely" && $scope.form.file.$valid && $scope.file)){
         $scope.upload($scope.file);
       }
     };
@@ -42,10 +50,17 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
             })
 
 		} else {
-			partner = "get";
+
+            var url;
+
+            if ($state.current.name == 'wheely_load') {
+                url = "wheely_xls_parser.php";
+            } else {
+                url = "get_csv_parser.php";
+            }
 
             Upload.upload({
-                url: 'php/import/'+ partner +'_csv_parser.php',
+                url: 'php/import/'+ url,
                 data: {file: file} 
             }).then(function (resp) {
                 console.log('Success ' + resp.config.data.file.name + 'uploaded');

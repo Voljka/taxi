@@ -2,11 +2,14 @@
 
 var controller = require('./weekly-int-ctrl');
 var tripService = require('../../services/TripService');
+var payoutService = require('../../services/PayoutService');
+
+require('angular-flash-alert');
 
 import { formattedToRu } from '../../libs/date';
-import { numberSplitted } from '../../libs/number';
+import { numberSplitted, numberSplitted2 } from '../../libs/number';
 
-angular.module('weeklyIntModule', [])
+angular.module('weeklyIntModule', ['ngFlash'])
   .config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.withCredentials = true;
   }])
@@ -25,6 +28,11 @@ angular.module('weeklyIntModule', [])
       return numberSplitted(Number(price));
     }
   })
+  .filter('asPrice2', function(){
+    return function(price){
+      return numberSplitted2(Number(price));
+    }
+  })
   .filter('getObjName', function(){
     return function(obj){
       console.log(obj);
@@ -37,7 +45,8 @@ angular.module('weeklyIntModule', [])
     }
   })
   .factory('TripService', ['$http', tripService])
-  .controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', controller]);
+  .factory('PayoutService', ['$http', payoutService])
+  .controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', 'PayoutService', 'Flash', controller]);
 
 module.exports = {
   template: require('./weekly-int.tpl'), 

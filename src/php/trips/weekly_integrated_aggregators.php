@@ -46,6 +46,10 @@
 	$GETT = 2;
 	$WHEELY = 3;
 
+	$DRIVER_YANDEX_PAYOUTS = 14;
+	$DRIVER_PAYOUTS = 12;
+	$PARK_PAYOUTS = 13;
+
   $params = json_decode(file_get_contents('php://input'),true);
 
   $start_date = substr($params['start'], 0,10);
@@ -71,7 +75,7 @@
 	$start_date = substr($start_date, 0, 10) . ' 00:00:00';
 	$end_date = substr($end_date, 0, 10) . ' 23:59:59';
 
-	$query = "SELECT drivers.surname, drivers.firstname, drivers.patronymic, drivers.bank_rate, drivers.card_number, drivers.beneficiar, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.is_own_park, work_types.uber_park_comission, work_types.wheely_park_comission, drivers.id driver_id, uber_data.sum_fare uber_sum_fare, uber_data.sum_comission uber_sum_comission, uber_data.sum_cash uber_sum_cash, uber_data.sum_result uber_sum_result, uber_data.sum_boost uber_sum_boost, gett_data.sum_fare gett_sum_fare, gett_data.sum_comission gett_sum_comission, gett_data.sum_cash gett_sum_cash, gett_data.sum_result gett_sum_result, gett_data.sum_boost gett_sum_boost, weeks.id week_id, weekly_freelancers.uber_bonus, weekly_freelancers.yandex_cash, weekly_freelancers.yandex_non_cash, yandex_asks1.asks_amount yandex_asks, freelancers_payouts1.payed_amount yandex_paid_freelancers, autoparks_payouts1.payed_amount yandex_paid_autoparks, wheely_data.sum_fare wheely_sum_fare, wheely_data.sum_comission wheely_sum_comission, wheely_data.sum_fines wheely_sum_fines, wheely_data.sum_boost wheely_sum_boost  FROM drivers ";
+	$query = "SELECT drivers.surname, drivers.firstname, drivers.patronymic, drivers.bank_rate, drivers.card_number, drivers.beneficiar, work_types.id group_id, work_types.name group_name, work_types.is_daily, work_types.is_park, work_types.is_own_park, work_types.uber_park_comission, work_types.is_park_driver_direct_paid, work_types.wheely_park_comission, drivers.id driver_id, uber_data.sum_fare uber_sum_fare, uber_data.sum_comission uber_sum_comission, uber_data.sum_cash uber_sum_cash, uber_data.sum_result uber_sum_result, uber_data.sum_boost uber_sum_boost, gett_data.sum_fare gett_sum_fare, gett_data.sum_comission gett_sum_comission, gett_data.sum_cash gett_sum_cash, gett_data.sum_result gett_sum_result, gett_data.sum_boost gett_sum_boost, weeks.id week_id, weekly_freelancers.uber_bonus, weekly_freelancers.asks, weekly_freelancers.debt, yandex_asks1.asks_amount yandex_asks, freelancers_payouts1.payed_amount_yandex yandex_paid_freelancers, freelancers_payouts2.payed_amount freelancer_paid, autoparks_payouts1.payed_amount park_paid, wheely_data.sum_fare wheely_sum_fare, wheely_data.sum_comission wheely_sum_comission, wheely_data.sum_fines wheely_sum_fines, wheely_data.sum_boost wheely_sum_boost  FROM drivers ";
 
 	$query .= " LEFT JOIN work_types ON work_types.id = drivers.work_type_id ";
 
@@ -84,19 +88,29 @@
 
 									ON drivers.id = yandex_asks1.driver_id ";
 
-	$query .= " LEFT JOIN ( SELECT SUM(amount) payed_amount, driver_id FROM freelancers_payouts 
+	$query .= " LEFT JOIN ( SELECT SUM(amount) payed_amount_yandex, driver_id FROM freelancers_payouts 
 	 													LEFT JOIN weeks ON weeks.start_date = '$week_start' AND weeks.end_date = '$week_finish' 
-														WHERE freelancers_payouts.week_id = weeks.id
+														WHERE freelancers_payouts.week_id = weeks.id AND
+																	payout_type_id = $DRIVER_YANDEX_PAYOUTS 
 														GROUP BY freelancers_payouts.driver_id) freelancers_payouts1 
 
 									ON drivers.id = freelancers_payouts1.driver_id ";
 
-	$query .= " LEFT JOIN ( SELECT SUM(amount) payed_amount, driver_id FROM autoparks_payouts 
+	$query .= " LEFT JOIN ( SELECT SUM(amount) payed_amount, driver_id FROM freelancers_payouts 
 	 													LEFT JOIN weeks ON weeks.start_date = '$week_start' AND weeks.end_date = '$week_finish' 
-														WHERE autoparks_payouts.week_id = weeks.id
-														GROUP BY autoparks_payouts.driver_id) autoparks_payouts1 
+														WHERE freelancers_payouts.week_id = weeks.id AND
+																	payout_type_id = $DRIVER_PAYOUTS 
+														GROUP BY freelancers_payouts.driver_id) freelancers_payouts2 
 
-									ON drivers.id = autoparks_payouts1.driver_id ";
+									ON drivers.id = freelancers_payouts2.driver_id ";
+
+	$query .= " LEFT JOIN ( SELECT SUM(amount) payed_amount, park_id FROM autoparks_payouts 
+	 													LEFT JOIN weeks ON weeks.start_date = '$week_start' AND weeks.end_date = '$week_finish' 
+														WHERE autoparks_payouts.week_id = weeks.id AND
+																	payout_type_id = $PARK_PAYOUTS 
+														GROUP BY autoparks_payouts.park_id) autoparks_payouts1 
+
+									ON drivers.work_type_id = autoparks_payouts1.park_id ";
 	
 	$query .= " LEFT JOIN weekly_freelancers ON drivers.id = weekly_freelancers.driver_id AND weekly_freelancers.week_id = weeks.id ";
 

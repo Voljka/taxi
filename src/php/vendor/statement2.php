@@ -432,7 +432,7 @@ foreach($bonuses as $cur){
 	file_put_contents('weeks_params.log', "\n Affected by select : " . $affected . "\n", FILE_APPEND);
 
 	if ($affected < 1){
-		$query_week = "INSERT INTO weekly_freelancers (week_id, driver_id, uber_bonus, yandex_cash, yandex_non_cash) VALUES($week_id," . $cur['driver_id'] . ", " . $cur['bonus'].", 0, 0) ";
+		$query_week = "INSERT INTO weekly_freelancers (week_id, driver_id, uber_bonus, debt, asks) VALUES($week_id," . $cur['driver_id'] . ", " . $cur['bonus'].", 0, 0) ";
 		file_put_contents('weeks_params.log', "\nNEW Week params: \n" . $query_week . "\n", FILE_APPEND);
 
 		$query_result = mysql_query($query_week);

@@ -66,7 +66,7 @@ function find_driverId_by_fullname($fullname){
 	return $result;
 }
  
-file_put_contents('wheely_import.sql', date("Y-m-d") . "\n");
+file_put_contents('wheely_import.sql', date("Y-m-d H:i:s") . "\n");
 
 $WHEELY = 3;
 $row = 1;
@@ -75,8 +75,8 @@ $TRIP_CARD = 3;
 
 $file = $_FILES['file'];
 
-// $xls = getXLS($$file['tmp_name']); 
-$xls = getXLS("wheely_sample.xlsx"); 
+$xls = getXLS($file['tmp_name']); 
+// $xls = getXLS("wheely_sample.xlsx"); 
 
 if (count($xls) > 1) {
 
@@ -102,7 +102,7 @@ if (count($xls) > 1) {
 		  $trip_ids[] = $row2['mediator_trip_id'];
 	 };
 
-	 $insert_query = "INSERT INTO trips_tmp (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, boost_non_commissionable, cash, comission, notes, driver_fullname, driver_phone, driver_id, result) VALUES ";
+	 $insert_query = "INSERT INTO trips (mediator_id, date_time, mediator_trip_id, payment_type_id, fare, boost_non_commissionable, cash, comission, notes, driver_fullname, driver_phone, driver_id, result) VALUES ";
 
 	 $bad_contacts = Array();
 	 $bad_contact_list = '';
@@ -160,8 +160,8 @@ if (count($xls) > 1) {
 	 		$cind++;
 	 }
 
-	 print_r($head);
-	 echo $insert_query . "<br>";
+	 // print_r($head);
+	 // echo $insert_query . "<br>";
 
 	 $rind = 0;
 
@@ -189,7 +189,7 @@ if (count($xls) > 1) {
 					$time .= " ". substr($row[$c_time], 11,2) . ":".  substr($row[$c_time], 14,2) . ":00";
 
 			 		$query .= " ($WHEELY, '" . $time ."', " . $row[$c_trip] . ", $TRIP_CARD, " . $row[$c_fare] . ", " . ($row[$c_tea] + $row[$c_parking]) . ", 0, " . ($row[$c_agent] + $row[$c_lic]) . ", '', '" . $row[$c_driver] . "', 9999999999," . $driverId. ", " . $fine . ")," ;
-			 		echo " ($WHEELY, '" . $time ."', " . $row[$c_trip] . ", $TRIP_CARD, " . $row[$c_fare] . ", " . ($row[$c_tea] + $row[$c_parking]) . ", 0, " . ($row[$c_agent] + $row[$c_lic]) . ", '', '" . $row[$c_driver] . "', 9999999999," . $driverId. ", " . $fine . "),";
+			 		// echo " ($WHEELY, '" . $time ."', " . $row[$c_trip] . ", $TRIP_CARD, " . $row[$c_fare] . ", " . ($row[$c_tea] + $row[$c_parking]) . ", 0, " . ($row[$c_agent] + $row[$c_lic]) . ", '', '" . $row[$c_driver] . "', 9999999999," . $driverId. ", " . $fine . "),";
 
 			 		$successfull_loads_count++;
 
@@ -205,7 +205,7 @@ if (count($xls) > 1) {
 	 	}
 	 }
 
-	 echo $insert_query. $query . " \n";
+	 // echo $insert_query. $query . " \n";
 
 	 file_put_contents('wheely_import.sql', "\n" . $insert_query. $query . " \n", FILE_APPEND);
 

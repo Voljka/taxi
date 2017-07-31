@@ -63,6 +63,12 @@ var app = angular
 	            	'content': importTemplate
 	            }
 	        })
+	        .state('wheely_load', {
+	            url: '/wheely_data_load',
+	            views: {
+	            	'content': importTemplate
+	            }
+	        })
 	        .state('uber_load', {
 	            url: '/uber_data_load',
 	            views: {

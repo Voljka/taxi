@@ -66156,6 +66156,11 @@ var app = angular.module('taxiApp', ['ui.router', 'ngRoute', 'driverModule', 'dr
 		views: {
 			'content': importTemplate
 		}
+	}).state('wheely_load', {
+		url: '/wheely_data_load',
+		views: {
+			'content': importTemplate
+		}
 	}).state('uber_load', {
 		url: '/uber_data_load',
 		views: {
@@ -66302,9 +66307,18 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 exports.numberSplitted = numberSplitted;
+exports.numberSplitted2 = numberSplitted2;
 function numberSplitted(num) {
 	num = Number(num).toFixed(2);
 	return String(num).replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ');
+}
+
+function numberSplitted2(num) {
+	num = Number(num).toFixed(2);
+	num = String(num).replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ');
+
+	num = num.replace('.', ',');
+	return num;
 }
 
 },{}],45:[function(require,module,exports){
@@ -66900,14 +66914,93 @@ function PayoutService($http) {
     current = selectedObject;
   }
 
+  function weekly_park(data) {
+
+    var url = API_SERVER + '/weekly_park.php?group_id=' + data.group_id + '&week_id=' + data.week_id;
+
+    return $http.get(url, { cache: false }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_freelancer(data) {
+
+    var url = API_SERVER + '/weekly_freelancer.php?driver_id=' + data.driver_id + '&week_id=' + data.week_id;
+
+    return $http.get(url, { cache: false }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_freelancer_add(data) {
+
+    return $http.post(API_SERVER + '/weekly_freelancer_add.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_freelancer_update(data) {
+    return $http.post(API_SERVER + '/weekly_freelancer_update.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_freelancer_remove(data) {
+    return $http.post(API_SERVER + '/weekly_freelancer_remove.php', { id: data.id }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_park_add(data) {
+
+    return $http.post(API_SERVER + '/weekly_park_add.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_park_update(data) {
+    return $http.post(API_SERVER + '/weekly_park_update.php', data).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
+  function weekly_park_remove(data) {
+    return $http.post(API_SERVER + '/weekly_park_remove.php', { id: data.id }).then(function (data) {
+      return data.data;
+    }).catch(function () {
+      return undefined;
+    });
+  }
+
   return {
     perRange: perRange,
     current: getCurrent,
     select: select,
     add: add,
     update: update,
-    remove: remove
-
+    remove: remove,
+    weekly_freelancer: weekly_freelancer,
+    weekly_park: weekly_park,
+    weekly_freelancer_add: weekly_freelancer_add,
+    weekly_freelancer_update: weekly_freelancer_update,
+    weekly_freelancer_remove: weekly_freelancer_remove,
+    weekly_park_add: weekly_park_add,
+    weekly_park_update: weekly_park_update,
+    weekly_park_remove: weekly_park_remove
   };
 }
 
@@ -68868,12 +68961,18 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
     if ($state.current.name == 'uber_load') {
         $scope.partner = "Uber";
     } else {
-        $scope.partner = "Gett";
+        if ($state.current.name == 'wheely_load') {
+            $scope.partner = "Wheely";
+            $scope.ext = ".xlsx";
+        } else {
+            $scope.partner = "Gett";
+            $scope.ext = ".csv";
+        }
     }
 
     $scope.sendFile = function () {
 
-        if ($scope.partner == "Uber" || $scope.partner == "Gett" && $scope.form.file.$valid && $scope.file) {
+        if ($scope.partner == "Uber" || $scope.partner == "Gett" && $scope.form.file.$valid && $scope.file || $scope.partner == "Wheely" && $scope.form.file.$valid && $scope.file) {
             $scope.upload($scope.file);
         }
     };
@@ -68896,10 +68995,17 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
                 $scope.isLoading = false;
             });
         } else {
-            partner = "get";
+
+            var url;
+
+            if ($state.current.name == 'wheely_load') {
+                url = "wheely_xls_parser.php";
+            } else {
+                url = "get_csv_parser.php";
+            }
 
             Upload.upload({
-                url: 'php/import/' + partner + '_csv_parser.php',
+                url: 'php/import/' + url,
                 data: { file: file }
             }).then(function (resp) {
                 console.log('Success ' + resp.config.data.file.name + 'uploaded');
@@ -68918,7 +69024,7 @@ function ImportCtrl($scope, $state, ImportService, Upload, Flash) {
 module.exports = ImportCtrl;
 
 },{}],71:[function(require,module,exports){
-module.exports = "<h3>Импорт данных {{ partner }}</h3><div class=row><form name=form><div class=\"btn btn-primary col-md-4\" ngf-select ng-model=file name=file ngf-pattern=\"'.csv'\" ngf-accept=\"'.csv'\" ngf-max-size=2MB ngf-min-height=100 ngf-resize=\"{width: 100, height: 100}\" ng-show=\"partner == 'Gett'\">Выберите файл</div><div class=col-md-4 ng-show=\"partner == 'Uber'\"><p><input ng-model=currentUberReport type=radio ng-value=1> Загрузить текущую ведомость</p><p><input ng-model=currentUberReport type=radio ng-value=0> Предыдущую ведомсть</p></div><div class=col-md-4><button class=\"btn btn-primary\" ng-click=sendFile(this)>Загрузить</button></div></form></div><div ng-show=isLoading class=row><div class=col-md-12><center><h1>Идет загрузка данных с Uber</h1></center></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div>";
+module.exports = "<h3>Импорт данных {{ partner }}</h3><div class=row><form name=form><div class=\"btn btn-primary col-md-4\" ngf-select ng-model=file name=file ngf-pattern=\"'{{ext}}'\" ngf-accept=\"'{{ext}}'\" ngf-max-size=2MB ngf-min-height=100 ngf-resize=\"{width: 100, height: 100}\" ng-show=\"partner == 'Gett' || partner == 'Wheely'\">Выберите файл</div><div class=col-md-4 ng-show=\"partner == 'Uber'\"><p><input ng-model=currentUberReport type=radio ng-value=1> Загрузить текущую ведомость</p><p><input ng-model=currentUberReport type=radio ng-value=0> Предыдущую ведомсть</p></div><div class=col-md-4><button class=\"btn btn-primary\" ng-click=sendFile(this)>Загрузить</button></div></form></div><div ng-show=isLoading class=row><div class=col-md-12><center><h1>Идет загрузка данных с Uber</h1></center></div></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div>";
 
 },{}],72:[function(require,module,exports){
 'use strict';
@@ -69909,8 +70015,11 @@ var _number = require('../../libs/number');
 
 var controller = require('./weekly-int-ctrl');
 var tripService = require('../../services/TripService');
+var payoutService = require('../../services/PayoutService');
 
-angular.module('weeklyIntModule', []).config(['$httpProvider', function ($httpProvider) {
+require('angular-flash-alert');
+
+angular.module('weeklyIntModule', ['ngFlash']).config(['$httpProvider', function ($httpProvider) {
   $httpProvider.defaults.withCredentials = true;
 }]).run(function ($rootScope) {
   $rootScope.$on('$stateChangeError', function () {
@@ -69924,6 +70033,10 @@ angular.module('weeklyIntModule', []).config(['$httpProvider', function ($httpPr
   return function (price) {
     return (0, _number.numberSplitted)(Number(price));
   };
+}).filter('asPrice2', function () {
+  return function (price) {
+    return (0, _number.numberSplitted2)(Number(price));
+  };
 }).filter('getObjName', function () {
   return function (obj) {
     console.log(obj);
@@ -69933,7 +70046,7 @@ angular.module('weeklyIntModule', []).config(['$httpProvider', function ($httpPr
   return function (obj) {
     return Object.values(obj)[0];
   };
-}).factory('TripService', ['$http', tripService]).controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', controller]);
+}).factory('TripService', ['$http', tripService]).factory('PayoutService', ['$http', payoutService]).controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', 'PayoutService', 'Flash', controller]);
 
 module.exports = {
   template: require('./weekly-int.tpl'),
@@ -69948,16 +70061,24 @@ module.exports = {
   controller: 'WeeklyIntCtrl'
 };
 
-},{"../../libs/date":43,"../../libs/number":44,"../../services/TripService":57,"./weekly-int-ctrl":83,"./weekly-int.tpl":84}],83:[function(require,module,exports){
+},{"../../libs/date":43,"../../libs/number":44,"../../services/PayoutService":54,"../../services/TripService":57,"./weekly-int-ctrl":83,"./weekly-int.tpl":84,"angular-flash-alert":2}],83:[function(require,module,exports){
 'use strict';
 
 var _lodash = require('lodash');
 
 var _date = require('../../libs/date');
 
-function WeeklyIntCtrl($scope, $state, TripService) {
+function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
     calcDefaultReportDates();
+
+    var PARK_PAYOUTS = 1,
+        DRIVER_PAYOUTS = 2;
+    var PARK_PAYOUT = 13,
+        DRIVER_PAYOUT = 12;
+    var payoutWindowMode, currentWeekId, currentParkId, currentDriverId;
+
+    $scope.currentDriver = undefined;
 
     function calcDefaultReportDates() {
         var period = (0, _date.calcWeekStartAndEnd)();
@@ -69983,6 +70104,12 @@ function WeeklyIntCtrl($scope, $state, TripService) {
     var previousPark = [];
     var selectedParkDriverObj, selectedFreelancerDriverObj;
 
+    $scope.selectParkRow = function (o) {
+        if (o[0].group_id != 110) {
+            $scope.selectedPark = true;
+        }
+    };
+
     function adjustData(data) {
         data.forEach(function (o) {
             o.uber_sum_fare = o.uber_sum_fare ? Number(o.uber_sum_fare) : 0;
@@ -70004,21 +70131,24 @@ function WeeklyIntCtrl($scope, $state, TripService) {
             o.wheely_sum_comission = o.wheely_sum_comission ? Number(o.wheely_sum_comission) : 0;
             o.wheely_sum_fines = o.wheely_sum_fines ? Number(o.wheely_sum_fines) : 0;
 
+            o.asks = o.asks ? Number(o.asks) : 0;
+            o.debt = o.debt ? Number(o.debt) : 0;
+
             o.uber_park_comission = Number(o.uber_park_comission);
             o.wheely_park_comission = Number(o.wheely_park_comission);
             o.bank_rate = Number(o.bank_rate);
             o.uber_bonus = o.uber_bonus ? Number(o.uber_bonus) : 0;
 
-            o.payed_to_driver = o.payed_to_driver ? Number(o.payed_to_driver) : 0;
-            o.payed_to_park = o.payed_to_park ? Number(o.payed_to_park) : 0;
+            o.park_paid = o.park_paid ? Number(o.park_paid) : 0;
+            o.payed_to_driver = o.freelancer_paid ? Number(o.freelancer_paid) : 0;
 
-            o.yandex_asks = o.yandex_asks ? Number(o.yandex_asks) : 0;
+            //o.yandex_asks = o.yandex_asks ? Number(o.yandex_asks) : 0;
+            o.yandex_asks = o.asks;
 
             o.yandex_paid_freelancers = o.yandex_paid_freelancers ? Number(o.yandex_paid_freelancers) : 0;
             o.yandex_paid_autoparks = o.yandex_paid_autoparks ? Number(o.yandex_paid_autoparks) : 0;
 
             o.yandex_paid = o.yandex_paid_freelancers + o.yandex_paid_autoparks;
-            o.yandex_residual = o.yandex_asks - o.yandex_paid;
 
             o.card_number = bankCardBellView(String(o.card_number));
         });
@@ -70027,6 +70157,8 @@ function WeeklyIntCtrl($scope, $state, TripService) {
     }
 
     function recalcDriverTotals(obj) {
+
+        obj.yandex_residual = Number((obj.yandex_asks * (1 - 0.03)).toFixed(2)) - obj.yandex_paid;
 
         obj.wheely_total = obj.wheely_sum_fare - obj.wheely_sum_comission - obj.wheely_sum_fines + obj.wheely_sum_boost;
         if (obj.is_park == 1) {
@@ -70043,7 +70175,11 @@ function WeeklyIntCtrl($scope, $state, TripService) {
             if (obj.is_own_park == 1) {
                 obj.payback = 0;
             } else {
-                obj.payback = Number((obj.uber_total_netto * 0.02).toFixed(2)) + Number((obj.gett_total * 0.02).toFixed(2)) + Number((obj.wheely_total * 0.02).toFixed(2));
+                if (obj.group_id == 110 || obj.group_id == 109) {
+                    obj.payback = 0;
+                } else {
+                    obj.payback = Number((obj.uber_total_netto * 0.02).toFixed(2)) + Number((obj.gett_total * 0.02).toFixed(2)) + Number((obj.wheely_total * 0.02).toFixed(2));
+                }
             }
         } else {
             obj.payback = 0;
@@ -70053,7 +70189,7 @@ function WeeklyIntCtrl($scope, $state, TripService) {
 
         obj.bank_comission = Number((obj.total_payable * obj.bank_rate).toFixed(2));
         obj.total_to_pay = Number((obj.total_payable * (1 - obj.bank_rate / 100)).toFixed(2));
-        obj.residual_to_pay = obj.total_to_pay - obj.payed_to_driver;
+        obj.residual_to_pay = obj.total_to_pay - obj.payed_to_driver - obj.debt;
     }
 
     $scope.sumBy = _lodash.sumBy;
@@ -70080,44 +70216,139 @@ function WeeklyIntCtrl($scope, $state, TripService) {
         var o = selectedFreelancerDriverObj;
 
         var data = {
-            driver_id: o.driver_id,
-            week_id: o.week_id,
-            yandex_cash: o.yandex_cash,
-            yandex_non_cash: o.yandex_non_cash
+            data: [{
+                driver_id: o.driver_id,
+                week_id: o.week_id,
+                asks: o.yandex_asks,
+                debt: o.debt
+            }]
         };
 
         saveWeeklyData(data).then(function (result) {
-            console.log('weekly data for freelancer successfully saved!');
+            // console.log('weekly data for freelancer successfully saved!')
+
         });
     };
 
-    $scope.saveParkDriverData = function () {
+    $scope.saveParkDriverData = function (park) {
         var o = selectedParkDriverObj;
 
-        var data = {
-            driver_id: o.driver_id,
-            week_id: o.week_id,
-            yandex_cash: o.yandex_cash,
-            yandex_non_cash: o.yandex_non_cash
-        };
+        var data = [];
+        park.forEach(function (o) {
+            data.push({
+                driver_id: o.driver_id,
+                week_id: o.week_id,
+                asks: o.yandex_asks,
+                debt: o.debt
+            });
+        });
 
-        saveWeeklyData(data).then(function (result) {
-            console.log('weekly data for park driver successfully saved!');
+        saveWeeklyData({ data: data }).then(function (result) {
+            // console.log('weekly data for park driver successfully saved!')
+
         });
     };
 
     function saveWeeklyData(data) {
-        console.log('Data in function');
-        console.log(data);
 
         return TripService.saveWeeklyData(data);
     }
 
-    $scope.showParkPayouts = function () {};
+    function adjustPayouts(payouts) {
+        payouts = payouts.map(function (o) {
+            o.amount = Number(o.amount);
+            return o;
+        });
+        return payouts;
+    }
 
-    $scope.showDriverPayouts = function () {};
+    $scope.showPayoutsToPark = function (park) {
+        payoutWindowMode = PARK_PAYOUTS;
 
-    $scope.showDriverPaybacks = function () {};
+        var data = {
+            group_id: park[0].group_id,
+            week_id: park[0].week_id,
+            bank_rate: park[0].bank_rate
+
+        };
+
+        currentParkId = park[0].group_id;
+
+        if (data.group_id == 9) {
+            $scope.totalCharged = (0, _lodash.sumBy)(park, 'total_to_pay') + $scope.rafael_payback * (1 - data.bank_rate);
+        } else {
+            $scope.totalCharged = (0, _lodash.sumBy)(park, 'total_to_pay');
+        }
+
+        $scope.totalCharged = $scope.totalCharged - (0, _lodash.sumBy)(park, 'debt');
+
+        updateParkPayouts(data);
+    };
+
+    function updateParkPayouts(data) {
+        return PayoutService.weekly_park(data).then(function (payouts) {
+            console.log('payouts');
+            console.log(payouts);
+
+            payouts = adjustPayouts(payouts);
+
+            $scope.payouts = payouts;
+            $scope.totalPayouts = (0, _lodash.sumBy)(payouts, 'amount');
+
+            $scope.residualToPay = Number(($scope.totalCharged - $scope.totalPayouts).toFixed(2));
+
+            $scope.isShowingPayouts = true;
+        });
+    }
+
+    $scope.showPayoutsToDriver = function (isPark) {
+
+        payoutWindowMode = DRIVER_PAYOUTS;
+
+        var driver;
+        if (isPark) {
+            driver = selectedParkDriverObj;
+            $scope.currentDriver = selectedParkDriverObj;
+        } else {
+            driver = selectedFreelancerDriverObj;
+            $scope.currentDriver = selectedFreelancerDriverObj;
+        }
+
+        var data = {
+            driver_id: driver.driver_id,
+            week_id: driver.week_id,
+            total_to_pay: driver.total_to_pay
+        };
+
+        $scope.totalToPay = driver.total_to_pay;
+
+        currentDriverId = driver.driver_id;
+
+        updateDriverPayouts(data);
+    };
+
+    function updateDriverPayouts(data) {
+        return PayoutService.weekly_freelancer(data).then(function (payouts) {
+            console.log('payouts');
+            console.log(payouts);
+
+            payouts = adjustPayouts(payouts);
+
+            $scope.payouts = payouts;
+
+            $scope.totalPayouts = (0, _lodash.sumBy)(payouts, 'amount');
+
+            $scope.totalCharged = $scope.totalToPay;
+            $scope.residualToPay = Number(($scope.totalToPay - $scope.totalPayouts).toFixed(2));
+
+            $scope.isShowingPayouts = true;
+        });
+    }
+
+    $scope.closePayouts = function () {
+        $scope.isShowingPayouts = false;
+        $scope.makeSummary();
+    };
 
     $scope.selectParkDriver = function (o, ar) {
         if (o.selected) {
@@ -70169,7 +70400,9 @@ function WeeklyIntCtrl($scope, $state, TripService) {
 
                 result = adjustData(result);
 
-                console.log(result);
+                currentWeekId = result[0].week_id;
+
+                // console.log(result);
                 var free7_0 = (0, _lodash.filter)(result, function (o) {
                     return o.is_park == 0;
                 });
@@ -70184,6 +70417,20 @@ function WeeklyIntCtrl($scope, $state, TripService) {
                 });
 
                 parks = calcParkData(parks);
+
+                var res = 0;
+
+                parks.forEach(function (o) {
+                    if (o.group_id == 109) {
+                        // console.log(o.surname + " : " + Number(( (o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02).toFixed(2)));
+                        res += Number(((o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02).toFixed(2));
+                    }
+                });
+
+                $scope.rafael_payback = res;
+
+                // console.log('$scope.rafael_payback');
+                // console.log($scope.rafael_payback);                         
 
                 $scope.parks = (0, _lodash.groupBy)(parks, function (o) {
                     return o.group_name;
@@ -70200,8 +70447,8 @@ function WeeklyIntCtrl($scope, $state, TripService) {
     function calcFreelanceData(dataset) {
 
         var result = (0, _lodash.map)(dataset, function (o) {
-            o.uber_total = Number(o.uber_sum_fare) + Number(o.uber_sum_boost) + Number(o.uber_bonus);
-            o.uber_total_netto = Number(o.uber_sum_fare) + Number(o.uber_sum_comission) + Number(o.uber_sum_boost) + Number(o.uber_bonus);
+            o.uber_total = Number(o.uber_sum_fare) + Number(o.uber_sum_boost) + Number(o.uber_bonus) + o.uber_correction;
+            o.uber_total_netto = Number(o.uber_sum_fare) + Number(o.uber_sum_comission) + Number(o.uber_sum_boost) + Number(o.uber_bonus) + o.uber_correction;
             o.uber_total_interest = Number((o.uber_total_netto * 0.05).toFixed(2));
             o.uber_total_to_pay = Number((o.uber_total_netto - o.uber_total_interest - Number(o.uber_sum_cash)).toFixed(2));
 
@@ -70209,7 +70456,7 @@ function WeeklyIntCtrl($scope, $state, TripService) {
             o.gett_total_commission = Number((o.gett_total * 0.177).toFixed(2));
             o.gett_total_interest = Number((o.gett_total * 0.033).toFixed(2));
             o.gett_total_cash = Number(o.gett_sum_cash);
-            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash;
+            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash + o.gett_correction;
 
             recalcDriverTotals(o);
             return o;
@@ -70222,8 +70469,8 @@ function WeeklyIntCtrl($scope, $state, TripService) {
 
         var result = (0, _lodash.map)(dataset, function (o) {
 
-            o.uber_total = o.uber_sum_fare + o.uber_sum_comission + o.uber_sum_boost + o.uber_bonus;
-            o.uber_total_netto = o.uber_sum_fare + o.uber_sum_comission + o.uber_sum_boost + o.uber_bonus;
+            o.uber_total = o.uber_sum_fare + o.uber_sum_comission + o.uber_sum_boost + o.uber_bonus + o.uber_correction;
+            o.uber_total_netto = o.uber_sum_fare + o.uber_sum_comission + o.uber_sum_boost + o.uber_bonus + o.uber_correction;
 
             if (o.is_own_park == 1) {
                 o.uber_total_interest = 0;
@@ -70241,7 +70488,7 @@ function WeeklyIntCtrl($scope, $state, TripService) {
             }
 
             o.gett_total_cash = o.gett_sum_cash;
-            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash;
+            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash + o.gett_correction;
 
             recalcDriverTotals(o);
             return o;
@@ -70255,7 +70502,7 @@ function WeeklyIntCtrl($scope, $state, TripService) {
     };
 
     $scope.parkToXLS = function (table) {
-        console.log(table);
+        // console.log(table);
         tableToExcel(table, 'Calc');
     };
 
@@ -70288,12 +70535,116 @@ function WeeklyIntCtrl($scope, $state, TripService) {
             window.location.href = uri + base64(format(template, ctx));
         };
     }();
+
+    var message, flashWindow;
+
+    $scope.checkPayoutEnter = function (keyEvent, payout) {
+        if (keyEvent.which == 13) {
+            console.log('existing payouts', 'charged');
+            console.log((0, _lodash.sumBy)($scope.payouts, 'amount'), $scope.totalCharged);
+
+            if ((0, _lodash.sumBy)($scope.payouts, 'amount') > $scope.totalCharged) {
+                message = '<strong>Выплаты не могут превышать сумму к выплате!</strong>';
+                flashWindow = Flash.create('danger', message, 5000, { class: 'custom-class', id: 'custom-id' }, true);
+            } else {
+                payout.editing = false;
+                $scope.isPayoutEditing = false;
+                payout.selected = false;
+
+                // !!!!!!!!!! Update on server
+                if (payoutWindowMode == PARK_PAYOUTS) {
+                    if (payout.new) {
+                        PayoutService.weekly_park_add(payout).then(function (data) {
+                            console.log('park payout added!');
+                            updateParkPayouts(payout);
+                        });
+                    } else {
+                        PayoutService.weekly_park_update(payout).then(function (data) {
+                            console.log('park payout updated!');
+                            updateParkPayouts(payout);
+                        });
+                    }
+                } else {
+
+                    if (payout.new) {
+                        PayoutService.weekly_freelancer_add(payout).then(function (data) {
+                            console.log('freelancer payout added!');
+                            updateDriverPayouts(payout);
+                        });
+                    } else {
+                        PayoutService.weekly_freelancer_update(payout).then(function (data) {
+                            console.log('freelancer payout updated!');
+                            updateDriverPayouts(payout);
+                        });
+                    }
+                }
+            }
+        }
+    };
+
+    $scope.addPayout = function () {
+        var newPayout = {
+            amount: $scope.residualToPay,
+            paid_at: (0, _date.formattedToSave)(new Date()),
+            editing: true,
+            selected: false,
+            new: true,
+            id: getCounter(),
+            week_id: currentWeekId
+        };
+
+        if (payoutWindowMode == PARK_PAYOUTS) {
+            newPayout.group_id = currentParkId;
+            newPayout.payout_type_id = PARK_PAYOUT;
+        } else {
+            newPayout.driver_id = currentDriverId;
+            newPayout.payout_type_id = DRIVER_PAYOUT;
+        }
+
+        $scope.isPayoutEditing = true;
+
+        $scope.payouts.push(newPayout);
+    };
+
+    $scope.updatePayout = function (payout) {
+        payout.editing = true;
+        $scope.isPayoutEditing = true;
+        payout.selected = false;
+    };
+
+    $scope.deletePayout = function (payout) {
+        $scope.payouts = (0, _lodash.filter)($scope.payouts, function (o) {
+            return o.id != payout.id;
+        });
+
+        if (payoutWindowMode == PARK_PAYOUTS) {
+            PayoutService.weekly_park_remove(payout).then(function (data) {
+                console.log('park payout removed!');
+
+                updateParkPayouts(payout);
+            });
+        } else {
+            PayoutService.weekly_freelancer_remove(payout).then(function (data) {
+                console.log('freelancer payout removed!');
+
+                updateDriverPayouts(payout);
+            });
+        }
+    };
+
+    function recalcPayouts() {}
+
+    var counter = 10000000000;
+
+    function getCounter() {
+        return counter++;
+    }
 }
 
 module.exports = WeeklyIntCtrl;
 
 },{"../../libs/date":43,"lodash":38}],84:[function(require,module,exports){
-module.exports = "<div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата начала периода</span> <input class=form-control ng-model=start type=\"date\"></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата окончания периода</span> <input class=form-control ng-model=end type=\"date\"></div></div><div class=col-md-4><button class=\"btn btn-primary\" ng-click=makeSummary()>Сформировать</button></div></div><div class=row><button class=\"btn btn-primary\" ng-click=saveFreelancerData() ng-if=selectedFreelancer>Сохранить расчет F</button> <button class=\"btn btn-primary\" ng-click=showDriverPayouts() ng-if=selectedFreelancer>Вылпаты водителю</button></div><div class=row><h3>Фрилансеры 7/0</h3><table class=\"table table-bordered freelance-table\" id=table-freelancers><thead><tr><td rowspan=2>ФИО</td><td colspan=4 class=uber_column>Uber</td><td colspan=5 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br>водителю</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=80px class=uber_column>Доход</td><td width=80px class=uber_column>Cash</td><td width=80px class=uber_column>Нам</td><td width=80px class=uber_column>К выдаче</td><td width=80px class=gett_column>Доход</td><td width=80px class=gett_column>Интерес Get<br>(17.7%)</td><td width=80px class=gett_column>Наш Интерес<br>(3.3%)</td><td width=80px class=gett_column>Нал</td><td width=80px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr></thead><tfoot><tr><td rowspan=2>ФИО</td><td colspan=4 class=uber_column>Uber</td><td colspan=5 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br>водителю</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=100px class=uber_column>Cash</td><td width=80px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Интерес Get<br>(17.7%)</td><td width=80px class=gett_column>Наш Интерес<br>(3.3%)</td><td width=100px class=gett_column>Нал</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr><tr class=total-row><td colspan=21></td><td class=digit>{{sumBy(free7_0,'total_to_pay') | asPrice }}</td><td></td><td class=digit>{{sumBy(free7_0,'residual_to_pay') | asPrice }}</td><td></td></tr></tfoot><tbody ng-if=\"free7_0.length > 0\"><tr ng-repeat=\"el in free7_0\" ng-class=\"el.selected ? 'item-selected' : ''\"><td ng-click=selectFreeDriver(el)>{{ el.surname }} {{el.firstname}} {{el.patronymic}}</td><td class=\"digit uber_column\">{{ el.uber_total_netto | asPrice }}</td><td class=\"digit uber_column\">{{ el.uber_sum_cash | asPrice }}</td><td class=\"digit uber_column\">{{ el.uber_total_interest | asPrice }}</td><td class=\"digit uber_column\">{{ el.uber_total_to_pay | asPrice }}</td><td class=\"digit gett_column\">{{ el.gett_total | asPrice }}</td><td class=\"digit gett_column\">{{ el.gett_total_commission | asPrice }}</td><td class=\"digit gett_column\">{{ el.gett_total_interest | asPrice }}</td><td class=\"digit gett_column\">{{ el.gett_total_cash | asPrice }}</td><td class=\"digit gett_column\">{{ el.gett_total_to_pay | asPrice }}</td><td class=\"digit yandex_column\">{{ el.yandex_asks | asPrice }}</td><td class=\"digit yandex_column\">{{ el.yandex_paid | asPrice }}</td><td class=\"digit yandex_column\">{{ el.yandex_residual | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_fare | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_comission | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_boost | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_fines | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_interest | asPrice }}</td><td class=\"digit wheely_column\">{{ el.wheely_to_pay | asPrice }}</td><td class=digit><b>{{ el.total_payable | asPrice }}</b></td><td class=digit><b>{{ el.bank_comission | asPrice }}</b></td><td class=digit><b>{{ el.total_to_pay | asPrice }}</b></td><td class=digit><b>{{ el.payed_to_driver | asPrice }}</b></td><td class=digit><b>{{ el.residual_to_pay | asPrice }}</b></td><td class=digit><b>{{ (el.card_number == \"0\" ? \"\" : el.card_number) }}<br>{{ el.beneficiar }}</b></td></tr></tbody></table></div><div class=row><button class=\"btn btn-primary\" ng-click=saveParkDriverData() ng-if=selectedParkDriver>Сохранить расчет P</button> <button class=\"btn btn-primary\" ng-click=showDriverPaybacks() ng-if=\"selectedParkDriver && withPaybacks\">Выплаты откатов</button> <button class=\"btn btn-primary\" ng-click=showParkPayouts() ng-if=selectedParkDriver>Выплаты парку</button></div><div class=row><h3>Автопарки</h3><table class=\"table table-condensed table-bordered table-autoparks\" id=table{{park[0].group_id}} ng-repeat=\"park in parks\"><thead><tr><td rowspan=2><b>{{park[0].group_name}}</b><br><button class=\"btn btn-primary\" ng-click=\"parkToXLS('table'+park[0].group_id)\">Сохранить в XLS</button></td><td colspan=4 class=uber_column>Uber</td><td colspan=5 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td width=80px rowspan=2>Заработок<br>водителя</td><td width=90px rowspan=2>Откат,<br>2%</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br></td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=100px class=uber_column>Cash</td><td width=110px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Комиссия</td><td width=80px class=gett_column>Нам,3.3%</td><td width=100px class=gett_column>Нал</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td></tr></thead><tfoot><tr><td rowspan=2><b>{{park[0].group_name}}</b></td><td colspan=4 class=uber_column>Uber</td><td colspan=5 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td width=80px rowspan=2>Заработок<br>водителя</td><td width=90px rowspan=2>Откат,<br>2%</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br></td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=100px class=uber_column>Cash</td><td width=110px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Комиссия</td><td width=80px class=gett_column>Нам,3.3%</td><td width=100px class=gett_column>Нал</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td></tr><tr class=total-row><td colspan=13></td><td class=digit>{{sumBy(park,'total_without_payback') | asPrice }}</td><td></td><td class=digit>{{sumBy(park,'total_payable') | asPrice }}</td><td></td><td class=digit>{{sumBy(park,'total_to_pay') | asPrice }}</td><td></td><td class=digit>{{sumBy(park,'residual_to_pay') | asPrice }}</td><td></td></tr></tfoot><tboby><tr ng-repeat=\"driv in park\" ng-class=\"driv.selected ? 'item-selected' : ''\"><td ng-click=\"selectParkDriver(driv, park)\">{{ driv.surname }} {{driv.firstname}} {{driv.patronymic}}</td><td class=\"digit uber_column\">{{ driv.uber_total_netto | asPrice }}</td><td class=\"digit uber_column\">{{ driv.uber_sum_cash | asPrice }}</td><td class=\"digit uber_column\">{{ driv.uber_total_interest | asPrice }}<br>({{ driv.uber_park_comission * 100 }} %)</td><td class=\"digit uber_column\">{{ driv.uber_total_to_pay | asPrice }}</td><td class=\"digit gett_column\">{{ driv.gett_total | asPrice }}</td><td class=\"digit gett_column\">{{ driv.gett_total_commission | asPrice }}</td><td class=\"digit gett_column\">{{ driv.gett_total_interest | asPrice }}</td><td class=\"digit gett_column\">{{ driv.gett_total_cash | asPrice }}</td><td class=\"digit gett_column\">{{ driv.gett_total_to_pay | asPrice }}</td><td class=\"digit yandex_column\">{{ driv.yandex_asks | asPrice }}</td><td class=\"digit yandex_column\">{{ driv.yandex_paid | asPrice }}</td><td class=\"digit yandex_column\">{{ driv.yandex_residual | asPrice }}</td><td class=digit><b>{{ driv.total_without_payback | asPrice }}</b></td><td class=digit><b>{{ driv.payback | asPrice }}</b></td><td class=digit><b>{{ driv.total_payable | asPrice }}</b></td><td class=digit><b>{{ driv.bank_comission | asPrice }}</b></td><td class=digit><b>{{ driv.total_to_pay | asPrice }}</b></td><td class=digit><b>{{ driv.payed_to_driver | asPrice }}</b></td><td class=digit><b>{{ driv.residual_to_pay | asPrice }}</b></td><td class=digit><b>{{ (driv.card_number == \"0\" ? \"\" : driv.card_number) }}<br>{{ driv.beneficiar }}</b></td></tr></tboby></table></div>";
+module.exports = "<div class=row><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата начала периода</span> <input class=form-control ng-model=start type=\"date\"></div></div><div class=col-md-4><div class=input-group><span class=input-group-addon>Дата окончания периода</span> <input class=form-control ng-model=end type=\"date\"></div></div><div class=col-md-4><button class=\"btn btn-primary\" ng-click=makeSummary()>Сформировать</button></div></div><div class=row><button class=\"btn btn-primary\" ng-click=saveFreelancerData() ng-if=selectedFreelancer>Сохранить расчет<button class=\"btn btn-primary\" ng-click=showPayoutsToDriver(false) ng-if=selectedFreelancer>Вылпаты водителю</button></button></div><div class=row><h3>Фрилансеры 7/0</h3><table class=\"table table-bordered freelance-table\" id=table-freelancers><thead><tr><td rowspan=2>ФИО</td><td colspan=5 class=uber_column>Uber</td><td colspan=6 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br>водителю</td><td width=80px rowspan=2>Долг</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=80px class=uber_column>Доход</td><td width=80px class=uber_column>в т.ч.<br>Корр-вки</td><td width=80px class=uber_column>Cash</td><td width=80px class=uber_column>Нам</td><td width=80px class=uber_column>К выдаче</td><td width=80px class=gett_column>Доход</td><td width=80px class=gett_column>Интерес Get<br>(17.7%)</td><td width=80px class=gett_column>Наш Интерес<br>(3.3%)</td><td width=80px class=gett_column>Нал</td><td width=80px class=gett_column>Корр-вки</td><td width=80px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr></thead><tfoot><tr><td rowspan=2>ФИО</td><td colspan=5 class=uber_column>Uber</td><td colspan=6 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br>водителю</td><td width=80px rowspan=2>Долг</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=80px class=uber_column>в т.ч.<br>Корр-вки</td><td width=100px class=uber_column>Cash</td><td width=80px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Интерес Get<br>(17.7%)</td><td width=80px class=gett_column>Наш Интерес<br>(3.3%)</td><td width=100px class=gett_column>Нал</td><td width=80px class=gett_column>Корр-вки</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr><tr class=total-row><td colspan=23></td><td class=digit>{{sumBy(free7_0,'total_to_pay') | asPrice2 }}</td><td></td><td></td><td class=digit>{{sumBy(free7_0,'residual_to_pay') | asPrice2 }}</td><td></td></tr></tfoot><tbody ng-if=\"free7_0.length > 0\"><tr ng-repeat=\"el in free7_0\" ng-class=\"el.selected ? 'item-selected' : ''\"><td ng-click=selectFreeDriver(el)>{{ el.surname }} {{el.firstname}} {{el.patronymic}}</td><td class=\"digit uber_column\">{{ el.uber_total_netto | asPrice2 }}</td><td class=\"digit uber_column\">{{ el.uber_correction | asPrice2 }}</td><td class=\"digit uber_column\">{{ el.uber_sum_cash | asPrice2 }}</td><td class=\"digit uber_column\">{{ el.uber_total_interest | asPrice2 }}</td><td class=\"digit uber_column\">{{ el.uber_total_to_pay | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_total | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_total_commission | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_total_interest | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_total_cash | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_correction | asPrice2 }}</td><td class=\"digit gett_column\">{{ el.gett_total_to_pay | asPrice2 }}</td><td class=\"digit yandex_column\"><input type=number ng-model=el.yandex_asks class=numberInput ng-change=recalcDriverTotals(el)></td><td class=\"digit yandex_column\">{{ el.yandex_paid | asPrice2 }}</td><td class=\"digit yandex_column\">{{ el.yandex_residual | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_fare | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_comission | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_boost | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_sum_fines | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_interest | asPrice2 }}</td><td class=\"digit wheely_column\">{{ el.wheely_to_pay | asPrice2 }}</td><td class=digit><b>{{ el.total_payable | asPrice2 }}</b></td><td class=digit><b>{{ el.bank_comission | asPrice2 }}</b></td><td class=digit><b>{{ el.total_to_pay | asPrice2 }}</b></td><td class=digit><b>{{ el.payed_to_driver | asPrice2 }}</b></td><td class=digit><input type=number ng-model=el.debt class=numberInput ng-change=recalcDriverTotals(el)></td><td class=digit><b>{{ el.residual_to_pay | asPrice2 }}</b></td><td class=digit><b>{{ (el.card_number == \"0\" ? \"\" : el.card_number) }}<br>{{ el.beneficiar }}</b></td></tr></tbody></table></div><div class=row><h3>Автопарки</h3><table class=\"table table-condensed table-bordered table-autoparks\" id=table{{park[0].group_id}} ng-repeat=\"park in parks\"><thead><tr ng-if=\"selectedParkDriver || park[0].is_park_driver_direct_paid=='0'\"><td colspan=31 style=\"text-align: left\"><button class=\"btn btn-primary\" ng-click=saveParkDriverData(park) ng-if=\"park[0].is_park_driver_direct_paid=='0'\">Сохранить расчет</button> <button class=\"btn btn-primary\" ng-click=showPayoutsToPark(park) ng-if=\"park[0].is_park_driver_direct_paid=='0'\">Выплаты парку</button> <button class=\"btn btn-primary\" ng-click=showPayoutsToDriver(true) ng-if=\"selectedParkDriver && park[0].is_park_driver_direct_paid == '1'\">Выплаты водителю</button></td></tr><tr><td rowspan=2><b>{{park[0].group_name}}</b><br><button class=\"btn btn-primary\" ng-click=\"parkToXLS('table'+park[0].group_id)\">Сохранить в XLS</button></td><td colspan=5 class=uber_column>Uber</td><td colspan=6 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Заработок<br>водителя</td><td width=90px rowspan=2>Откат,<br>2%</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br></td><td width=80px rowspan=2>Долг</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=80px class=uber_column>в т.ч.<br>Корр-вки</td><td width=100px class=uber_column>Cash</td><td width=110px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Комиссия</td><td width=80px class=gett_column>Нам,3.3%</td><td width=100px class=gett_column>Нал</td><td width=80px class=gett_column>Корр-вки</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr></thead><tfoot><tr><td rowspan=2><b>{{park[0].group_name}}</b></td><td colspan=5 class=uber_column>Uber</td><td colspan=6 class=gett_column>Gett</td><td colspan=3 class=yandex_column>Yandex</td><td colspan=6 class=wheely_column>Wheely</td><td width=80px rowspan=2>Заработок<br>водителя</td><td width=90px rowspan=2>Откат,<br>2%</td><td width=80px rowspan=2>Всего,<br>начислено</td><td width=80px rowspan=2>Комиссия<br>банка</td><td width=80px rowspan=2>Всего,<br>к выдаче</td><td width=80px rowspan=2>Выплачено<br></td><td width=80px rowspan=2>Долг</td><td width=80px rowspan=2>Остаток<br>к оплате</td><td width=150px rowspan=2>Карта</td></tr><tr><td width=110px class=uber_column>Доход</td><td width=80px class=uber_column>в т.ч.<br>Корр-вки</td><td width=100px class=uber_column>Cash</td><td width=110px class=uber_column>Нам</td><td width=110px class=uber_column>К выдаче</td><td width=110px class=gett_column>Доход</td><td width=80px class=gett_column>Комиссия</td><td width=80px class=gett_column>Нам,3.3%</td><td width=100px class=gett_column>Нал</td><td width=80px class=gett_column>Корр-вки</td><td width=110px class=gett_column>К выдаче</td><td width=80px class=yandex_column>Запросы</td><td width=80px class=yandex_column>Оплачено</td><td width=80px class=yandex_column>К оплате</td><td width=80px class=wheely_column>Тариф</td><td width=80px class=wheely_column>Комиссия</td><td width=80px class=wheely_column>Чаевые и<br>пароковка</td><td width=80px class=wheely_column>Штрафы</td><td width=80px class=wheely_column>Нам</td><td width=80px class=wheely_column>К выдаче</td></tr><tr class=total-row ng-click=selectParkRow(park)><td colspan=21></td><td class=digit>{{sumBy(park,'total_without_payback') | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id == '9'\">{{(sumBy(park,'payback') + rafael_payback) | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id != '9'\">{{sumBy(park,'payback') | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id == '9'\">{{(sumBy(park,'total_payable') + rafael_payback) | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id != '9'\">{{sumBy(park,'total_payable') | asPrice2 }}</td><td></td><td class=digit ng-if=\"park[0].group_id == '9'\">{{(sumBy(park,'total_to_pay') + (rafael_payback * (1 - park[0].bank_rate))) | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id != '9'\">{{sumBy(park,'total_to_pay') | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id == '110'\">{{sumBy(park,'payed_to_driver') | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id != '110'\">{{park[0].park_paid | asPrice2 }}</td><td></td><td class=digit ng-if=\"park[0].group_id == '110'\">{{sumBy(park,'total_to_pay') - sumBy(park,'payed_to_driver') - sumBy(park,'debt') | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id == '9'\">{{(sumBy(park,'total_to_pay') - park[0].park_paid + (rafael_payback * (1 - park[0].bank_rate)) - sumBy(park,'debt')) | asPrice2 }}</td><td class=digit ng-if=\"park[0].group_id != '9' && park[0].group_id != '110'\">{{sumBy(park,'total_to_pay') - park[0].park_paid - sumBy(park,'debt') | asPrice2 }}</td><td></td></tr></tfoot><tboby><tr ng-repeat=\"driv in park\" ng-class=\"driv.selected ? 'item-selected' : ''\"><td ng-if=\"driv.is_park_driver_direct_paid == '1'\" ng-click=\"selectParkDriver(driv, park)\">{{ driv.surname }} {{driv.firstname}} {{driv.patronymic}}</td><td ng-if=\"driv.is_park_driver_direct_paid != '1'\">{{ driv.surname }} {{driv.firstname}} {{driv.patronymic}}</td><td class=\"digit uber_column\">{{ driv.uber_total_netto | asPrice2 }}</td><td class=\"digit uber_column\">{{ driv.uber_correction | asPrice2 }}</td><td class=\"digit uber_column\">{{ driv.uber_sum_cash | asPrice2 }}</td><td class=\"digit uber_column\">{{ driv.uber_total_interest | asPrice2 }} ({{ driv.uber_park_comission * 100 }}%)</td><td class=\"digit uber_column\">{{ driv.uber_total_to_pay | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_total | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_total_commission | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_total_interest | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_total_cash | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_correction | asPrice2 }}</td><td class=\"digit gett_column\">{{ driv.gett_total_to_pay | asPrice2 }}</td><td class=\"digit yandex_column\"><input type=number class=numberInput ng-model=driv.yandex_asks ng-change=recalcDriverTotals(driv)></td><td class=\"digit yandex_column\">{{ driv.yandex_paid | asPrice2 }}</td><td class=\"digit yandex_column\">{{ driv.yandex_residual | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_sum_fare | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_sum_comission | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_sum_boost | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_sum_fines | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_interest | asPrice2 }}</td><td class=\"digit wheely_column\">{{ driv.wheely_to_pay | asPrice2 }}</td><td class=digit><b>{{ driv.total_without_payback | asPrice2 }}</b></td><td class=digit><b>{{ driv.payback | asPrice2 }}</b></td><td class=digit><b>{{ driv.total_payable | asPrice2 }}</b></td><td class=digit><b>{{ driv.bank_comission | asPrice2 }}</b></td><td class=digit><b>{{ driv.total_to_pay | asPrice2 }}</b></td><td class=digit ng-if=\"driv.group_id != '9' && driv.group_id != '109'\"><b>{{ driv.payed_to_driver | asPrice2 }}</b></td><td class=digit ng-if=\"driv.group_id == '9' || driv.group_id == '109'\"><b>{{ }}</b></td><td class=digit><input type=number ng-model=driv.debt class=numberInput ng-change=recalcDriverTotals(driv)></td><td class=digit ng-if=\"driv.group_id != '9' && driv.group_id != '109'\"><b>{{ driv.residual_to_pay | asPrice2 }}</b></td><td class=digit ng-if=\"driv.group_id == '9' || driv.group_id == '109'\"><b>{{ }}</b></td><td class=digit><b>{{ (driv.card_number == \"0\" ? \"\" : driv.card_number) }}<br>{{ driv.beneficiar }}</b></td></tr><tr ng-if=\"park[0].group_id=='9'\"><td>Откаты по водителям Рафаэля</td><td colspan=21></td><td class=digit>{{rafael_payback | asPrice2}}</td><td colspan=6></td></tr></tboby></table></div><div class=cover ng-show=\"isShowingDetails || isShowingPayouts || isShowingDebtWindow\"></div><div class=cover-modal ng-if=isShowingPayouts><div id=modal-payouts><div class=row><div class=\"col md-12\"><center>{{currentDriver.surname + ' ' + currentDriver.firstname + ' ' + currentDriver.patronymic }}</center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.bank_name!=='!!!! Наличными !!!'\">Номер карты: {{currentDriver.card_number}}</span></center></div></div><div class=row><div class=col-md-12><center><span ng-show=\"currentDriver.beneficiar.length > 1\">Владелец карты: {{currentDriver.beneficiar}}</span></center></div></div><div class=row><table class=\"table table-bordered table-condensed\"><thead><tr><th>Дата оплаты</th><th>Начислено</th><th>Оплачено</th></tr></thead><tbody><tr><td></td><td class=digit>{{(totalCharged) | asPriceOrNull}}</td><td></td></tr><tr ng-repeat=\"payout in payouts\" ng-click=selectPayout(payout) ng-class=\"payout.selected ? 'item-selected' : ''\"><td>{{payout.paid_at}}</td><td></td><td class=digit><span ng-show=\"! payout.editing\">{{payout.amount | asPriceOrNull}} <span class=\"glyphicon glyphicon-pencil edit-btn\" ng-click=updatePayout(payout)></span> <span class=\"glyphicon glyphicon-remove-circle cancel-btn\" ng-click=deletePayout(payout)></span></span> <input ng-keypress=\"checkPayoutEnter($event, payout)\" ng-show=payout.editing class=numberInput type=number ng-model=payout.amount></td></tr><tr class=payouts-total><td>ИТОГО</td><td class=digit>{{(totalCharged) | asPriceOrNull}}</td><td class=digit>{{totalPayouts | asPriceOrNull}}</td></tr></tbody></table></div><div class=row>Остаток к оплате : <b>{{ residualToPay | asPriceOrNull }}</b></div><div class=row><flash-message><div class=flash-div>{{ flash.text}}</div></flash-message></div><div class=row><div class=col-md-8><center><button class=\"btn btn-primary\" ng-click=addPayout() ng-show=\"residualToPay > 0 && ! isPayoutEditing && totalCharged > 0\">Добавить</button></center></div><div class=col-md-4><center><button class=\"btn btn-primary\" ng-click=closePayouts() ng-show=\"! isPayoutEditing\">Закрыть</button></center></div></div></div></div>";
 
 },{}]},{},[41])
 

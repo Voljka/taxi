@@ -9,12 +9,12 @@
       class="btn btn-primary col-md-4" 
       ngf-select ng-model="file" 
       name="file" 
-      ngf-pattern="'.csv'"
-      ngf-accept="'.csv'" 
+      ngf-pattern="'{{ext}}'"
+      ngf-accept="'{{ext}}'" 
       ngf-max-size="2MB" 
       ngf-min-height="100"
       ngf-resize="{width: 100, height: 100}"
-      ng-show="partner == 'Gett'" 
+      ng-show="partner == 'Gett' || partner == 'Wheely'" 
     >
       Выберите файл
     </div>  
