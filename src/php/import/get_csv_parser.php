@@ -8,7 +8,7 @@ function translate($str) {
 }
 
 function correct_number($num) {
-	return intval( str_replace(',', '.', strval($num)) );
+	return floatval( str_replace(',', '.', strval($num)) );
 }
 
 function is_shift_present($datetime, $driver_id){

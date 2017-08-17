@@ -12,6 +12,7 @@
     $phone = $params['phone'];
     $phone2 = $params['phone2'];
     $bank_rate = $params['bank_rate'];
+    $bank_interest = $params['bank_fixed'];
     $email = $params['email'];
     if ($params['rule_default_id'] == 1){
         $rule_default_id = "NULL";
@@ -29,7 +30,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "drivers";
 
-	$query = "UPDATE $table SET active=$active, firstname='$firstname', patronymic='$patronymic', surname='$surname', phone=$phone, phone2=$phone2, email='$email', card_number=$card_number, beneficiar='$beneficiar', bank_id=$bank_id, notes='$notes', rent=$rent, work_type_id=$work_type_id, registration_date=$registration_date, rule_default_id = $rule_default_id, bank_rate=$bank_rate ";
+	$query = "UPDATE $table SET active=$active, firstname='$firstname', patronymic='$patronymic', surname='$surname', phone=$phone, phone2=$phone2, email='$email', card_number=$card_number, beneficiar='$beneficiar', bank_id=$bank_id, notes='$notes', rent=$rent, work_type_id=$work_type_id, registration_date=$registration_date, rule_default_id = $rule_default_id, bank_rate=$bank_rate, bank_interest = $bank_interest ";
 	$query .= " WHERE id=$id ";
 
 	// echo $query;

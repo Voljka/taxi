@@ -48,32 +48,46 @@
 		<br>
 
 		<div class="row">
-			<div class="col-md-4">
+			<div class="col-md-5">
 				<div class="input-group">
 					<span class="input-group-addon">Номер карты </span>
 					<input class="form-control" ng-disabled="isCash" type="text" ng-model="cardNumber" ng-model-options="{allowInvalid:true}" ui-credit-card>
 				</div>
 			</div>
-			<div class="col-md-4">
-<!-- 				<div class="input-group">
-					<span class="input-group-addon">Банк </span>
-					<select ng-change="changeBank()" class="form-control" ng-model="driverBank" ng-init="driverBank=currentBank">   
-						<option ng-repeat="bank in banks" ng-value="bank.id">{{ bank.name }}</option>	
-					</select>
-				</div> -->
-				<div class="input-group">
-					<span class="input-group-addon">Комиссия Банка </span>
-					<input class="form-control" type="number" ng-model="bankRate">
-				</div>
-
-			</div>
-			<div class="col-md-4">
+			<div class="col-md-7">
 				<div class="input-group">
 					<span class="input-group-addon">Другой владелец карты </span>
 					<input class="form-control" ng-disabled="isCash" type="text" ng-model="beneficiar">
 				</div>
 			</div>
 		</div>
+		<br>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="input-group">
+					<span class="input-group-addon">Комиссия Банка,% </span>
+					<input class="form-control" type="number" ng-model="bankRate" ng-disabled="bankComissionType=='1'">
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div>
+					<label class="input-group-addon">%
+						<input class="form-control" type="radio" ng-model="bankComissionType" value="0" ng-change="changeBankType(0)">
+					</label>
+					<label class="input-group-addon">Fixed
+						<input class="form-control" type="radio" ng-model="bankComissionType" value="1" ng-change="changeBankType(1)">
+					</label>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="input-group">
+					<span class="input-group-addon">Комиссия Банка, фикс </span>
+					<input class="form-control" type="number" ng-model="bankFixed" ng-disabled="bankComissionType=='0'">
+				</div>
+			</div>
+			
+		</div>
+
 		<br>
 
 		<div class="row">

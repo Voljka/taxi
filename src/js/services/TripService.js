@@ -20,6 +20,9 @@ function TripService($http) {
 
   function weekly_int(range) {
 
+    console.log('range');
+    console.log(range);
+
     return $http
       .post(API_SERVER + '/weekly_integrated_aggregators.php', range)
       .then(function (data) {

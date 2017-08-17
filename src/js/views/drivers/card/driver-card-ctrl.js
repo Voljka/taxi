@@ -12,6 +12,9 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 	$scope.banks = bankList;
 	$scope.groups = groupList;
 
+	const BANK_COMISSION_PERCENT = "0",
+				BANK_COMISSION_FIXED = "1";
+
 	if ($state.current.name == 'driver_add') {
 		$scope.surname = "";
 		$scope.firstname = "";
@@ -27,6 +30,8 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.currentBank = BANK_SBERBANK;
 		$scope.beneficiar = "";
 		$scope.bankRate = 0;
+		$scope.bankFixed = 0;
+		$scope.bankComissionType = BANK_COMISSION_PERCENT;
 
 		$scope.isCash = false;
 
@@ -46,6 +51,13 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 		$scope.phone = current.phone == 0 ? "" : current.phone;
 		$scope.phone2 = current.phone2 == 0 ? "" : current.phone2;
 		$scope.bankRate = Number(current.bank_rate);
+		$scope.bankFixed = Number(current.bank_interest);
+
+		if (current.bank_interest > 0){
+			$scope.bankComissionType = BANK_COMISSION_FIXED;
+		} else {
+			$scope.bankComissionType = BANK_COMISSION_PERCENT;
+		}
 
 		$scope.cardNumber = current.card_number == 0 ? "" : current.card_number;
 		$scope.currentBank = current.bank_id;
@@ -76,6 +88,12 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 			$scope.isCash = false;
 		}
 	}
+
+  $scope.changeBankType = function(value) {
+      console.log('Selected value : ' + value);
+
+
+  }
 	
 	$scope.save = function() {
 
@@ -87,7 +105,15 @@ function DriverCardCtrl($scope, $state, groupList, bankList, current, DriverServ
 			data.patronymic = $scope.patronymic;
 
 			data.email = $scope.mail;
-			data.bank_rate = $scope.bankRate;
+
+			if ($scope.bankComissionType == "1" ){
+				data.bank_rate = 0;
+				data.bank_fixed = $scope.bankFixed;
+			} else {
+				data.bank_rate = $scope.bankRate;
+				data.bank_fixed = 0;
+			}
+
 			data.phone = $scope.phone == "" ? 0 : Number($scope.phone);
 			data.phone2 = $scope.phone2 == "" ? 0 : Number($scope.phone2);
 			data.rule_default_id = $scope.rule_default_id;

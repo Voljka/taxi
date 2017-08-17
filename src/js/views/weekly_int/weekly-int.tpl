@@ -39,7 +39,7 @@
 
         <td colspan="3" class="yandex_column">Yandex</td>
         <td colspan="5" class="uber_column" >Uber</td>
-        <td colspan="6" class="gett_column">Gett</td>
+        <td colspan="8" class="gett_column">Gett</td>
         <td colspan="6" class="wheely_column">Wheely</td>
 
       </tr>
@@ -59,6 +59,8 @@
         <td width="80px" class="gett_column">Наш Интерес <br>(3.3%)</td>
         <td width="80px" class="gett_column">Нал</td>
         <td width="80px" class="gett_column">Корр-вки</td>
+        <td width="80px" class="gett_column">Штрафы</td>
+        <td width="80px" class="gett_column">Лицензия</td>
         <td width="80px" class="gett_column">К выдаче</td>
 
         <td width="80px" class="wheely_column">Тариф</td>
@@ -82,7 +84,7 @@
 
         <td colspan="3" class="yandex_column">Yandex</td>
         <td colspan="5" class="uber_column" >Uber</td>
-        <td colspan="6" class="gett_column">Gett</td>
+        <td colspan="8" class="gett_column">Gett</td>
         <td colspan="6" class="wheely_column">Wheely</td>
 
       </tr>
@@ -102,6 +104,8 @@
         <td width="80px" class="gett_column">Наш Интерес <br>(3.3%)</td>
         <td width="80px" class="gett_column">Нал</td>
         <td width="80px" class="gett_column">Корр-вки</td>
+        <td width="80px" class="gett_column">Штрафы</td>
+        <td width="80px" class="gett_column">Лицензия</td>
         <td width="80px" class="gett_column">К выдаче</td>
 
         <td width="80px" class="wheely_column">Тариф</td>
@@ -131,14 +135,26 @@
         <td class="digit"><b>{{ el.total_to_pay | asPrice2 }} </b></td>
         <td class="digit"><b>{{ el.payed_to_driver | asPrice2 }} </b></td>
         <td class="digit"> 
-            <input type="number" ng-model="el.debt" class="numberInput" ng-change="recalcDriverTotals(el)">
+            <input type="number" ng-model="el.debt" class="numberInput" ng-change="recalcDriverTotals(el, true)">
         </td>
-        <td class="digit"><b>{{ el.residual_to_pay | asPrice2 }} </b></td>
-        <td class="digit"><b>{{ (el.card_number == "0" ? "" : el.card_number) }}<br>{{ el.beneficiar }}</b></td>
+        <td class="digit">
+            <b>{{ el.residual_to_pay | asPrice2 }} </b>
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyResidual(el.residual_to_pay)">
+            </span>            
+        </td>
+        <td class="digit">
+            <b>
+              {{ (el.card_number == "0" ? "" : el.card_number) }}<br>
+              {{ (el.card_number == "0" ? "" : el.beneficiar) }}
+            </b>
+
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyCardNumber(el.card_number)" ng-show="el.card_number != '0'">
+            </span>            
+        </td>
 
         <!-- <td class="digit yandex_column">{{ el.yandex_asks | asPrice2 }}</td> -->
         <td class="digit yandex_column"> 
-            <input type="number" ng-model="el.yandex_asks" class="numberInput" ng-change="recalcDriverTotals(el)">
+            <input type="number" ng-model="el.yandex_asks" class="numberInput" ng-change="recalcDriverTotals(el, true)">
         </td>
         <td class="digit yandex_column">{{ el.yandex_paid | asPrice2 }}</td>
         <td class="digit yandex_column">{{ el.yandex_residual | asPrice2 }}</td>
@@ -155,6 +171,10 @@
         <td class="digit gett_column">{{ el.gett_total_interest | asPrice2 }}</td>
         <td class="digit gett_column">{{ el.gett_total_cash | asPrice2 }}</td>
         <td class="digit gett_column">{{ el.gett_correction | asPrice2 }}</td>
+        <td class="digit gett_column">
+            <input type="number"  ng-change="recalcDriverTotals(el, true)" ng-model="el.gett_fines" class="numberInput">
+        </td>
+        <td class="digit gett_column">{{ el.gett_license | asPrice2 }}</td>
         <td class="digit gett_column">{{ el.gett_total_to_pay | asPrice2 }}</td>
 
 <!--         <td class="digit yandex_column"> 
@@ -210,7 +230,7 @@
 
           <td colspan="3" class="yandex_column">Yandex</td>
           <td colspan="5" class="uber_column">Uber</td>
-          <td colspan="6" class="gett_column">Gett</td>
+          <td colspan="8" class="gett_column">Gett</td>
           <td colspan="6" class="wheely_column">Wheely</td>
 
         </tr>
@@ -230,6 +250,8 @@
           <td width="80px" class="gett_column">Нам,3.3%</td>
           <td width="100px" class="gett_column">Нал</td>
           <td width="80px" class="gett_column">Корр-вки</td>
+          <td width="80px" class="gett_column">Штрафы</td>
+          <td width="80px" class="gett_column">Лицензия</td>
           <td width="110px" class="gett_column">К выдаче</td>
 
           <td width="80px" class="wheely_column">Тариф</td>
@@ -262,7 +284,7 @@
 
           <td colspan="3" class="yandex_column">Yandex</td>
           <td colspan="5" class="uber_column">Uber</td>
-          <td colspan="6" class="gett_column">Gett</td>
+          <td colspan="8" class="gett_column">Gett</td>
           <td colspan="6" class="wheely_column">Wheely</td>
 
         </tr>
@@ -282,6 +304,8 @@
           <td width="80px" class="gett_column">Нам,3.3%</td>
           <td width="100px" class="gett_column">Нал</td>
           <td width="80px" class="gett_column">Корр-вки</td>
+          <td width="80px" class="gett_column">Штрафы</td>
+          <td width="80px" class="gett_column">Лицензия</td>
           <td width="110px" class="gett_column">К выдаче</td>
 
           <td width="80px" class="wheely_column">Тариф</td>
@@ -295,14 +319,14 @@
           <td>ИТОГО :</td>
           <td class="digit">{{sumBy(park,'total_without_payback') | asPrice2 }}</td>
           
-          <td class="digit" ng-if="park[0].group_id == '9'">{{(sumBy(park,'payback') + rafael_payback) | asPrice2 }}</td>
+          <td class="digit" ng-if="park[0].group_id == '9'">{{ westAutoPayback(park) | asPrice2 }}</td>
           <td class="digit" ng-if="park[0].group_id != '9'">{{sumBy(park,'payback') | asPrice2 }}</td>
 
-          <td class="digit" ng-if="park[0].group_id == '9'">{{(sumBy(park,'total_payable') + rafael_payback) | asPrice2 }}</td>
+          <td class="digit" ng-if="park[0].group_id == '9'">{{ westAutoPayable(park) | asPrice2 }}</td>
           <td class="digit" ng-if="park[0].group_id != '9'">{{sumBy(park,'total_payable') | asPrice2 }}</td>
           <td></td>
 
-          <td class="digit" ng-if="park[0].group_id == '9'">{{(sumBy(park,'total_to_pay') + (rafael_payback * (1 - park[0].bank_rate))) | asPrice2 }}</td>
+          <td class="digit" ng-if="park[0].group_id == '9'">{{ westAutoToPay(park) | asPrice2 }}</td>
           <td class="digit" ng-if="park[0].group_id != '9'">{{sumBy(park,'total_to_pay') | asPrice2 }}</td>
 
           <td class="digit" ng-if="park[0].group_id == '110'">{{sumBy(park,'payed_to_driver') | asPrice2 }}</td>
@@ -310,9 +334,22 @@
           
           <td></td>
 
-          <td class="digit" ng-if="park[0].group_id == '110'">{{sumBy(park,'total_to_pay') - sumBy(park,'payed_to_driver') - sumBy(park,'debt') | asPrice2 }}</td>
-          <td class="digit" ng-if="park[0].group_id == '9'">{{(sumBy(park,'total_to_pay') - park[0].park_paid + (rafael_payback * (1 - park[0].bank_rate))  - sumBy(park,'debt')) | asPrice2 }}</td>
-          <td class="digit" ng-if="park[0].group_id != '9' && park[0].group_id != '110'">{{sumBy(park,'total_to_pay') - park[0].park_paid  - sumBy(park,'debt') | asPrice2 }}</td>
+          <td class="digit" ng-if="park[0].group_id == '110'">
+            {{sumBy(park,'total_to_pay') - sumBy(park,'payed_to_driver') - sumBy(park,'debt') | asPrice2 }}
+
+          </td>
+          <td class="digit" ng-if="park[0].group_id == '9'">
+            {{ westAutoResidual(park) | asPrice2 }}
+            <br>
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyResidual(westAutoResidual(park))">
+            </span>            
+
+          </td>
+          <td class="digit" ng-if="park[0].group_id != '9' && park[0].group_id != '110'">
+            {{sumBy(park,'total_to_pay') - park[0].park_paid  - sumBy(park,'debt') | asPrice2 }}
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyResidual(sumBy(park,'total_to_pay') - park[0].park_paid  - sumBy(park,'debt'))">
+            </span>            
+          </td>
 
           <td></td>
         </tr>        
@@ -338,16 +375,25 @@
           <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
 
           <td class="digit"> 
-              <input type="number" ng-model="driv.debt" class="numberInput" ng-change="recalcDriverTotals(driv)">
+              <input type="number" ng-model="driv.debt" class="numberInput" ng-change="recalcDriverTotals(driv, true)">
           </td>
 
-          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'"><b>{{ driv.residual_to_pay | asPrice2 }} </b></td>
+          <td class="digit" ng-if="driv.group_id != '9' && driv.group_id != '109'">
+            <b>{{ driv.residual_to_pay | asPrice2 }} </b>
+
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyResidual(driv.residual_to_pay)" ng-show="driv.is_park_driver_direct_paid == '1'">
+            </span>            
+          </td>
           <td class="digit" ng-if="driv.group_id == '9' || driv.group_id == '109'"><b>{{  }} </b></td>
 
-          <td class="digit"><b>{{ (driv.card_number == "0" ? "" : driv.card_number) }}<br>{{ driv.beneficiar }}</b></td>
+          <td class="digit">
+            <b>{{ (driv.card_number == "0" ? "" : driv.card_number) }}<br>{{ (driv.card_number == "0" ? "" : driv.beneficiar) }}</b>
+            <span class="glyphicon glyphicon-duplicate edit-btn" ng-click="copyCardNumber(driv.card_number)" ng-show="driv.card_number != '0'">
+            </span>            
+          </td>
 
           <td class="digit yandex_column"> 
-              <input type="number" class="numberInput" ng-model="driv.yandex_asks" ng-change="recalcDriverTotals(driv)">
+              <input type="number" class="numberInput" ng-model="driv.yandex_asks" ng-change="recalcDriverTotals(driv, true)">
           </td>
 
           <!-- <td class="digit yandex_column">{{ driv.yandex_asks | asPrice2 }}</td> -->
@@ -366,6 +412,12 @@
           <td class="digit gett_column">{{ driv.gett_total_interest | asPrice2 }}</td>
           <td class="digit gett_column">{{ driv.gett_total_cash | asPrice2 }}</td>
           <td class="digit gett_column">{{ driv.gett_correction | asPrice2 }}</td>
+          <td class="digit gett_column">
+            <!-- {{ driv.gett_fines | asPrice2 }} -->
+            <input type="number" ng-model="driv.gett_fines" class="numberInput" ng-change="recalcDriverTotals(driv, true)">
+          </td>
+          <td class="digit gett_column">{{ driv.gett_license | asPrice2 }}</td>
+
           <td class="digit gett_column">{{ driv.gett_total_to_pay | asPrice2 }}</td>
 
 <!--           <td class="digit yandex_column"> 
@@ -389,6 +441,12 @@
           <td>Откаты по водителям Рафаэля</td>
           <td></td>
           <td class="digit">{{rafael_payback | asPrice2}}</td>
+          <td colspan="6"></td>
+        </tr>
+        <tr ng-if="park[0].group_id=='9'">
+          <td>Откаты по водителям ВА Фрилансеры</td>
+          <td></td>
+          <td class="digit">{{ westFreelancersPayback | asPrice2}}</td>
           <td colspan="6"></td>
         </tr>
       </tboby>
@@ -452,7 +510,7 @@
                         <td>{{payout.paid_at}}</td>
                         <td></td>
                         <td class="digit">
-                            <span ng-show="! payout.editing">
+                            <span ng-if="! payout.editing">
                                 {{payout.amount | asPriceOrNull}}
                                 <span class="glyphicon glyphicon-pencil edit-btn" ng-click="updatePayout(payout)">
                                 </span>
@@ -460,7 +518,7 @@
                                 </span>
                             </span>
 
-                            <input ng-keypress="checkPayoutEnter($event, payout)" ng-show="payout.editing" class="numberInput" type="number" ng-model="payout.amount">
+                            <input ng-keypress="checkPayoutEnter($event, payout)" ng-if="payout.editing" class="numberInput" type="number" ng-model="payout.amount">
                         </td>
                     </tr>
 
@@ -492,6 +550,7 @@
                         Добавить
                     </button>
                 </center>
+                <button class="btn btn-primary" ng-click="focusOnSaveInput()">Focus</button>                
             </div>
             <div class="col-md-4">
                 <center>

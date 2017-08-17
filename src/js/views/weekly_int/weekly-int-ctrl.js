@@ -1,10 +1,15 @@
 'use strict';
 
-import { filter, isDate, assign, groupBy, omit, find, isEmpty, map, uniqBy, sumBy } from 'lodash';
-import { calcWeekStartAndEnd, datePlusDays, formattedToSave, daysBetween, treatAsUTC, daysFromToday } from '../../libs/date';
+import { forEach, filter, isDate, assign, groupBy, omit, find, isEmpty, map, uniqBy, sumBy } from 'lodash';
+import { formattedToSaveTime, calcWeekStartAndEnd, datePlusDays, formattedToSave, daysBetween, treatAsUTC, daysFromToday } from '../../libs/date';
+
+import copy from 'copy-to-clipboard'
 
 function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
+    const $GETT_OUR_COMISSION = 0.032;
+
+    Flash.clear();
     calcDefaultReportDates();
 
     const PARK_PAYOUTS = 1, DRIVER_PAYOUTS = 2;
@@ -60,6 +65,9 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
             o.gett_correction = o.gett_correction ? Number(o.gett_correction) : 0;
             o.gett_sum_boost = o.gett_sum_boost ? Number(o.gett_sum_boost) : 0;
             o.gett_sum_comission = o.gett_sum_comission ? Number(o.gett_sum_comission) : 0;
+            
+            o.gett_fines = o.gett_fines ? Number(o.gett_fines) : 0;
+            o.gett_license = o.gett_license ? Number(o.gett_license) : Number(o.calced_license);
 
             o.wheely_sum_fare = o.wheely_sum_fare ? Number(o.wheely_sum_fare) : 0;
             o.wheely_sum_boost = o.wheely_sum_boost ? Number(o.wheely_sum_boost) : 0;
@@ -71,11 +79,15 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
             o.uber_park_comission = Number(o.uber_park_comission);
             o.wheely_park_comission = Number(o.wheely_park_comission);
-            o.bank_rate = Number(o.bank_rate);
+            o.bank_rate = o.bank_rate ? Number(o.bank_rate) : 0;
+            o.bank_fixed = o.bank_interest ? Number(o.bank_interest) : 0;
             o.uber_bonus = o.uber_bonus ? Number(o.uber_bonus) : 0;
 
-            o.park_paid = o.park_paid ? Number(o.park_paid) : 0;
-            o.payed_to_driver = o.freelancer_paid ? Number(o.freelancer_paid) : 0;
+            // o.park_paid = o.park_paid ? Number(o.park_paid) : 0;
+            // o.payed_to_driver = o.freelancer_paid ? Number(o.freelancer_paid) : 0;
+
+            o.park_paid = o.park_paid ? o.park_paid : 0;
+            o.payed_to_driver = o.freelancer_paid ? o.freelancer_paid : 0;
 
             //o.yandex_asks = o.yandex_asks ? Number(o.yandex_asks) : 0;
             o.yandex_asks = o.asks;
@@ -91,11 +103,44 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
         return data;
     }
 
-    function recalcDriverTotals(obj){
+    function recalcWestAdditionalPaybacks(){
+
+        var rafa = 0, frees = 0;
+
+        for (var nam in $scope.parks){
+            console.log('nam', nam);
+
+            if (nam == "Вест Авто Фрилансеры"){
+                ($scope.parks[nam]).forEach(function(o){
+                    frees += (o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02;
+                })
+            }
+
+            if (nam == "Вест Авто Рафаэль"){
+                ($scope.parks[nam]).forEach(function(o){
+                    rafa += Number(( (o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02).toFixed(2));
+                })
+            }
+        }
+
+        $scope.rafael_payback = Number(rafa.toFixed(2));
+        $scope.westFreelancersPayback = Number(frees.toFixed(2));
+
+        console.log('$scope.rafael_payback', $scope.rafael_payback);
+        console.log('$scope.westFreelancersPayback', $scope.westFreelancersPayback);
+    }
+
+    function recalcDriverTotals(obj, renew){
+
+        if (renew){
+            recalcWestAdditionalPaybacks();
+        }
+
+        obj.gett_total_to_pay = obj.gett_total - obj.gett_total_commission - obj.gett_total_interest - obj.gett_total_cash + obj.gett_correction - obj.gett_fines - obj.gett_license;
 
         obj.yandex_residual = Number((obj.yandex_asks * (1 - 0.03)).toFixed(2)) - obj.yandex_paid;
 
-        obj.wheely_total = obj.wheely_sum_fare - obj.wheely_sum_comission - obj.wheely_sum_fines + obj.wheely_sum_boost;
+        obj.wheely_total = obj.wheely_sum_fare + obj.wheely_sum_comission - obj.wheely_sum_fines + obj.wheely_sum_boost;
         if (obj.is_park == 1){
             obj.wheely_interest = Number((obj.wheely_total * obj.wheely_park_comission).toFixed(2));
         } else{
@@ -121,14 +166,55 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
         }
 
         obj.total_payable += obj.payback;
+        if (obj.bank_fixed > 0) {
+            // obj.bank_comission = Number((obj.total_payable - obj.bank_fixed).toFixed(2));
+            obj.bank_comission = obj.bank_fixed;
 
-        obj.bank_comission = Number((obj.total_payable * obj.bank_rate).toFixed(2));
-        obj.total_to_pay = Number((obj.total_payable * (1 - obj.bank_rate/100)).toFixed(2));
-        obj.residual_to_pay = obj.total_to_pay - obj.payed_to_driver - obj.debt;
+        } else {
+            obj.bank_comission = Number((obj.total_payable * obj.bank_rate/100).toFixed(2));
+        }
+        obj.total_to_pay = Number((obj.total_payable - obj.bank_comission).toFixed(2));
+        obj.residual_to_pay = Number((obj.total_to_pay - obj.payed_to_driver - obj.debt).toFixed(2));
 
     }
 
     $scope.sumBy = sumBy;
+
+    $scope.westAutoToPay = function(park) {
+        var res;
+
+        if (park[0].bank_fixed > 0){
+            res = sumBy(park,'total_to_pay') + $scope.rafael_payback + $scope.westFreelancersPayback - park[0].bank_fixed;
+        } else {
+            res = sumBy(park,'total_to_pay') + ($scope.rafael_payback + $scope.westFreelancersPayback) * (1 - park[0].bank_rate/100);
+        }
+
+        return res;
+    }
+
+    $scope.westAutoPayback = function(park) {
+        var res = sumBy(park,'payback') + $scope.rafael_payback + $scope.westFreelancersPayback;
+
+        return res;
+    }
+
+    $scope.westAutoPayable = function(park) {
+        var res =  sumBy(park,'total_payable') + $scope.rafael_payback + $scope.westFreelancersPayback;
+
+        return res;
+    }
+
+    $scope.westAutoResidual = function(park) {
+        var res;
+
+        if (park[0].bank_fixed > 0){
+            res = (sumBy(park,'total_to_pay') - park[0].park_paid + $scope.rafael_payback + $scope.westFreelancersPayback - sumBy(park,'debt')) - park[0].bank_fixed;
+        } else {
+            res = (sumBy(park,'total_to_pay') - park[0].park_paid + ($scope.rafael_payback + $scope.westFreelancersPayback)* (1 - park[0].bank_rate/100)  - sumBy(park,'debt'));
+        }
+
+        return res;
+    }
 
 
     $scope.selectFreeDriver = function(o){
@@ -158,6 +244,7 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
                 week_id: o.week_id,
                 asks: o.yandex_asks,
                 debt: o.debt,
+                gett_fines: o.gett_fines,
             }]
         }
 
@@ -179,6 +266,7 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
                 week_id: o.week_id,
                 asks: o.yandex_asks,
                 debt: o.debt,
+                gett_fines: o.gett_fines,
             });
 
         })
@@ -219,7 +307,8 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
         currentParkId = park[0].group_id;
 
         if (data.group_id == 9){
-            $scope.totalCharged = sumBy(park,'total_to_pay') + ($scope.rafael_payback * (1 - data.bank_rate));
+            
+            $scope.totalCharged = $scope.westAutoToPay(park);// sumBy(park,'total_to_pay') + ($scope.rafael_payback * (1 - data.bank_rate));
         } else {
             $scope.totalCharged = sumBy(park,'total_to_pay');
         }
@@ -246,8 +335,6 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
                 
             })
     }
-
-
 
     $scope.showPayoutsToDriver = function(isPark){
 
@@ -338,10 +425,10 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
     $scope.makeSummary = function(){
         if (isDate($scope.start) && isDate($scope.end)) {
             var period = {
-                // start: formattedToSave( $scope.start ),
-                // end: formattedToSave( $scope.end ),
-                start: $scope.start,
-                end: $scope.end,
+                start: (formattedToSaveTime ( $scope.start )).substr(0, 10),
+                end: (formattedToSaveTime( $scope.end )).substr(0, 10),
+                // start: $scope.start,
+                // end: $scope.end,
             };
 
             console.log(period);
@@ -369,23 +456,14 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
                     parks = calcParkData(parks);
 
-                    var res = 0;
-
-                    parks.forEach(function(o){
-                        if (o.group_id == 109){
-                            // console.log(o.surname + " : " + Number(( (o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02).toFixed(2)));
-                            res += Number(( (o.uber_total_netto + o.gett_total + o.wheely_total) * 0.02).toFixed(2));
-                        } 
-                    })
-
-                    $scope.rafael_payback = res;
-
                     // console.log('$scope.rafael_payback');
                     // console.log($scope.rafael_payback);                         
 
                     $scope.parks = groupBy(parks, function(o){
                         return o.group_name;
                     });
+
+                    recalcWestAdditionalPaybacks();
 
                     console.log('$scope.parks');
                     console.log($scope.parks);
@@ -401,16 +479,15 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
 
         var result = map(dataset, function(o){
-            o.uber_total = Number(o.uber_sum_fare) + Number(o.uber_sum_boost) + Number(o.uber_bonus)  + o.uber_correction;
-            o.uber_total_netto = Number(o.uber_sum_fare) + Number(o.uber_sum_comission) + Number(o.uber_sum_boost) + Number(o.uber_bonus)  + o.uber_correction;
+            o.uber_total = Number(o.uber_sum_fare) + Number(o.uber_sum_boost) + Number(o.uber_bonus)  + Number(o.uber_correction);
+            o.uber_total_netto = Number(o.uber_sum_fare) + Number(o.uber_sum_comission) + Number(o.uber_sum_boost) + Number(o.uber_bonus) + Number(o.uber_correction);
             o.uber_total_interest = Number(((o.uber_total_netto) * 0.05).toFixed(2));
             o.uber_total_to_pay = Number(((o.uber_total_netto - o.uber_total_interest - Number(o.uber_sum_cash)) ).toFixed(2));
 
             o.gett_total = Number(o.gett_sum_fare);
             o.gett_total_commission = Number((o.gett_total * 0.177).toFixed(2));
-            o.gett_total_interest = Number((o.gett_total * 0.033).toFixed(2));
+            o.gett_total_interest = Number((o.gett_total * $GETT_OUR_COMISSION).toFixed(2));
             o.gett_total_cash = Number(o.gett_sum_cash);
-            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash + o.gett_correction;
 
             recalcDriverTotals(o);
             return o;
@@ -439,11 +516,11 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
             if (o.is_own_park == 1) {
                 o.gett_total_interest = 0;
             } else {
-                o.gett_total_interest = Number((o.gett_total * 0.033).toFixed(2));
+                o.gett_total_interest = Number((o.gett_total * $GETT_OUR_COMISSION).toFixed(2));
             }
 
             o.gett_total_cash = o.gett_sum_cash;
-            o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash + o.gett_correction;
+            // o.gett_total_to_pay = o.gett_total - o.gett_total_commission - o.gett_total_interest - o.gett_total_cash + o.gett_correction + o.gett_fines;
 
             recalcDriverTotals(o);
             return o;
@@ -559,7 +636,9 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
       $scope.isPayoutEditing = true;
 
       $scope.payouts.push(newPayout);
+      // $scope.$broadcast("focusTextInput");
     }
+
 
     $scope.updatePayout = function(payout) {
       payout.editing = true;
@@ -597,6 +676,19 @@ function WeeklyIntCtrl($scope, $state, TripService, PayoutService, Flash) {
 
     function getCounter(){
       return (counter++);
+    }
+
+    $scope.doSomething = function() {
+      // do something awesome
+      focus('inputFieldPayout');
+    };    
+
+    $scope.copyResidual = function(residual){
+        copy(residual);
+    }
+
+    $scope.copyCardNumber = function(cardnumber){
+        copy(cardnumber);
     }
 
 }

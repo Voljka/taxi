@@ -46,7 +46,8 @@ angular.module('weeklyIntModule', ['ngFlash'])
   })
   .factory('TripService', ['$http', tripService])
   .factory('PayoutService', ['$http', payoutService])
-  .controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', 'PayoutService', 'Flash', controller]);
+
+ .controller('WeeklyIntCtrl', ['$scope', '$state', 'TripService', 'PayoutService', 'Flash', controller]);
 
 module.exports = {
   template: require('./weekly-int.tpl'), 

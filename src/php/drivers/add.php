@@ -10,6 +10,7 @@
     $patronymic = $params['patronymic'];
     $surname = $params['surname'];
     $bank_rate = $params['bank_rate'];
+    $bank_interest = $params['bank_fixed'];
     $phone = $params['phone'];
     $phone2 = $params['phone2'];
     $email = $params['email'];
@@ -29,7 +30,7 @@
 	/* Таблица MySQL, в которой хранятся данные */
 	$table = "drivers";
 
-	$query = "INSERT INTO $table (active, work_type_id, firstname, patronymic, surname, phone, phone2, email, card_number, beneficiar, bank_id, notes, rent, bank_rate, rule_default_id, registration_date) VALUES (";
+	$query = "INSERT INTO $table (active, work_type_id, firstname, patronymic, surname, phone, phone2, email, card_number, beneficiar, bank_id, notes, rent, bank_rate, bank_interest, rule_default_id, registration_date) VALUES (";
     $query .="$active,";
     $query .="$work_type_id,";
     $query .="'$firstname',";
@@ -44,6 +45,7 @@
 	$query .="'notes',";
     $query .="$rent,";
     $query .="$bank_rate,";
+    $query .="$bank_interest,";
     $query .="$rule_default_id,";
     $query .="registration_date)";
 

@@ -33,10 +33,22 @@ function ImportService($http){
       });
   }
 
-  function uberCurrent(data) {
+  function uberCurrent2(data) {
 
     return $http
       .post('php/vendor/statement2.php', data)
+      .then(function (data) {
+        return data.data;
+      })
+      .catch(function () {
+        return undefined;
+      });
+  }
+
+  function uberCurrent(data) {
+
+    return $http
+      .post('php/vendor/statement_brief_info.php', data)
       .then(function (data) {
         return data.data;
       })

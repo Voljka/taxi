@@ -266,8 +266,8 @@ $unshifted_trips_list = '';
 $unshifted_trips_count = 0;
 $new_corrections_count = 0;
 
-$last_date = "1900-01-01";
-$first_date = "2100-12-31";
+// $last_date = "1900-01-01";
+// $first_date = "2100-12-31";
 
 ////////////// Loop by drivers in the report
 
@@ -301,7 +301,7 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
             }
         } else {
         	// save uber bonuses
-          if (array_key_exists('misc', $aD) && array_key_exists('total', $aD['misc']) && floatval($aD['misc']['total']) > 0) {
+          if (array_key_exists('misc', $aD) && array_key_exists('total', $aD['misc']) && floatval($aD['misc']['total']) != 0) {
           	$bonus_sum = floatval($aD['misc']['total']);
           	//file_put_contents("weeks_params.log", $aD['last_name'] . " : " . $bonus_sum . "\n", FILE_APPEND);
           	$bonus = array();
@@ -354,60 +354,97 @@ foreach ($aRes['body']['drivers'] as $k=>$aD) {
 				            $cancellation = 0;
 			            }
 
+			            // if (array_key_exists('line_items', $aTrip) && $is_trip_a_recalc) {
+			            // 	if (! is_correction_presents($ids[$driver_index], $aTrip['line_items'][0]['data']['message'], $aTrip['fare_adjustment_delta'])){
+					          //   $query2 .= "(";
+					          //   $query2 .= $UBER . ',';
+					          //   $query2 .= "'$trip_id',";
+					          //   $query2 .= $ids[$driver_index] . ',';
+
+					          //   $full_fare = floatval($aTrip['fare_adjustment_delta']) + floatval($surge) + floatval($cancellation);
+					          //   $query2 .= $full_fare . ',';
+					          //   $query2 .= '"' . $aTrip['line_items'][0]['data']['message'] . '",';
+					          //   $query2 .= "'".$week_finish."'";
+					          //   $query2 .= "),";
+
+					          //   $new_corrections_count++;
+			            // 	} else {
+			            // 		$already_exists_corrections_count++;
+			            // 	}
+			            // } else {
+			            // 	$curdate = date('Y-m-d H:i:s', strtotime($aTrip['date']));
+			            	
+
+				           //  $query .= "(". $UBER . ',';
+				           //  $query .= '"' . date('Y-m-d H:i:s', strtotime($aTrip['date'])) . '",';
+				           //  $query .= '"' . $trip_id . '",';
+				           //  $query .= $TRIP_CASH . ',';
+
+				           //  $full_fare = floatval($aTrip['fare']) + floatval($surge) + floatval($cancellation);
+				           //  $query .= $full_fare . ',';
+
+				           //  if (array_key_exists('earnings_boost_non_commissionable', $aTrip)){
+				           //  	$boost = $aTrip['earnings_boost_non_commissionable'];
+				           //  } else {
+				           //  	$boost = 0;
+
+				           //  }
+				           //  $query .= $boost . ',';
+
+				           //  $query .= ($aTrip['uber_fee_inc_vat'] ? $aTrip['uber_fee_inc_vat'] : 0) . ',';
+				           //  $query .= $aTrip['cash_collected'] . ',';
+				           //  $query .= 'NULL,';
+				           //  $query .= '"' . $driver_name . '",';
+				           //  $query .= $driver_phone . ',' ;
+				           //  $query .= $ids[$driver_index] ;
+				           //  $query .= "),";
+			            // }
+
+		            	$curdate = date('Y-m-d H:i:s', strtotime($aTrip['date']));
+		            	
+
+			            $query .= "(". $UBER . ',';
+			            $query .= '"' . date('Y-m-d H:i:s', strtotime($aTrip['date'])) . '",';
+			            $query .= '"' . $trip_id . '",';
+			            $query .= $TRIP_CASH . ',';
+
+			            $full_fare = floatval($aTrip['fare']) + floatval($surge) + floatval($cancellation);
+			            $query .= $full_fare . ',';
+
+			            if (array_key_exists('earnings_boost_non_commissionable', $aTrip)){
+			            	$boost = $aTrip['earnings_boost_non_commissionable'];
+			            } else {
+			            	$boost = 0;
+
+			            }
+			            $query .= $boost . ',';
+
+			            $query .= ($aTrip['uber_fee_inc_vat'] ? $aTrip['uber_fee_inc_vat'] : 0) . ',';
+			            $query .= $aTrip['cash_collected'] . ',';
+			            $query .= 'NULL,';
+			            $query .= '"' . $driver_name . '",';
+			            $query .= $driver_phone . ',' ;
+			            $query .= $ids[$driver_index] ;
+			            $query .= "),";
+
 			            if (array_key_exists('line_items', $aTrip) && $is_trip_a_recalc) {
 			            	if (! is_correction_presents($ids[$driver_index], $aTrip['line_items'][0]['data']['message'], $aTrip['fare_adjustment_delta'])){
 					            $query2 .= "(";
 					            $query2 .= $UBER . ',';
 					            $query2 .= "'$trip_id',";
 					            $query2 .= $ids[$driver_index] . ',';
-					            // $query2 .= $aTrip['fare_adjustment_delta'] . ',';
 
 					            $full_fare = floatval($aTrip['fare_adjustment_delta']) + floatval($surge) + floatval($cancellation);
 					            $query2 .= $full_fare . ',';
 					            $query2 .= '"' . $aTrip['line_items'][0]['data']['message'] . '",';
-					            $query2 .= "'".date("Y-m-d")."'";
+					            $query2 .= "'".$week_finish."'";
 					            $query2 .= "),";
 
 					            $new_corrections_count++;
 			            	} else {
 			            		$already_exists_corrections_count++;
 			            	}
-			            } else {
-			            	$curdate = date('Y-m-d H:i:s', strtotime($aTrip['date']));
-			            	
-			            	if ($first_date > $curdate )
-			            		$first_date = $curdate ;	
-			            	if ($last_date < $curdate)
-			            		$last_date = $curdate;	
-
-				            $query .= "(". $UBER . ',';
-				            $query .= '"' . date('Y-m-d H:i:s', strtotime($aTrip['date'])) . '",';
-				            $query .= '"' . $trip_id . '",';
-				            $query .= $TRIP_CASH . ',';
-
-				            // $query .= $aTrip['fare'] . ',';
-				            $full_fare = floatval($aTrip['fare']) + floatval($surge) + floatval($cancellation);
-				            $query .= $full_fare . ',';
-
-				            if (array_key_exists('earnings_boost_non_commissionable', $aTrip)){
-				            	$boost = $aTrip['earnings_boost_non_commissionable'];
-				            } else {
-				            	$boost = 0;
-
-				            }
-				            $query .= $boost . ',';
-
-				            $query .= ($aTrip['uber_fee_inc_vat'] ? $aTrip['uber_fee_inc_vat'] : 0) . ',';
-				            $query .= $aTrip['cash_collected'] . ',';
-				            $query .= 'NULL,';
-				            //// non-obligable fields. Remove them!!!!!!!
-				            $query .= '"' . $driver_name . '",';
-				            $query .= $driver_phone . ',' ;
-				            /////////////////////////////////////////////
-
-				            $query .= $ids[$driver_index] ;
-				            $query .= "),";
-			            }
+			            } 
 
 			        // Driver hasnt a shift
 			        } else {
@@ -504,48 +541,48 @@ file_put_contents('uber_strict_parser.sql', '<br> Пропущено сущес�
 
 
 // if ($bad_contacts_count == 0 && $unshifted_trips_count == 0 && $successfull_loads_count > 0) {
-		file_put_contents('uber_completeness.sql', date("Y-m-d H:i:s"). "\n");
+		// file_put_contents('uber_completeness.sql', date("Y-m-d H:i:s"). "\n");
 
-		if (strval(substr($last_date, 11,2))> 12) {
-			$end_date = substr($last_date, 0, 10);
-		} else {
-			$end_date = date("Y-m-d", strtotime($last_date) - 24*60*60);	 
-		}
+		// if (strval(substr($last_date, 11,2))> 12) {
+		// 	$end_date = substr($last_date, 0, 10);
+		// } else {
+		// 	$end_date = date("Y-m-d", strtotime($last_date) - 24*60*60);	 
+		// }
 
-		if (strval(substr($first_date, 11,2))> 12) {
-			$start_date = substr($first_date, 0, 10);
-		} else {
-			$start_date = date("Y-m-d", strtotime($first_date) - 24*60*60);	 
-		}
+		// if (strval(substr($first_date, 11,2))> 12) {
+		// 	$start_date = substr($first_date, 0, 10);
+		// } else {
+		// 	$start_date = date("Y-m-d", strtotime($first_date) - 24*60*60);	 
+		// }
 
-		file_put_contents('uber_completeness.sql', 'firstdate = '. $first_date. "\n", FILE_APPEND);
-		file_put_contents('uber_completeness.sql', 'lastdate = '. $last_date. "\n", FILE_APPEND);
+		// file_put_contents('uber_completeness.sql', 'firstdate = '. $first_date. "\n", FILE_APPEND);
+		// file_put_contents('uber_completeness.sql', 'lastdate = '. $last_date. "\n", FILE_APPEND);
 
-		file_put_contents('uber_completeness.sql', 'startdate = '. $start_date. "\n", FILE_APPEND);
-		file_put_contents('uber_completeness.sql', 'enddate = '. $end_date. "\n", FILE_APPEND);
+		// file_put_contents('uber_completeness.sql', 'startdate = '. $start_date. "\n", FILE_APPEND);
+		// file_put_contents('uber_completeness.sql', 'enddate = '. $end_date. "\n", FILE_APPEND);
 
-		while ($start_date <= $end_date) {
+		// while ($start_date <= $end_date) {
 
-		    $query = "SELECT import_for_date FROM gett_completed_imports ";
-		    $query .= " WHERE import_for_date = '$start_date' ";
+		//     $query = "SELECT import_for_date FROM gett_completed_imports ";
+		//     $query .= " WHERE import_for_date = '$start_date' ";
 
-			$result = mysql_query($query) or die(mysql_error());
+		// 	$result = mysql_query($query) or die(mysql_error());
 
-			if (mysql_num_rows($result) > 0) {
+		// 	if (mysql_num_rows($result) > 0) {
 
-			} else {
-				$query = "INSERT INTO gett_completed_imports ";
-				$query .= "(import_for_date) ";
-				$query .= "VALUES (";
-				$query .= "'$start_date' ";
-				$query .= ")";
+		// 	} else {
+		// 		$query = "INSERT INTO gett_completed_imports ";
+		// 		$query .= "(import_for_date) ";
+		// 		$query .= "VALUES (";
+		// 		$query .= "'$start_date' ";
+		// 		$query .= ")";
 
-				file_put_contents('uber_completeness.sql', $query . "\n", FILE_APPEND);
-				$result = mysql_query($query) or die(mysql_error());
-			}
+		// 		file_put_contents('uber_completeness.sql', $query . "\n", FILE_APPEND);
+		// 		$result = mysql_query($query) or die(mysql_error());
+		// 	}
 
-			$start_date = date("Y-m-d", strtotime($start_date) + 24*60*60);	 
-		}
+		// 	$start_date = date("Y-m-d", strtotime($start_date) + 24*60*60);	 
+		// }
 // }
 
 ?>
